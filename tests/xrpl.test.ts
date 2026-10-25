@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { authorizeExactAction } from "../packages/authorization/src/index.ts";
-import { createRegistry, contentHash } from "../packages/registry/src/index.ts";
+import { createRegistry, createExecutionStore, contentHash, APPROVED_REP_POLICY_HASH } from "../packages/registry/src/index.ts";
 import {
   BorrowingMandate,
   LenderFacilityOffer,
@@ -12,15 +12,16 @@ import {
   ScenarioFixture,
 } from "../packages/schemas/src/index.ts";
 import {
+  createNativeTransport,
   createStructuralNativeVerifiers,
   originateLoan,
   repayLoan,
   type LiveLedger,
 } from "../packages/xrpl/src/index.ts";
-import { APPROVED_REP_POLICY_HASH } from "../packages/registry/src/index.ts";
 
 const require = createRequire(new URL("../services/api/package.json", import.meta.url));
 const Database = require("better-sqlite3");
+const { Wallet, decode } = createRequire(new URL("../packages/xrpl/package.json", import.meta.url))("xrpl");
 const root = resolve(import.meta.dirname, "..");
 const load = (name: string) =>
   JSON.parse(readFileSync(resolve(root, "fixtures", name), "utf8"));
@@ -209,38 +210,13 @@ describe("simulated XRPL originate", () => {
   });
 });
 
-const LIVE_BORROWER = "rN7n7otQDd6FczFgLdqtyMVrn3rMSH5qQ";
-const LIVE_ISSUER = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh";
 const LIVE_MPT = "A".repeat(48);
 const LIVE_REP = "B".repeat(48);
 
-function mockLiveLedger(): LiveLedger {
-  let n = 0;
-  const hash = () => {
-    n += 1;
-    return `${n.toString(16).padStart(2, "0")}${"ab".repeat(31)}`.slice(0, 64);
-  };
-  return {
-    async redeemStake() {
-      return { txHash: hash(), ledgerIndex: 1000 + n, transactionIndex: 0 };
-    },
-    async originateLoanSet() {
-      const txHash = hash();
-      return {
-        txHash,
-        loanId: `loan-live-${n}`,
-        ledgerIndex: 2000 + n,
-        transactionIndex: 1,
-        preparedCommitment: `sha256:${"11".repeat(32)}`,
-      };
-    },
-    async repayLoanPay() {
-      return { txHash: hash(), ledgerIndex: 3000 + n, transactionIndex: 2 };
-    },
-  };
-}
-
 async function setupLive() {
+  const borrower = Wallet.generate();
+  const broker = Wallet.generate();
+  const issuer = Wallet.generate();
   const dir = mkdtempSync(resolve(tmpdir(), "shellfish-xrpl-live-"));
   folders.push(dir);
   const db = new Database(resolve(dir, "t.db"));
@@ -255,7 +231,7 @@ async function setupLive() {
   const loanAsset = { mpt_issuance_id: LIVE_MPT };
   const repAsset = {
     mpt_issuance_id: LIVE_REP,
-    issuer: LIVE_ISSUER,
+    issuer: issuer.classicAddress,
     asset_scale: 6 as const,
   };
   await registry.initializeNativePortfolio(
@@ -268,14 +244,14 @@ async function setupLive() {
       clock: clock.toISOString().replace(/\.\d{3}Z$/, "Z"),
       money_scale: 100,
       rep_scale: 1000000,
-      principal_id: `devnet:${LIVE_BORROWER}`,
+      principal_id: `devnet:${borrower.classicAddress}`,
       loan_asset: loanAsset,
       rep_asset: repAsset,
       policy_hash: APPROVED_REP_POLICY_HASH,
       evidence_version: "live-unit",
       facility: {
         facility_id: "devnet:facility-live",
-        lender_id: LIVE_ISSUER,
+        lender_id: broker.classicAddress,
         asset: loanAsset,
         limit_minor: "10000000",
         version: 1,
@@ -300,12 +276,12 @@ async function setupLive() {
       },
       opening_loans: [],
     },
-    LIVE_BORROWER,
+    borrower.classicAddress,
     { source: "unit-test" },
   );
   const liveOffer = {
     ...offer, mode: "LIVE_DEVNET" as const, network: "devnet", asset: loanAsset,
-    lender_id: LIVE_ISSUER, borrower_id: `devnet:${LIVE_BORROWER}`,
+    lender_id: broker.classicAddress, borrower_id: `devnet:${borrower.classicAddress}`,
     offer_id: "offer-live-1", facility_id: "devnet:facility-live",
     expires_at: new Date((origin + 3600) * 1000).toISOString(),
     commercial_terms_hash: "", offer_hash: "",
@@ -313,10 +289,89 @@ async function setupLive() {
   const termsKeys = ["lender_id", "borrower_id", "facility_id", "offer_id", "asset", "principal", "apr_bps", "rate_kind", "term_days", "fees", "purpose", "expires_at", "schedule", "network"];
   liveOffer.commercial_terms_hash = contentHash(Object.fromEntries(Object.entries(liveOffer).filter(([key]) => termsKeys.includes(key))));
   liveOffer.offer_hash = contentHash(Object.fromEntries(Object.entries(liveOffer).filter(([key]) => !["lender_signature", "offer_hash"].includes(key))));
-  const live = mockLiveLedger();
+  const execution = createExecutionStore(db, { now: () => new Date(now * 1000) });
+  const records = new Map<string, Record<string, unknown>>();
+  const config = {
+    wsUrl: "wss://example.invalid",
+    borrowerSeed: borrower.seed!,
+    brokerSeed: broker.seed!,
+    repIssuerSeed: issuer.seed!,
+    repIssuerAddress: issuer.classicAddress,
+    loanBrokerId: "C".repeat(64),
+    loanMptIssuanceId: loanAsset.mpt_issuance_id,
+    loanAssetScale: 6,
+    repIssuanceId: repAsset.mpt_issuance_id,
+    paymentTotal: 1,
+    paymentIntervalSec: 7776000,
+    gracePeriodSec: 60,
+    loanOriginationFee: "0",
+    loanServiceFee: "0",
+  };
+  const client = {
+    async autofill(raw: Record<string, unknown>) {
+      return { ...raw, Fee: "12", Sequence: raw.Account === broker.classicAddress ? 2 : 1, LastLedgerSequence: 120 };
+    },
+    async submitAndWait(blob: string) {
+      const tx = decode(blob) as unknown as Record<string, unknown>;
+      const phase = tx.TransactionType === "LoanSet" ? "LOAN" : "STAKE";
+      const persisted = execution.getAttempt("req-live-1", phase)!;
+      expect(persisted.signedBlob).toBe(blob);
+      const fields = {
+        Borrower: borrower.classicAddress,
+        LoanBrokerID: config.loanBrokerId,
+        StartDate: now - 946684800,
+        NextPaymentDueDate: now - 946684800 + 7776000,
+        PaymentInterval: 7776000,
+        GracePeriod: 60,
+      };
+      records.set(persisted.attemptHash, {
+        hash: persisted.attemptHash,
+        validated: true,
+        ledger_index: 100,
+        close_time_iso: new Date(now * 1000).toISOString(),
+        tx_json: tx,
+        meta: {
+          TransactionResult: "tesSUCCESS",
+          TransactionIndex: phase === "STAKE" ? 0 : 1,
+          AffectedNodes: phase === "LOAN"
+            ? [{ CreatedNode: { LedgerEntryType: "Loan", LedgerIndex: "D".repeat(64), NewFields: fields } }]
+            : [],
+        },
+      });
+    },
+    async request(input: Record<string, unknown>) {
+      if (input.command === "tx") {
+        const tx = records.get(String(input.transaction));
+        if (!tx) throw Object.assign(new Error("notfound"), { data: { error: "txnNotFound" } });
+        return { result: tx };
+      }
+      if (input.command === "server_info") return { result: { info: { network_id: 2 } } };
+      if (input.command === "ledger") {
+        return { result: { validated: true, ledger_index: 99, ledger: { ledger_index: 99, close_time: now - 946684800 } } };
+      }
+      throw new Error("Unexpected RPC command");
+    },
+  } as never;
+  const transport = createNativeTransport(client, config);
+  let laneFence = 0;
+  const signerLanes = {
+    claim: (input: { operationId: string }) => ({
+      acquired: true as const,
+      operationId: input.operationId,
+      lanes: [{ key: "test", fence: ++laneFence }],
+    }),
+    assertClaim: () => {},
+    release: () => true,
+  };
+  const live = {
+    transport,
+    redeemStake: async () => { throw new Error("legacy path forbidden"); },
+    originateLoanSet: async () => { throw new Error("legacy path forbidden"); },
+    repayLoanPay: async () => { throw new Error("legacy path forbidden"); },
+  };
   return {
     registry,
-    live,
+    execution,
     advance: (s: number) => {
       now = s;
     },
@@ -327,26 +382,29 @@ async function setupLive() {
       hashRequest: contentHash,
       getApprovedOffer: (hash: string) => hash === liveOffer.commercial_terms_hash ? liveOffer : undefined,
       clockSeconds: () => now,
-      borrowerAccount: LIVE_BORROWER,
+      borrowerAccount: borrower.classicAddress,
       repAsset,
       live,
+      execution,
+      signerLanes,
     },
     loanAsset,
     repAsset,
     liveOffer,
+    borrower,
   };
 }
 
-describe("LIVE_DEVNET XRPL originate (mocked ledger)", () => {
+describe("LIVE_DEVNET XRPL originate (durable mocked transport)", () => {
   it("stakes then dual-sign originates with real hash fields (no invent)", async () => {
-    const { registry, deps, loanAsset, repAsset, liveOffer } = await setupLive();
+    const { registry, deps, loanAsset, repAsset, liveOffer, borrower } = await setupLive();
     const expires = new Date((origin + 3600) * 1000)
       .toISOString()
       .replace(/\.\d{3}Z$/, "Z");
     const request = {
       request_id: "req-live-1",
       idempotency_key: "idem-live-1",
-      principal_id: `devnet:${LIVE_BORROWER}`,
+      principal_id: `devnet:${borrower.classicAddress}`,
       contract_version: "C0-REP-1" as const,
       mode: "LIVE_DEVNET" as const,
       mandate_hash: contentHash({ live: true }),
@@ -388,28 +446,55 @@ describe("LIVE_DEVNET XRPL originate (mocked ledger)", () => {
     expect(result.txHash).toMatch(/^[a-f0-9]{64}$/i);
     expect(result.stakeProofId).toMatch(/^[a-f0-9]{64}$/i);
     expect(result.preparedTxCommitment).toMatch(/^sha256:[a-f0-9]{64}$/);
-    expect(result.loanId).toBeTruthy();
+    expect(result.loanId).toBe("D".repeat(64));
     expect(registry.getRequest(request.request_id).state).toBe("ACTIVE");
   });
 
-  it("refuses LIVE originate without live ledger", async () => {
-    const { deps } = await setupLive();
-    const { live: _omit, ...withoutLive } = deps;
+  it("refuses LIVE originate without durable execution ports", async () => {
+    const { registry, deps, loanAsset, repAsset, liveOffer, borrower } = await setupLive();
+    const expires = new Date((origin + 3600) * 1000)
+      .toISOString()
+      .replace(/\.\d{3}Z$/, "Z");
+    const request = {
+      request_id: "req-live-1",
+      idempotency_key: "idem-live-1",
+      principal_id: `devnet:${borrower.classicAddress}`,
+      contract_version: "C0-REP-1" as const,
+      mode: "LIVE_DEVNET" as const,
+      mandate_hash: contentHash({ live: true }),
+      rep_asset: repAsset,
+      agent_id: "agent:live",
+      mandate_id: "m-live-1",
+      nonce: "nonce-live-1",
+      offer_id: "offer-live-1",
+      facility_id: "devnet:facility-live",
+      network: "devnet",
+      asset: loanAsset,
+      evidence_hash: contentHash({ e: 1 }),
+      commercial_terms_hash: liveOffer.commercial_terms_hash,
+      model_version: "REP-CURVE-v0.2" as const,
+      policy_hash: APPROVED_REP_POLICY_HASH,
+      principal_minor: "200000",
+      max_stake_u: "760000000",
+      expires_at: expires,
+    };
+    const reserved = registry.reserveRequest(request);
+    const { live: _omit, execution: _e, signerLanes: _s, ...withoutDurable } = deps;
     await expect(
       originateLoan(
         {
-          proposalHash: "x",
-          principal: "2000",
+          proposalHash: contentHash(request),
+          principal: "2000.00",
           aprBps: 550,
           termDays: 90,
-          asset: "{}",
+          asset: JSON.stringify(loanAsset),
           networkMode: "LIVE_DEVNET",
-          requestId: "r",
-          reservationId: "s",
+          requestId: request.request_id,
+          reservationId: reserved.reservationId,
         },
-        withoutLive,
+        withoutDurable,
       ),
-    ).rejects.toThrow(/live ledger/);
+    ).rejects.toThrow(/DURABLE_NATIVE_EXECUTION_REQUIRED/);
   });
 });
 
