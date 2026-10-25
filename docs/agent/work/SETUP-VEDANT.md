@@ -152,6 +152,7 @@ authorization or registry checks. No synthetic native hash or inferred settlemen
   REP redemption before controlled LoanSet; no AMM/consensus.
 - Lane remains READY and unclaimed for coding.
 
-**Next action (B-0002 follow-up):** LIVE_DEVNET adapter from playground; execution/return
-stores; native verifiers; security TODOs; fill `network-signing-contract.json` when going live.
-First SIM checkpoint is done.
+**Next action (B-0002 follow-up):** Obtain Devnet execution grant; fill `.env.live.example`;
+run LIVE smoke; record PASS/FAIL. Then execution/return fencing, client-backed verifiers,
+security TODOs; fixture `native_ready` only after schema allocation + smoke PASS.
+SIM + LIVE product wiring checkpoints are done (PR #4 / #5).

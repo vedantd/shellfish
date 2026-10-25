@@ -1,15 +1,15 @@
 # Current Shellfish baton
 
-- Label / ID: **B-0001** (C0 contract checkpoint) → consumer ACK recorded; next work **B-0002**.
-- State: **ACCEPTED** for C0-REP-1 consumer freeze (SIMULATED_LOAN first integration). LIVE_DEVNET native identifiers remain open.
+- Label / ID: **B-0002** (Vedant consumer integration). Parent C0: **B-0001** ACCEPTED.
+- State: **ACTIVE** — SIMULATED_LOAN connected checkpoint **PASS**; LIVE_DEVNET **product wiring PASS** (mocked ledger); stateful Devnet smoke **SKIP**.
 - Coordinator: **Vedant, acknowledged** 2026-10-25 00:41 UTC.
 - Objective owner: coordinator (Vedant). Sponsor: Gita.
-- Updated: 2026-10-25 11:07 UTC (Vedant consumer ACK after reproduce).
+- Updated: 2026-10-25 11:47 UTC (LIVE product-wiring checkpoint on PR #5).
 - Profile: setup-r1 adopted. Claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
-- Repository: Shellfish. Branch: `main`.
-- Accepted base: **`08397b5449a6f2853e8d5da921ae29034353e4d2`** (Gita producer handoff).
-- Delivery: Gita PAUSED after verified producer delivery (AUTH-GITA-HANDOFF-001). Vedant ACK: AUTH-C0-CONSUMER-001.
+- Repository: Shellfish. Branch for this slice: `feat/b0002-live-devnet` → [PR #5](https://github.com/vedantd/shellfish/pull/5).
+- Accepted C0 base: **`08397b5449a6f2853e8d5da921ae29034353e4d2`** (Gita producer handoff).
+- Delivery: Gita PAUSED (AUTH-GITA-HANDOFF-001). Vedant ACK: AUTH-C0-CONSUMER-001. LIVE wiring under B-0002 product claim.
 
 ## Incoming approved model decision
 
@@ -46,16 +46,18 @@ Simulation: [rep-exposure-curve.html](../simulations/rep-exposure-curve.html).
 - Accepted package: fixtures under `C0-REP-1` / `REP-CURVE-v0.2`, schemas (`packages/schemas` incl. `c0.ts`),
   evidence, compatibility, registry (reserve/status/quote/events/returns/execution stores),
   Gita HTTP routes, and isolated native E2E evidence under `fixtures/xrpl-poc-replay/`.
-- First integration mode: **`SIMULATED_LOAN`** per [`fixtures/network-signing-contract.json`](../../fixtures/network-signing-contract.json).
-  `native_ready` remains false until Vedant fills endpoint/asset/borrower/broker/schedule/signer fields.
-- SDK pin accepted for integration: **xrpl 5.3.0**; runtime **Node 24.21.0** / better-sqlite3 12.10.1.
-- Does **not** claim: connected auth/UI demo, LIVE_DEVNET product path, native default, or migrated return-queue native re-run.
+- First integration mode: **`SIMULATED_LOAN`** (PASS). LIVE product path wired in PR #5;
+  [`fixtures/network-signing-contract.json`](../../fixtures/network-signing-contract.json) stays
+  `native_ready: false` (Gita schema locks nulls). Runtime public IDs via env + `GET /v1/network`.
+- SDK pin: **xrpl 5.3.0**; runtime **Node 24.21.0** / better-sqlite3 12.10.1.
+- Does **not** claim: stateful Devnet smoke PASS, native default, or migrated return-queue native re-run.
 - Preserve reserve-before-ALLOW and stake-before-LoanSet.
 
 ## Next bounded outcome
 
-**B-0002** (allocated): Vedant wires authorization + XRPL adapter + API/UI to consume Gita exports
-under C0-REP-1, starting in `SIMULATED_LOAN`. Publish filled network/signing fields when selecting LIVE_DEVNET.
+**B-0002 follow-up:** grant stateful Devnet execution, fill env from playground/Gita native artifacts,
+run LIVE smoke, then record PASS/FAIL; flip fixture `native_ready` only after schema allocation + smoke PASS.
+Deferred in parallel: execution-store fencing, return-store issuer Payment, six security TODOs.
 
 ## Acceptance
 
@@ -68,14 +70,17 @@ under C0-REP-1, starting in `SIMULATED_LOAN`. Publish filled network/signing fie
 - [x] Producer fixtures/code bind AssetRef, observation period, terms and REP fields.
 - [x] Producer contracts separate commercial terms, prepared commitment and final signed hash.
 - [x] Consumer reproduced build/typecheck/128 tests + 37 fixture tests at `08397b5`.
-- [ ] LIVE_DEVNET identifiers and required signer route filled in network-signing-contract.
-- [ ] Connected integration (auth → sign → submit → Gita accounting → UI) proven on B-0002.
+- [x] SIMULATED_LOAN connected authorize → reserve → originate → Screen C (PR #4).
+- [x] LIVE_DEVNET product wiring: dual-sign + stake-before-sign + API/UI (PR #5; mocked ledger tests).
+- [ ] LIVE_DEVNET identifiers committed in network-signing-contract (`native_ready: true`).
+- [ ] Stateful Devnet smoke PASS (execution grant + real hashes on Devnet).
+- [ ] Full connected demo polish (C4 denials/replay/race/timeout on product path).
 
 ## Scope
 
 Use the [profile's exact allocation](PROJECT-PROFILE.md#exclusive-file-scopes-after-acknowledged-claims).
 Lane records: [Gita](work/SETUP-GITA.md) PAUSED after delivery,
-[Vedant](work/SETUP-VEDANT.md) ACTIVE for B-0002 consumer integration (claim recorded here + claim channel).
+[Vedant](work/SETUP-VEDANT.md) ACTIVE for B-0002 (SIM PASS; LIVE wiring on PR #5).
 
 ## Fixed product boundaries
 
@@ -85,7 +90,9 @@ Reservation precedes required signing. Unknown execution retains capacity.
 Simulation remains labeled. Full repayment UX and secondary trading are outside
 the first 12-hour slice.
 
-## Consumer verification evidence (2026-10-25 11:06 UTC)
+## Consumer verification evidence
+
+### C0 reproduce (2026-10-25 11:06 UTC)
 
 | Check | Result | Scope |
 | --- | --- | --- |
@@ -93,15 +100,24 @@ the first 12-hour slice.
 | Node / pnpm | PASS | Node 24.21.0, pnpm 9.15.0 |
 | `pnpm build` | PASS | Workspace |
 | `pnpm typecheck` | PASS | Workspace |
-| `pnpm test` | PASS | 128 passed / 6 todo (existing security TODOs) |
-| Fixture node tests | PASS | 37 passed / 0 todo (`fixtures/xrpl-poc-replay`) |
-| C0-REP-1 fixtures package | PASS (review) | AssetRef, observation months, REP fields, reservation/quote examples present |
-| LIVE_DEVNET product wiring | NOT STARTED | B-0002 |
+| `pnpm test` | PASS | 128 passed / 6 todo |
+| Fixture node tests | PASS | 37 passed (`fixtures/xrpl-poc-replay`) |
+| C0-REP-1 fixtures package | PASS (review) | Accepted producer package |
+
+### B-0002 LIVE product wiring (2026-10-25 11:47 UTC)
+
+| Check | Result | Scope |
+| --- | --- | --- |
+| LIVE product wiring (PR #5) | PASS | Auth → stake → LoanSet path in Vedant packages; mocked ledger |
+| `pnpm build` / `typecheck` / `test` | PASS | **140 PASS / 6 todo** |
+| SIMULATED_LOAN regression | PASS | Prior PR #4 path kept |
+| Fixture `native_ready` | false | Schema-locked; env publishes public IDs at runtime |
+| Stateful Devnet smoke | SKIP | No execution grant in AUTHORIZATIONS |
 | Native default / return-queue native | NOT RUN | As recorded by Gita |
 
 ## Exact next action
 
-Vedant executes **B-0002**: inject `openFixtureCreditBackend`, implement `authorizeExactAction`
-(reserve once before ALLOW), controlled signer + XRPL originate/repay consuming reservation,
-native/simulated verifiers, receipts/UI. Gita stays paused until feedback or a resume request.
-Stop at first connected simulation checkpoint before expanding to LIVE_DEVNET term selection.
+Vedant (or coordinator): obtain **stateful Devnet execution** grant, fill
+`services/api/.env.live.example` from playground / Gita native E2E public IDs + local seeds,
+run LIVE smoke, record PASS/FAIL/SKIP with revision. Gita stays paused unless schema
+allocation is needed to flip `network-signing-contract.json`. Do not invent live hashes.
