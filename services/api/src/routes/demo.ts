@@ -6,7 +6,7 @@ import { contentHash } from "@shellfish/registry";
 import { ScenarioFixture } from "@shellfish/schemas";
 import { repayLoan } from "@shellfish/xrpl";
 import { config } from "../config.js";
-import { requireCreditBackend } from "../credit-context.js";
+import { getApprovedOffer, requireCreditBackend } from "../credit-context.js";
 
 const fixturesDir = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -67,6 +67,7 @@ export async function demoRoutes(app: FastifyInstance) {
           getRequest: (id) => backend.registry.getRequest(id),
           applyEvent: (event) => backend.registry.applyEvent(event as never),
           hashRequest: contentHash,
+          getApprovedOffer,
           clockSeconds: () =>
             isLive ? Math.floor(Date.now() / 1000) : clock,
           borrowerAccount: isLive

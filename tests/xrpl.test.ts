@@ -56,6 +56,7 @@ function setup() {
       getRequest: (id: string) => registry.getRequest(id),
       applyEvent: (event: unknown) => registry.applyEvent(event as never),
       hashRequest: contentHash,
+      getApprovedOffer: (hash: string) => hash === offer.commercial_terms_hash ? offer : undefined,
       clockSeconds: () => now,
       borrowerAccount: "sim:borrower-harbor-supply",
       repAsset: scenario.rep_asset,
@@ -70,14 +71,14 @@ describe("simulated XRPL originate", () => {
       ...reservation.request,
       request_id: "req-xrpl-1",
       idempotency_key: "idem-xrpl-1",
-      mandate_id: "mandate-xrpl-1",
-      nonce: "nonce-xrpl-1",
+
     };
     const auth = authorizeExactAction({
       mandate,
       offer,
       proposalHash: contentHash(request),
       evidenceFresh: true,
+      hashContent: contentHash,
       reservationRequest: request,
       reserveRequest: (raw) => registry.reserveRequest(raw),
       now: clock,
@@ -125,20 +126,20 @@ describe("simulated XRPL originate", () => {
     ).rejects.toThrow(/requestId and reservationId/);
   });
 
-  it("does not double-reserve: second identical authorize is DENY_REPLAY / conflict", () => {
+  it("returns the existing reservation on exact authorization retry", () => {
     const { registry } = setup();
     const request = {
       ...reservation.request,
       request_id: "req-xrpl-dup",
       idempotency_key: "idem-xrpl-dup",
-      mandate_id: "mandate-xrpl-dup",
-      nonce: "nonce-xrpl-dup",
+
     };
     const first = authorizeExactAction({
       mandate,
       offer,
       proposalHash: contentHash(request),
       evidenceFresh: true,
+      hashContent: contentHash,
       reservationRequest: request,
       reserveRequest: (raw) => registry.reserveRequest(raw),
       now: clock,
@@ -149,6 +150,7 @@ describe("simulated XRPL originate", () => {
       offer,
       proposalHash: contentHash(request),
       evidenceFresh: true,
+      hashContent: contentHash,
       reservationRequest: request,
       reserveRequest: (raw) => registry.reserveRequest(raw),
       now: clock,
@@ -164,14 +166,14 @@ describe("simulated XRPL originate", () => {
       ...reservation.request,
       request_id: "req-xrpl-pay",
       idempotency_key: "idem-xrpl-pay",
-      mandate_id: "mandate-xrpl-pay",
-      nonce: "nonce-xrpl-pay",
+
     };
     const auth = authorizeExactAction({
       mandate,
       offer,
       proposalHash: contentHash(request),
       evidenceFresh: true,
+      hashContent: contentHash,
       reservationRequest: request,
       reserveRequest: (raw) => registry.reserveRequest(raw),
       now: clock,
@@ -301,6 +303,16 @@ async function setupLive() {
     LIVE_BORROWER,
     { source: "unit-test" },
   );
+  const liveOffer = {
+    ...offer, mode: "LIVE_DEVNET" as const, network: "devnet", asset: loanAsset,
+    lender_id: LIVE_ISSUER, borrower_id: `devnet:${LIVE_BORROWER}`,
+    offer_id: "offer-live-1", facility_id: "devnet:facility-live",
+    expires_at: new Date((origin + 3600) * 1000).toISOString(),
+    commercial_terms_hash: "", offer_hash: "",
+  };
+  const termsKeys = ["lender_id", "borrower_id", "facility_id", "offer_id", "asset", "principal", "apr_bps", "rate_kind", "term_days", "fees", "purpose", "expires_at", "schedule", "network"];
+  liveOffer.commercial_terms_hash = contentHash(Object.fromEntries(Object.entries(liveOffer).filter(([key]) => termsKeys.includes(key))));
+  liveOffer.offer_hash = contentHash(Object.fromEntries(Object.entries(liveOffer).filter(([key]) => !["lender_signature", "offer_hash"].includes(key))));
   const live = mockLiveLedger();
   return {
     registry,
@@ -313,6 +325,7 @@ async function setupLive() {
       getRequest: (id: string) => registry.getRequest(id),
       applyEvent: (event: unknown) => registry.applyEvent(event as never),
       hashRequest: contentHash,
+      getApprovedOffer: (hash: string) => hash === liveOffer.commercial_terms_hash ? liveOffer : undefined,
       clockSeconds: () => now,
       borrowerAccount: LIVE_BORROWER,
       repAsset,
@@ -320,12 +333,13 @@ async function setupLive() {
     },
     loanAsset,
     repAsset,
+    liveOffer,
   };
 }
 
 describe("LIVE_DEVNET XRPL originate (mocked ledger)", () => {
   it("stakes then dual-sign originates with real hash fields (no invent)", async () => {
-    const { registry, deps, loanAsset, repAsset } = await setupLive();
+    const { registry, deps, loanAsset, repAsset, liveOffer } = await setupLive();
     const expires = new Date((origin + 3600) * 1000)
       .toISOString()
       .replace(/\.\d{3}Z$/, "Z");
@@ -345,7 +359,7 @@ describe("LIVE_DEVNET XRPL originate (mocked ledger)", () => {
       network: "devnet",
       asset: loanAsset,
       evidence_hash: contentHash({ e: 1 }),
-      commercial_terms_hash: contentHash({ p: "2000.00" }),
+      commercial_terms_hash: liveOffer.commercial_terms_hash,
       model_version: "REP-CURVE-v0.2" as const,
       policy_hash: APPROVED_REP_POLICY_HASH,
       principal_minor: "200000",
@@ -396,5 +410,67 @@ describe("LIVE_DEVNET XRPL originate (mocked ledger)", () => {
         withoutLive,
       ),
     ).rejects.toThrow(/live ledger/);
+  });
+});
+
+
+describe("exact origination bindings before ledger effects", () => {
+  it.each([
+    ["principal", { principal: "9999.00" }],
+    ["APR", { aprBps: 99999 }],
+    ["term", { termDays: 360 }],
+    ["asset", { asset: JSON.stringify({ currency: "XRP" }) }],
+    ["proposal", { proposalHash: "sha256:" + "00".repeat(32) }],
+  ])("rejects changed %s before LIVE stake or LoanSet", async (_label, changed) => {
+    const { registry, deps, loanAsset, repAsset, liveOffer } = await setupLive();
+    const request = {
+      ...reservation.request,
+      mode: "LIVE_DEVNET" as const,
+      request_id: "req-live-bindings", idempotency_key: "idem-live-bindings",
+      principal_id: liveOffer.borrower_id, agent_id: "agent:live",
+      mandate_id: "mandate-live-bindings", nonce: "nonce-live-bindings",
+      asset: loanAsset, rep_asset: repAsset, offer_id: liveOffer.offer_id,
+      facility_id: liveOffer.facility_id, commercial_terms_hash: liveOffer.commercial_terms_hash,
+      expires_at: liveOffer.expires_at,
+    };
+    const reserved = registry.reserveRequest(request);
+    const before = registry.getCreditStatus(request.facility_id);
+    let stakeCalls = 0, loanCalls = 0;
+    const instrumented = {
+      ...deps,
+      live: {
+        ...deps.live,
+        redeemStake: async (args: Parameters<LiveLedger["redeemStake"]>[0]) => { stakeCalls++; return deps.live.redeemStake(args); },
+        originateLoanSet: async (args: Parameters<LiveLedger["originateLoanSet"]>[0]) => { loanCalls++; return deps.live.originateLoanSet(args); },
+      },
+    };
+    await expect(originateLoan({
+      proposalHash: contentHash(request), principal: liveOffer.principal,
+      aprBps: liveOffer.apr_bps, termDays: liveOffer.term_days,
+      asset: JSON.stringify(liveOffer.asset), networkMode: "LIVE_DEVNET",
+      requestId: request.request_id, reservationId: reserved.reservationId,
+      ...(changed as object),
+    }, instrumented)).rejects.toThrow();
+    expect(stakeCalls).toBe(0);
+    expect(loanCalls).toBe(0);
+    expect(registry.getRequest(request.request_id).state).toBe("AWAITING_STAKE");
+    expect(registry.getCreditStatus(request.facility_id)).toEqual(before);
+  });
+
+  it("returns exact SIM origination retry without another event", async () => {
+    const { registry, sim } = setup();
+    const request = { ...reservation.request, request_id: "req-repeat", idempotency_key: "idem-repeat" };
+    const receipt = authorizeExactAction({ mandate, offer, evidenceFresh: true, hashContent: contentHash,
+      proposalHash: contentHash(request), reservationRequest: request, reserveRequest: raw => registry.reserveRequest(raw), now: clock });
+    const input = { proposalHash: receipt.proposal_hash!, principal: offer.principal, aprBps: offer.apr_bps,
+      termDays: offer.term_days, asset: JSON.stringify(offer.asset), networkMode: "SIMULATED_LOAN" as const,
+      requestId: request.request_id, reservationId: receipt.reservation_id! };
+    const first = await originateLoan(input, sim);
+    const before = registry.getCreditStatus(offer.facility_id);
+    let events = 0;
+    const again = await originateLoan(input, { ...sim, applyEvent: event => { events++; return sim.applyEvent(event); } });
+    expect(again).toEqual(first);
+    expect(events).toBe(0);
+    expect(registry.getCreditStatus(offer.facility_id)).toEqual(before);
   });
 });

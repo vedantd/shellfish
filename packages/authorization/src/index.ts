@@ -5,6 +5,8 @@ import type {
   LenderFacilityOffer,
 } from "@shellfish/schemas";
 
+import { ReservationFixture, canonicalJson, withoutFields } from "@shellfish/schemas";
+
 export class NotImplementedError extends Error {
   constructor(feature: string) {
     super(`[authorization] Not implemented: ${feature}`);
@@ -25,6 +27,8 @@ export type AuthorizeExactActionInput = {
   offer: LenderFacilityOffer;
   proposalHash: string;
   evidenceFresh: boolean;
+  /** Trusted application content hasher, never an HTTP body field. */
+  hashContent: (value: unknown) => string;
   /** Full atomic reservation request body for registry.reserveRequest */
   reservationRequest: unknown;
   envelopeHash?: string | null;
@@ -148,7 +152,7 @@ export function authorizeExactAction(
     return deny(["DENY_COUNTERPARTY"], { ...pass, lender_offer: "FAIL" });
   }
 
-  if (JSON.stringify(input.offer.asset) !== JSON.stringify(input.mandate.asset)) {
+  if (canonicalJson(input.offer.asset) !== canonicalJson(input.mandate.asset)) {
     return deny(["DENY_ASSET"], { ...pass, lender_offer: "FAIL" });
   }
 
@@ -197,8 +201,44 @@ export function authorizeExactAction(
     return deny(["DENY_FEE"], { ...pass, policy: "FAIL" });
   }
 
+  const parsedRequest = ReservationFixture.shape.request.safeParse(input.reservationRequest);
+  if (!parsedRequest.success) {
+    return deny(["DENY_TRANSACTION_MISMATCH"], { ...pass, policy: "FAIL" });
+  }
+  const request = parsedRequest.data;
+  const same = (a: unknown, b: unknown): boolean => canonicalJson(a) === canonicalJson(b);
+  const termsKeys = ["lender_id", "borrower_id", "facility_id", "offer_id", "asset", "principal", "apr_bps", "rate_kind", "term_days", "fees", "purpose", "expires_at", "schedule", "network"];
+  const terms = Object.fromEntries(Object.entries(input.offer).filter(([key]) => termsKeys.includes(key)));
+  if (input.hashContent(withoutFields(input.mandate, ["principal_signature", "mandate_hash"])) !== input.mandate.mandate_hash ||
+      input.hashContent(withoutFields(input.offer, ["lender_signature", "offer_hash"])) !== input.offer.offer_hash ||
+      input.hashContent(terms) !== input.offer.commercial_terms_hash ||
+      input.proposalHash !== input.hashContent(request)) {
+    return deny(["DENY_TRANSACTION_MISMATCH"], { ...pass, policy: "FAIL" });
+  }
+  const contextKeys = ["contract_version", "model_version", "network", "mode"] as const;
+  if (contextKeys.some(key => input.mandate[key] !== input.offer[key] || request[key] !== input.mandate[key])) {
+    return deny(["DENY_UNSUPPORTED_NETWORK"], { ...pass, policy: "FAIL" });
+  }
+  if (request.principal_id !== input.mandate.principal_id ||
+      request.agent_id !== input.mandate.agent_id ||
+      request.mandate_id !== input.mandate.mandate_id || request.nonce !== input.mandate.nonce ||
+      request.mandate_hash !== input.mandate.mandate_hash ||
+      request.offer_id !== input.offer.offer_id || request.facility_id !== input.offer.facility_id ||
+      request.commercial_terms_hash !== input.offer.commercial_terms_hash ||
+      !same(request.asset, input.mandate.asset) || !same(request.asset, input.offer.asset) ||
+      BigInt(request.principal_minor) !== offerMinor ||
+      Date.parse(request.expires_at) > Math.min(Date.parse(input.offer.expires_at), Date.parse(input.mandate.expires_at))) {
+    return deny(["DENY_TRANSACTION_MISMATCH"], { ...pass, policy: "FAIL" });
+  }
+  if (!same(request.rep_asset, input.mandate.rep_consent.rep_asset) ||
+      request.policy_hash !== input.mandate.rep_consent.policy_hash ||
+      request.model_version !== input.mandate.rep_consent.model_version ||
+      BigInt(request.max_stake_u) > BigInt(input.mandate.rep_consent.max_stake_u)) {
+    return deny(["DENY_REP_CONSENT"], { ...pass, policy: "FAIL" });
+  }
+
   try {
-    const reserved = input.reserveRequest(input.reservationRequest);
+    const reserved = input.reserveRequest(request);
     return {
       contract_version: input.mandate.contract_version,
       model_version: input.mandate.model_version,

@@ -1,0 +1,28 @@
+{
+  "format": "SHELLFISH_NATIVE_SELECTION_DRAFT_V1",
+  "mode": "LIVE_DEVNET",
+  "network": "devnet",
+  "network_id": 2,
+  "endpoint": null,
+  "principal_id": null,
+  "borrower_account": null,
+  "broker_id": null,
+  "loan_asset": null,
+  "loan_asset_scale": null,
+  "money_scale": "100",
+  "rep_asset": null,
+  "sdk_pin": "5.3.0",
+  "offer_id": null,
+  "facility_id": null,
+  "terms": {
+    "principal_minor": null,
+    "fees_minor": null,
+    "apr_bps": null,
+    "term_days": null,
+    "payment_total": 1,
+    "payment_interval_seconds": null,
+    "grace_seconds": null
+  },
+  "required_signer_route": {"status": "PENDING_VEDANT"},
+  "native_schedule": {"status": "PENDING_VEDANT"}
+}

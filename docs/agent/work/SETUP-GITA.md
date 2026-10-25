@@ -1,27 +1,23 @@
 # Gita work record
 
-## Current local checkpoint
+## Current checkpoint: B-0002 consumer binding repair
 
-- State: PAUSED at Gita's request after the verified producer handoff. Parent: B-0001.
-- Producer disposition: implemented and locally verified. Vedant consumer acceptance remains REVIEW.
-- Current base: 64d31b16ff704f39e179668d494157b25cde7e4d. The separate E2E fixture
-  session committed its own folder. Gita authorized this producer patch for commit and
-  push to origin/main. Delivery identity is the commit containing this handoff.
-- Authority: Gita's direct implementation request. No coordinator lane ID, cross-clone
-  claim receipt or consumer ACK is inferred from these local changes. Commit/push
-  authority comes from Gita's explicit closeout request.
-- Implemented: shared fixtures/contracts, evidence/lender/match services, atomic REP
-  and facility reservations, event accounting, fixed bonds, rewards/default suspension,
-  immutable execution attempts and durable issuer returns.
-- Current addition: registry status and read-only quote methods/routes. They expose
-  all REP buckets and aggregate participating exposure for Vedant's UI. Quotes never
-  reserve, consume a nonce, authorize or sign. Final reserve recomputes atomically.
-- Native fixture evidence covers issuance, redemption, lending, repayment and restoration.
-  Native default and the migrated shared return queue still need native execution.
-- Current integration dependency: Vedant accepts C0 and connects the required signer,
-  native verifiers, entrypoint and UI. The API bootstrap already exports Gita services.
-- Earlier READY/NOT AVAILABLE entries below describe historical checkpoints.
-  They do not describe the current local implementation or prove consumer acceptance.
+- State: REVIEW after implementation and verification. Parent: B-0002. No new coordinator ID allocated.
+- Gita resumed work at her direct request on 2026-10-25. She then instructed: "so just do that in the main codebase" for the demonstrated binding defects.
+- This direct grant covers the eight tested consumer repair files. It does not transfer coordinator ownership or the remaining authorization/XRPL/UI roadmap.
+- Accepted producer base: `08397b5`, C0-REP-1 / REP-CURVE-v0.2, acknowledged by Vedant.
+- Repair source base: `3c5f9bc`. PR #6 / `8b6b544` adds Vedant's bounded Devnet execution grant without application source changes.
+- Before repair: the connected-source fixture passed 8 cases and failed 12. The failed cases accepted reservation/mandate mismatches or altered origination terms.
+- Fixed: bind reservation to mandate/nonce/agent/offer/principal/REP consent and canonical commitments before reserve. Read approved commercial terms from trusted application state and validate them before REP redemption or LoanSet signing.
+- Fixed: exact simulated origination retry returns the existing loan without new accounting. Native principal precision rejects before burn. LIVE material construction uses C0 canonical commitments and rejects schedule/fee defaults that conflict with the advertised terms.
+- Added Gita fixture tools: `fixtures/consumer-acceptance` and `fixtures/native-preflight`. Both use current source and existing dependencies. Neither loads keys, submits transactions or grants native permission.
+- Verification target: workspace build/typecheck, full repository suite, 20 real-source conformance cases, 4 checker tests, 22 native preflight tests and 37 existing native fixture tests. Exact final command results are recorded in the delivery manifest outside this repository and in the delivery response.
+- Main's six existing security TODOs remain open. No native lifecycle acceptance is claimed.
+- Native remaining dependencies: selected coherent schedule/fees and identifiers, authentic mandate/event/portfolio verification, execution fencing and persisted signed attempts, issuer-return runner, completed-outcome reconciliation and native smoke evidence.
+- AUTH-DEVNET-001 belongs to Vedant's bounded smoke run. No native transaction was submitted in this repair.
+- Delivery identity: the commit containing this record. No dependency version or lockfile change.
+- Next exact action: Vedant consumes the repaired request/approved-offer bindings and resolves the named native integration gaps. Gita can run the source conformance fixture and public-only preflight against his next pushed revision.
+- Earlier PAUSED and acceptance-pending entries below are historical. They do not override this direct resume or the C0 consumer ACK.
 
 ## Historical initial assignment
 

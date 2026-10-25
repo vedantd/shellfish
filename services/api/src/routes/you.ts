@@ -19,6 +19,8 @@ import { originateLoan } from "@shellfish/xrpl";
 import { config } from "../config.js";
 import {
   getReceipt,
+  getApprovedOffer,
+  storeApprovedOffer,
   requireCreditBackend,
   storeReceipt,
 } from "../credit-context.js";
@@ -46,8 +48,6 @@ function uniqueReservationRequest(
     ...base,
     request_id: `req-${suffix}`,
     idempotency_key: `idem-${suffix}`,
-    mandate_id: `${base.mandate_id}-${suffix}`,
-    nonce: `nonce-${suffix}`,
   };
 }
 
@@ -163,6 +163,7 @@ export async function youRoutes(app: FastifyInstance) {
         offer,
         proposalHash,
         evidenceFresh: req.body?.evidence_fresh ?? true,
+        hashContent: contentHash,
         reservationRequest,
         envelopeHash: req.body?.envelope_hash ?? match.envelope_hash ?? null,
         reserveRequest: (raw) => backend.registry.reserveRequest(raw),
@@ -170,6 +171,7 @@ export async function youRoutes(app: FastifyInstance) {
       });
 
       const parsed = AuthorizationReceipt.parse(receipt);
+      if (parsed.decision === "ALLOW") storeApprovedOffer(offer);
       storeReceipt(parsed);
       if (parsed.decision === "DENY") {
         reply.code(403);
@@ -240,28 +242,21 @@ export async function youRoutes(app: FastifyInstance) {
         };
       }
 
-      let principal = req.body?.principal;
-      let aprBps = req.body?.apr_bps;
-      let termDays = req.body?.term_days;
+      const record = backend.registry.getRequest(requestId);
+      const approvedOffer = getApprovedOffer(record.request.commercial_terms_hash);
+      if (!approvedOffer) throw new Error("Approved offer snapshot unavailable; reauthorize the exact request");
+      const principal = req.body?.principal ?? approvedOffer.principal;
+      const aprBps = req.body?.apr_bps ?? approvedOffer.apr_bps;
+      const termDays = req.body?.term_days ?? approvedOffer.term_days;
       let borrowerAccount: string;
       let repAsset;
       let clockSeconds: () => number;
-
       if (isLive && backend.liveConfig) {
-        const materials = buildLiveAuthMaterials(backend.liveConfig, new Date());
-        const offer = LenderFacilityOffer.parse(materials.offer);
-        principal = principal ?? offer.principal;
-        aprBps = aprBps ?? offer.apr_bps;
-        termDays = termDays ?? offer.term_days;
         borrowerAccount = backend.liveConfig.borrowerAddress;
         repAsset = backend.liveConfig.publicSigning.native_rep_asset;
         clockSeconds = () => Math.floor(Date.now() / 1000);
       } else {
         const scenario = ScenarioFixture.parse(loadFixture("scenario.json"));
-        const offer = LenderFacilityOffer.parse(loadFixture("offer-lender-a.json"));
-        principal = principal ?? offer.principal;
-        aprBps = aprBps ?? offer.apr_bps;
-        termDays = termDays ?? offer.term_days;
         borrowerAccount = "sim:borrower-harbor-supply";
         repAsset = scenario.rep_asset;
         const clock = fixtureClock();
@@ -274,11 +269,7 @@ export async function youRoutes(app: FastifyInstance) {
           principal: principal!,
           aprBps: aprBps!,
           termDays: termDays!,
-          asset: JSON.stringify(
-            isLive
-              ? backend.liveConfig!.publicSigning.native_loan_asset
-              : LenderFacilityOffer.parse(loadFixture("offer-lender-a.json")).asset,
-          ),
+          asset: JSON.stringify(approvedOffer.asset),
           networkMode: config.networkMode,
           requestId,
           reservationId,
@@ -287,6 +278,7 @@ export async function youRoutes(app: FastifyInstance) {
           getRequest: (id) => backend.registry.getRequest(id),
           applyEvent: (event) => backend.registry.applyEvent(event as never),
           hashRequest: contentHash,
+          getApprovedOffer,
           clockSeconds,
           borrowerAccount,
           repAsset,

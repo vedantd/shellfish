@@ -1,4 +1,4 @@
-import type { AuthorizationReceipt } from "@shellfish/schemas";
+import type { AuthorizationReceipt, LenderFacilityOffer } from "@shellfish/schemas";
 import type { CreditRegistry } from "@shellfish/registry";
 import type { LiveLedger } from "@shellfish/xrpl";
 import type { openFixtureCreditBackend } from "./db/fixtures.js";
@@ -44,4 +44,15 @@ export function storeReceipt(receipt: AuthorizationReceipt): void {
 
 export function getReceipt(id: string): AuthorizationReceipt | undefined {
   return receiptsById.get(id) ?? receiptsByRequestId.get(id);
+}
+
+
+// The receipt lane is currently in memory. Missing terms after restart fail closed.
+const approvedOffersByTerms = new Map<string, LenderFacilityOffer>();
+export function storeApprovedOffer(offer: LenderFacilityOffer): void {
+  approvedOffersByTerms.set(offer.commercial_terms_hash, JSON.parse(JSON.stringify(offer)) as LenderFacilityOffer);
+}
+export function getApprovedOffer(commercialTermsHash: string): LenderFacilityOffer | undefined {
+  const offer = approvedOffersByTerms.get(commercialTermsHash);
+  return offer ? JSON.parse(JSON.stringify(offer)) as LenderFacilityOffer : undefined;
 }

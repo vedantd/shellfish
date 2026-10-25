@@ -10,22 +10,20 @@ export function buildLiveAuthMaterials(config: LiveRuntimeConfig, now: Date) {
     asset_scale: 6,
   };
   const expires = new Date(now.getTime() + 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
-  const principalDisplay = (Number(config.principalMinor) / 100).toFixed(2);
+  if (!/^[1-9][0-9]*$/.test(config.principalMinor)) throw new Error("LIVE_CONFIG invalid principal minor units");
+  const minor = BigInt(config.principalMinor);
+  const principalDisplay = `${minor / 100n}.${(minor % 100n).toString().padStart(2, "0")}`;
   const schedule = {
     kind: "BULLET" as const,
     payment_total: 1 as const,
     payment_interval_seconds: config.paymentIntervalSec ?? 2592000,
     native_acceptance: "PENDING_VEDANT" as const,
   };
-  const commercial = {
-    principal: principalDisplay,
-    apr_bps: 550,
-    term_days: 90,
-    fees: "0.00",
-    schedule,
-    asset,
-  };
-  const commercial_terms_hash = contentHash(commercial);
+  // Do not rewrite the accepted 90-day, zero-fee commercial terms to fit env defaults.
+  if (schedule.payment_interval_seconds * (config.paymentTotal ?? 1) !== 90 * 86400 || (config.paymentTotal ?? 1) !== 1 ||
+      !/^(0|0\.0+)$/.test(config.loanOriginationFee ?? "100") || !/^(0|0\.0+)$/.test(config.loanServiceFee ?? "10")) {
+    throw new Error("LIVE_CONFIG_TERMS_MISMATCH: select and accept exact native schedule and fees before authorization");
+  }
   const offer = {
     lender_id: config.brokerAddress,
     borrower_id: config.principalId,
@@ -50,9 +48,13 @@ export function buildLiveAuthMaterials(config: LiveRuntimeConfig, now: Date) {
     mode: "LIVE_DEVNET" as const,
     rate_kind: "NOMINAL_ANNUAL" as const,
     schedule,
-    commercial_terms_hash,
-    offer_hash: contentHash({ commercial_terms_hash, facility_id: config.facilityId }),
+    commercial_terms_hash: "",
+    offer_hash: "",
   };
+
+  const termsKeys = ["lender_id", "borrower_id", "facility_id", "offer_id", "asset", "principal", "apr_bps", "rate_kind", "term_days", "fees", "purpose", "expires_at", "schedule", "network"];
+  offer.commercial_terms_hash = contentHash(Object.fromEntries(Object.entries(offer).filter(([key]) => termsKeys.includes(key))));
+  offer.offer_hash = contentHash(Object.fromEntries(Object.entries(offer).filter(([key]) => !["lender_signature", "offer_hash"].includes(key))));
 
   const mandate = {
     mandate_id: `m-live-${config.borrowerAddress.slice(0, 8)}`,
@@ -81,12 +83,9 @@ export function buildLiveAuthMaterials(config: LiveRuntimeConfig, now: Date) {
       rep_asset: repAsset,
       max_stake_u: config.maxStakeU,
     },
-    mandate_hash: contentHash({
-      principal_id: config.principalId,
-      asset,
-      max_principal: "10000.00",
-    }),
+    mandate_hash: "",
   };
+  mandate.mandate_hash = contentHash(Object.fromEntries(Object.entries(mandate).filter(([key]) => !["principal_signature", "mandate_hash"].includes(key))));
 
   const reservationRequest = {
     request_id: `req-live-${Date.now().toString(36)}`,
@@ -104,7 +103,7 @@ export function buildLiveAuthMaterials(config: LiveRuntimeConfig, now: Date) {
     network: "devnet" as const,
     asset,
     evidence_hash: contentHash({ evidence: liveConfigEvidence(config) }),
-    commercial_terms_hash,
+    commercial_terms_hash: offer.commercial_terms_hash,
     model_version: "REP-CURVE-v0.2" as const,
     policy_hash: APPROVED_REP_POLICY_HASH,
     principal_minor: config.principalMinor,

@@ -1,4 +1,5 @@
-import type { NetworkMode, RepAssetRef } from "@shellfish/schemas";
+import type { NetworkMode, RepAssetRef, LenderFacilityOffer } from "@shellfish/schemas";
+import { ReservationFixture, LenderFacilityOffer as OfferSchema, canonicalJson, withoutFields } from "@shellfish/schemas";
 import type { LiveLedger } from "./live-session.js";
 import {
   aprBpsToXrplInterestRate,
@@ -64,6 +65,8 @@ export type OriginationRegistry = {
   };
   applyEvent: (event: unknown) => Promise<unknown>;
   hashRequest: (request: unknown) => string;
+  /** Server-owned approved offer lookup. Never read this authority from a request body. */
+  getApprovedOffer: (commercialTermsHash: string) => LenderFacilityOffer | undefined;
   clockSeconds: () => number;
   borrowerAccount: string;
   repAsset: RepAssetRef;
@@ -85,10 +88,59 @@ function assertReservation(
   if (existing.reservationId !== req.reservationId) {
     throw new Error("[xrpl] reservation_id does not match registry request");
   }
-  if (existing.state !== "AWAITING_STAKE" && existing.state !== "STAKE_VALIDATED") {
+  if (!["AWAITING_STAKE", "STAKE_VALIDATED", "ACTIVE", "RETURN_PENDING", "REPAID", "DEFAULTED"].includes(existing.state)) {
     throw new Error(`[xrpl] cannot originate from state ${existing.state}`);
   }
   return existing;
+}
+
+
+/** Validate the exact persisted approval before any stake, signature or ledger call. */
+function assertBoundTerms(
+  req: LoanOriginateRequest,
+  registry: OriginationRegistry,
+  existing: ReturnType<OriginationRegistry["getRequest"]>,
+): LenderFacilityOffer {
+  const request = ReservationFixture.shape.request.parse(existing.request);
+  const rawOffer = registry.getApprovedOffer(request.commercial_terms_hash);
+  if (!rawOffer) throw new Error("[xrpl] approved commercial terms unavailable");
+  const offer = OfferSchema.parse(rawOffer);
+  const termsKeys = ["lender_id", "borrower_id", "facility_id", "offer_id", "asset", "principal", "apr_bps", "rate_kind", "term_days", "fees", "purpose", "expires_at", "schedule", "network"];
+  const terms = Object.fromEntries(Object.entries(offer).filter(([key]) => termsKeys.includes(key)));
+  if (registry.hashRequest(withoutFields(offer, ["lender_signature", "offer_hash"])) !== offer.offer_hash ||
+      registry.hashRequest(terms) !== offer.commercial_terms_hash ||
+      offer.commercial_terms_hash !== request.commercial_terms_hash ||
+      req.proposalHash !== registry.hashRequest(request)) {
+    throw new Error("[xrpl] approved commitment mismatch");
+  }
+  let requestedAsset: unknown;
+  try { requestedAsset = JSON.parse(req.asset); }
+  catch { throw new Error("[xrpl] invalid proposed asset"); }
+  const contextKeys = ["contract_version", "model_version", "network", "mode"] as const;
+  if (contextKeys.some(key => request[key] !== offer[key]) || request.mode !== req.networkMode ||
+      request.offer_id !== offer.offer_id || request.facility_id !== offer.facility_id ||
+      request.principal_id !== offer.borrower_id ||
+      canonicalJson(request.asset) !== canonicalJson(offer.asset) ||
+      canonicalJson(requestedAsset) !== canonicalJson(offer.asset) ||
+      BigInt(request.principal_minor) !== BigInt(offer.principal.replace(".", "")) ||
+      req.principal !== offer.principal || req.aprBps !== offer.apr_bps || req.termDays !== offer.term_days ||
+      offer.schedule.payment_total * offer.schedule.payment_interval_seconds !== offer.term_days * 86400) {
+    throw new Error("[xrpl] proposed terms do not match the reserved approval");
+  }
+  return offer;
+}
+
+function completedSimulation(
+  req: LoanOriginateRequest,
+  existing: ReturnType<OriginationRegistry["getRequest"]>,
+): LoanOriginateResult | null {
+  if (!existing.loanId) return null;
+  return {
+    mode: "SIMULATED_LOAN", txHash: null, loanId: existing.loanId,
+    validated: false, simulated: true, requestId: req.requestId,
+    reservationId: req.reservationId,
+    stakeProofId: `sim:stake-proof-${req.requestId}`, preparedTxCommitment: null,
+  };
 }
 
 /**
@@ -112,6 +164,9 @@ export async function originateLoan(
   }
 
   const existing = assertReservation(req, registry);
+  const offer = assertBoundTerms(req, registry, existing);
+  const completed = completedSimulation(req, existing);
+  if (completed) return completed;
   const occurredAt = registry.clockSeconds();
   const requestHash = registry.hashRequest(existing.request);
 
@@ -141,7 +196,7 @@ export async function originateLoan(
     occurredAt,
     loan: {
       loanId,
-      maturityAt: occurredAt + req.termDays * 86400,
+      maturityAt: occurredAt + offer.schedule.payment_total * offer.schedule.payment_interval_seconds,
       graceSeconds: 60,
     },
   });
@@ -161,12 +216,12 @@ export async function originateLoan(
 }
 
 function principalUnits(display: string): string {
-  if (/^\d+$/.test(display)) return display;
-  const n = Number(display);
-  if (!Number.isFinite(n) || n <= 0) {
-    throw new Error(`[xrpl] invalid LIVE principal: ${display}`);
+  if (!/^(0|[1-9][0-9]*)(\.00)?$/.test(display)) {
+    throw new Error("[xrpl] unsupported native principal precision; no truncation permitted");
   }
-  return String(Math.trunc(n));
+  const whole = display.split(".")[0];
+  if (BigInt(whole) <= 0n) throw new Error("[xrpl] native principal must be positive");
+  return whole;
 }
 
 function nativeEvidence(
@@ -198,6 +253,10 @@ async function originateLive(
   }
 
   const existing = assertReservation(req, registry);
+  const offer = assertBoundTerms(req, registry, existing);
+  if (existing.loanId) throw new Error("[xrpl] existing LIVE loan requires persisted outcome reconciliation");
+  // Precision rejection must precede the irreversible stake redemption.
+  const nativePrincipal = principalUnits(offer.principal);
   const requestHash = registry.hashRequest(existing.request);
   let stakeProofId: string | null = null;
 
@@ -238,13 +297,13 @@ async function originateLive(
   }
 
   const originated = await registry.live.originateLoanSet({
-    principal: principalUnits(req.principal),
-    aprBps: req.aprBps,
-    termDays: req.termDays,
+    principal: nativePrincipal,
+    aprBps: offer.apr_bps,
+    termDays: offer.term_days,
   });
 
   const now = registry.clockSeconds();
-  const maturityAt = now + req.termDays * 86400;
+  const maturityAt = now + offer.schedule.payment_total * offer.schedule.payment_interval_seconds;
   await registry.applyEvent({
     eventId: `origin:${req.requestId}`,
     kind: "ORIGINATION_VALIDATED",

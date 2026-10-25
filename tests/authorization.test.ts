@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { buildLiveAuthMaterials } from "../services/api/src/live-materials.ts";
 import { readFileSync, mkdtempSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
@@ -52,8 +53,7 @@ function variant(label: string) {
     ...reservation.request,
     request_id: `req-auth-${label}`,
     idempotency_key: `idem-auth-${label}`,
-    mandate_id: `mandate-auth-${label}`,
-    nonce: `nonce-auth-${label}`,
+
   };
 }
 
@@ -73,6 +73,7 @@ describe("authorization kernel", () => {
       offer,
       proposalHash: contentHash(request),
       evidenceFresh: true,
+      hashContent: contentHash,
       reservationRequest: request,
       envelopeHash: match.envelope_hash,
       reserveRequest: (raw) => registry.reserveRequest(raw),
@@ -95,6 +96,7 @@ describe("authorization kernel", () => {
       offer: { ...offer, principal: "3000.00" },
       proposalHash: contentHash(variant("amt")),
       evidenceFresh: true,
+      hashContent: contentHash,
       reservationRequest: variant("amt"),
       reserveRequest: (raw) => registry.reserveRequest(raw),
       now: clock,
@@ -113,6 +115,7 @@ describe("authorization kernel", () => {
       offer: { ...offer, apr_bps: 900 },
       proposalHash: contentHash(variant("rate")),
       evidenceFresh: true,
+      hashContent: contentHash,
       reservationRequest: variant("rate"),
       reserveRequest: (raw) => registry.reserveRequest(raw),
       now: clock,
@@ -131,6 +134,7 @@ describe("authorization kernel", () => {
       offer,
       proposalHash: contentHash(first),
       evidenceFresh: true,
+      hashContent: contentHash,
       reservationRequest: first,
       reserveRequest: (raw) => registry.reserveRequest(raw),
       now: clock,
@@ -145,6 +149,7 @@ describe("authorization kernel", () => {
       offer,
       proposalHash: contentHash(second),
       evidenceFresh: true,
+      hashContent: contentHash,
       reservationRequest: second,
       reserveRequest: (raw) => registry.reserveRequest(raw),
       now: clock,
@@ -205,5 +210,50 @@ describe("authorization kernel", () => {
         },
       ),
     ).toThrow(/LIVE_DEVNET/);
+  });
+});
+
+
+describe("authorization request bindings", () => {
+  it.each(["agent_id", "mandate_id", "nonce", "mandate_hash", "commercial_terms_hash"] as const)("denies altered %s without reserving", field => {
+    const { registry } = setup();
+    const before = registry.getCreditStatus(offer.facility_id);
+    const changed = { ...reservation.request, [field]: field.endsWith("hash") ? "sha256:" + "00".repeat(32) : "unapproved-value" };
+    const receipt = authorizeExactAction({ mandate, offer, proposalHash: contentHash(changed), evidenceFresh: true,
+      hashContent: contentHash, reservationRequest: changed, reserveRequest: raw => registry.reserveRequest(raw), now: clock });
+    expect(receipt.decision).toBe("DENY");
+    expect(registry.getCreditStatus(offer.facility_id)).toEqual(before);
+  });
+  it("cannot enlarge a coherently hashed mandate's REP consent through the request", () => {
+    const { registry } = setup();
+    const before = registry.getCreditStatus(offer.facility_id);
+    const changedMandate = { ...mandate, rep_consent: { ...mandate.rep_consent, max_stake_u: "1000000" } };
+    changedMandate.mandate_hash = contentHash(Object.fromEntries(Object.entries(changedMandate).filter(([key]) => !["principal_signature", "mandate_hash"].includes(key))));
+    const changed = { ...reservation.request, mandate_hash: changedMandate.mandate_hash };
+    const receipt = authorizeExactAction({ mandate: changedMandate, offer, proposalHash: contentHash(changed), evidenceFresh: true,
+      hashContent: contentHash, reservationRequest: changed, reserveRequest: raw => registry.reserveRequest(raw), now: clock });
+    expect(receipt.decision).toBe("DENY");
+    expect(receipt.reason_codes).toContain("DENY_REP_CONSENT");
+    expect(registry.getCreditStatus(offer.facility_id)).toEqual(before);
+  });
+});
+
+describe("LIVE material commercial consistency", () => {
+  const publicDraft = {
+    loanMptIssuanceId: "A".repeat(48), repIssuanceId: "B".repeat(48), repIssuerAddress: "rTEST_ISSUER",
+    borrowerAddress: "rTEST_BORROWER", brokerAddress: "rTEST_BROKER", principalId: "test:principal",
+    facilityId: "test:facility", principalMinor: "200000", loanBrokerId: "C".repeat(64),
+    maxStakeU: "760000000", wsUrl: "wss://example.invalid", paymentTotal: 1,
+  } as Parameters<typeof buildLiveAuthMaterials>[0];
+  it("rejects default 30-day/100+10-fee selection against advertised 90-day/zero-fee terms", () => {
+    expect(() => buildLiveAuthMaterials(publicDraft, clock)).toThrow(/LIVE_CONFIG_TERMS_MISMATCH/);
+  });
+  it("constructs canonical commitments for an explicitly coherent test selection", () => {
+    const result = buildLiveAuthMaterials({ ...publicDraft, paymentIntervalSec: 90 * 86400,
+      loanOriginationFee: "0", loanServiceFee: "0" }, clock);
+    expect(result.mandate.mandate_hash).toBe(contentHash(Object.fromEntries(Object.entries(result.mandate).filter(([key]) => !["principal_signature", "mandate_hash"].includes(key)))));
+    expect(result.offer.offer_hash).toBe(contentHash(Object.fromEntries(Object.entries(result.offer).filter(([key]) => !["lender_signature", "offer_hash"].includes(key)))));
+    expect(result.reservationRequest.commercial_terms_hash).toBe(result.offer.commercial_terms_hash);
+    expect(result.offer.schedule.payment_interval_seconds).toBe(90 * 86400);
   });
 });
