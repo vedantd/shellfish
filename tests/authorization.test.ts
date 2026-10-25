@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import {
+  attachLiveStakeProof,
   authorizeExactAction,
   verifyMandate,
 } from "../packages/authorization/src/index.ts";
@@ -151,5 +152,58 @@ describe("authorization kernel", () => {
     expect(receipt.decision).toBe("DENY");
     expect(receipt.reason_codes).toContain("DENY_REPLAY");
     expect(receipt.reservation_id).toBeNull();
+  });
+
+  it("attachLiveStakeProof permits native signing only on LIVE ALLOW", () => {
+    const liveAllow = {
+      ...AuthorizationReceipt.parse({
+        contract_version: "C0-REP-1",
+        model_version: "REP-CURVE-v0.2",
+        network: "devnet",
+        mode: "LIVE_DEVNET",
+        request_id: "req-live-1",
+        compatible: true,
+        offer_id: "offer-live",
+        mandate_id: "m-live",
+        proposal_hash: "sha256:" + "ab".repeat(32),
+        envelope_hash: null,
+        decision: "ALLOW",
+        reason_codes: [],
+        checks: {
+          identity: "PASS",
+          lender_offer: "PASS",
+          policy: "PASS",
+          exposure: "PASS",
+          nonce: "PASS",
+        },
+        reservation_id: "res:live-1",
+        signature_state: "NOT_YET_SIGNED",
+        xrpl_state: "NOT_SUBMITTED",
+        tx_hash: null,
+        decision_time: "2026-10-25T12:00:00Z",
+        quote_bond_u: "560000000",
+        stake_proof_id: null,
+        policy_hash:
+          "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+        commercial_terms_hash: "sha256:" + "cd".repeat(32),
+        prepared_tx_commitment: null,
+        native_signing_permitted: false,
+      }),
+    };
+    const permitted = attachLiveStakeProof(liveAllow, {
+      stakeProofId: "A".repeat(64),
+      preparedTxCommitment: "sha256:" + "ef".repeat(32),
+    });
+    expect(permitted.native_signing_permitted).toBe(true);
+    expect(permitted.stake_proof_id).toBe("A".repeat(64));
+    expect(() =>
+      attachLiveStakeProof(
+        { ...liveAllow, mode: "SIMULATED_LOAN" },
+        {
+          stakeProofId: "A".repeat(64),
+          preparedTxCommitment: "sha256:" + "ef".repeat(32),
+        },
+      ),
+    ).toThrow(/LIVE_DEVNET/);
   });
 });

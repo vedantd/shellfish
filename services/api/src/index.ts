@@ -6,6 +6,7 @@ import {
   type CreditBackend,
 } from "./credit-context.js";
 import { openFixtureCreditBackend } from "./db/fixtures.js";
+import { openLiveCreditBackend } from "./live-backend.js";
 import { demoRoutes } from "./routes/demo.js";
 import { gitaRoutes } from "./routes/gita.js";
 import { healthRoutes } from "./routes/health.js";
@@ -22,6 +23,26 @@ if (config.networkMode === "SIMULATED_LOAN") {
     { databasePath: config.databasePath },
     "Opened fixture credit backend for SIMULATED_LOAN",
   );
+} else if (config.networkMode === "LIVE_DEVNET") {
+  try {
+    backend = await openLiveCreditBackend(config.databasePath, {
+      connectLedger: process.env.SHELLFISH_LIVE_CONNECT !== "0",
+    });
+    setCreditBackend(backend);
+    app.log.info(
+      {
+        databasePath: config.databasePath,
+        borrower: backend.liveConfig?.borrowerAddress,
+        endpoint: backend.liveConfig?.wsUrl,
+      },
+      "Opened LIVE_DEVNET credit backend",
+    );
+  } catch (err) {
+    app.log.error(
+      { err },
+      "LIVE_DEVNET bootstrap failed — API starts without credit backend (routes return errors until env is complete)",
+    );
+  }
 }
 
 await app.register(cors, { origin: true });
