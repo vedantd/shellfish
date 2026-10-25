@@ -25,11 +25,17 @@ export function createNativeCreditSources(db: Database.Database, registry: Credi
     const signature = sign(null, Buffer.from(canonicalJson({ domain, value })), key).toString("hex");
     return "SFATTEST1." + Buffer.from(canonicalJson({ domain, public_key: broker.publicKey, signature })).toString("base64url");
   }
+  const INTENT_TTL_MS = 60 * 60 * 1000;
   function createIntent(intentKey = "default") {
     if (!/^[A-Za-z0-9:_-]{1,160}$/.test(intentKey)) throw new Error("INVALID_INTENT_KEY");
-    const previous = db.prepare("SELECT config_hash,payload_json FROM native_credit_intents WHERE intent_key=?").get(intentKey) as { config_hash: string; payload_json: string } | undefined;
+    const previous = db.prepare("SELECT config_hash,payload_json,created_at FROM native_credit_intents WHERE intent_key=?")
+      .get(intentKey) as { config_hash: string; payload_json: string; created_at: string } | undefined;
     if (previous) {
       if (previous.config_hash !== configuration) throw new Error("INTENT_CONFIGURATION_CONFLICT");
+      const createdMs = Date.parse(previous.created_at);
+      if (!Number.isFinite(createdMs) || now().getTime() - createdMs >= INTENT_TTL_MS) {
+        throw new Error("INTENT_EXPIRED_USE_NEW_KEY");
+      }
       return JSON.parse(previous.payload_json) as NativeIntent;
     }
     const at = now(), materials = buildLiveAuthMaterials(config, at);

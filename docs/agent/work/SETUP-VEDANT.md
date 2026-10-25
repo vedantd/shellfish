@@ -3,24 +3,28 @@
 ## Current incoming rough backend handoff
 
 - Recorded: 2026-10-25 10:26 America/New_York, by Gita's agent under her direct handoff instruction.
-- State: **REVIEW** — consumer regression restored locally; **not** full backend acceptance. Vedant remains coordinator for B-0002.
+- State: **REVIEW** — regression restored + Slice 2 hardening PASS locally; **not** full backend acceptance. Vedant remains coordinator for B-0002.
 - Delivery SHA pulled: `1a0ddcd` (on `main` after selection merge `4237c87`). Selection preserved: 90 days, zero fees, interval 7776000, 550 bps, principal_minor 200000 and loan MPT scale six.
 - Code includes native SQLite credit sources/intents, detached principal mandate authentication, ledger-backed verifiers, signer lanes, durable origination/reconciliation and repayment/default/REP-return workers.
 - Frontend contract: `GET /openapi.json`, 24 operations / 56 schemas. Eight new native API operations.
 - Existing joined request/loan/credit/transaction reads and SQLite receipt/approved-offer storage remain available.
 
-### Consumer verification (2026-10-25, Vedant) — regression restore only
+### Consumer verification (2026-10-25, Vedant) — regression restore + Slice 2 hardening
 
 | Check | Result | Scope |
 | --- | --- | --- |
 | Pull / base | PASS | `main` at `1a0ddcd` |
 | `pnpm build` / `pnpm typecheck` | PASS | Workspace |
-| `pnpm exec vitest run --no-cache` | PASS | **205 PASS / 6 todo** |
-| LIVE mock ports | PASS | `tests/xrpl.test.ts` updated to durable `transport` + `execution` + `signerLanes` |
-| Full backend acceptance | NOT CLAIMED | Lifecycle runtime, recovery audit, Devnet smoke still open |
+| LIVE mock ports | PASS | `tests/xrpl.test.ts` durable `transport` + `execution` + `signerLanes` |
+| Expired-absent stay RECONCILING | PASS | `tests/backend-execution.test.ts` — no replacement blob |
+| Execution / lifecycle / return CAS recover | PASS | `tests/backend-execution.test.ts`, `backend-lifecycle`, `backend-operator-recover` |
+| Lifecycle repay timeout + DEFAULT_TOO_SOON | PASS | `tests/backend-lifecycle.test.ts` |
+| Intent one-hour TTL | PASS | Implemented in `native-credit.ts`; `tests/backend-native-intent.test.ts` |
+| Full combined suite | PASS | **215 PASS / 6 todo** (`pnpm exec vitest run --no-cache`) |
+| Full backend acceptance | NOT CLAIMED | Return-worker runtime suite, restart/unknown-debt audit, UI, Devnet smoke still open |
 | Connected Devnet smoke | NOT RUN | AUTH-DEVNET-001 still granted |
 
-- Lifecycle runtime tests, operator CAS recovery, restart/unknown-debt audit, LIVE source-doc P2, UI Screens A/B, and native smoke/return/default remain open.
+- Still open: fresh return-worker runtime suite, stored-vs-ledger restart audit, LIVE source-doc P2, UI Screens A/B, native smoke/return/default, six security TODOs.
 - Do not treat playground-term verification doubles as 90d/0 product acceptance.
 
 ### Exact testing and hardening handoff

@@ -41,9 +41,9 @@ async function setup() {
   const record = registry.reserveRequest(request);
   const execution = createExecutionStore(db, { now: () => new Date(now * 1000) });
   const submitted: string[] = [], records = new Map<string, Record<string, unknown>>();
-  let failSubmission = false, beforeLookup: (() => Promise<void>) | undefined;
+  let failSubmission = false, beforeLookup: (() => Promise<void>) | undefined, ledgerIndex = 99;
   const config = { wsUrl: "wss://example.invalid", borrowerSeed: borrower.seed!, brokerSeed: broker.seed!, repIssuerSeed: issuer.seed!, repIssuerAddress: issuer.classicAddress,
-    loanBrokerId: "C".repeat(64), loanMptIssuanceId: asset.mpt_issuance_id, repIssuanceId: rep.mpt_issuance_id, paymentTotal: 1, paymentIntervalSec: 7776000, gracePeriodSec: 60, loanOriginationFee: "0", loanServiceFee: "0" };
+    loanBrokerId: "C".repeat(64), loanMptIssuanceId: asset.mpt_issuance_id, loanAssetScale: 6, repIssuanceId: rep.mpt_issuance_id, paymentTotal: 1, paymentIntervalSec: 7776000, gracePeriodSec: 60, loanOriginationFee: "0", loanServiceFee: "0" };
   let autofills = 0;
   const client = {
     async autofill(raw: Record<string, unknown>) { autofills++; return { ...raw, Fee: "12", Sequence: raw.Account === broker.classicAddress ? 2 : 1, LastLedgerSequence: 120 }; },
@@ -68,7 +68,7 @@ async function setup() {
         return { result: tx };
       }
       if (input.command === "server_info") return { result: { info: { network_id: 2 } } };
-      if (input.command === "ledger") return { result: { validated: true, ledger_index: 99, ledger: { ledger_index: 99, close_time: now - 946684800 } } };
+      if (input.command === "ledger") return { result: { validated: true, ledger_index: ledgerIndex, ledger: { ledger_index: ledgerIndex, close_time: now - 946684800 } } };
       throw new Error("Unexpected RPC command");
     },
   } as never;
@@ -82,7 +82,7 @@ async function setup() {
     getApprovedOffer: (hash: string) => hash === offer.commercial_terms_hash ? offer : undefined, clockSeconds: () => now, borrowerAccount: borrower.classicAddress,
     repAsset: rep as { mpt_issuance_id: string; issuer: string; asset_scale: 6 }, live: { transport, redeemStake: async () => { throw new Error("legacy path forbidden"); }, originateLoanSet: async () => { throw new Error("legacy path forbidden"); }, repayLoanPay: async () => { throw new Error("legacy path forbidden"); } }, execution, signerLanes };
   const proposed = { proposalHash: contentHash(request), principal: offer.principal, aprBps: offer.apr_bps, termDays: offer.term_days, asset: JSON.stringify(asset), networkMode: "LIVE_DEVNET" as const, requestId: request.request_id, reservationId: record.reservationId };
-  return { registry, execution, request, context, proposed, submitted, transport, get autofills() { return autofills; }, setFail: (value: boolean) => { failSubmission = value; }, blockLookup: (callback: () => Promise<void>) => { beforeLookup = callback; } };
+  return { registry, execution, request, context, proposed, submitted, transport, get autofills() { return autofills; }, setFail: (value: boolean) => { failSubmission = value; }, setLedgerIndex: (value: number) => { ledgerIndex = value; }, blockLookup: (callback: () => Promise<void>) => { beforeLookup = callback; } };
 }
 
 describe("durable native origination", () => {
@@ -152,5 +152,42 @@ describe("durable native origination", () => {
     const signed = env.transport.signTransaction("repIssuer", fields);
     expect(() => verifySignedNative(signed)).not.toThrow();
     expect(() => normalizePaymentAliases({ ...fields, DeliverMax: { mpt_issuance_id: env.transport.config.repIssuanceId, value: "3" } })).toThrow(/ALIAS_CONFLICT/);
+  });
+
+  it("past LastLedgerSequence with absent tx stays RECONCILING without a replacement blob", async () => {
+    const env = await setup();
+    env.setFail(true);
+    await expect(originateLoan(env.proposed, env.context)).rejects.toBeInstanceOf(NativeExecutionPending);
+    const saved = env.execution.getAttempt(env.request.request_id, "STAKE")!;
+    expect(saved.state).toBe("RECONCILING");
+    expect(env.autofills).toBe(1);
+    expect(env.submitted).toHaveLength(1);
+    env.setFail(false);
+    env.setLedgerIndex(200); // past LastLedgerSequence 120; still txnNotFound
+    await expect(originateLoan(env.proposed, env.context)).rejects.toBeInstanceOf(NativeExecutionPending);
+    const again = env.execution.getAttempt(env.request.request_id, "STAKE")!;
+    expect(again.signedBlob).toBe(saved.signedBlob);
+    expect(again.attemptHash).toBe(saved.attemptHash);
+    expect(again.state).toBe("RECONCILING");
+    expect(env.autofills).toBe(1);
+    expect(env.submitted).toHaveLength(1);
+    expect(env.registry.getRequest(env.request.request_id).state).toBe("RECONCILING");
+  });
+
+  it("acknowledgeExecutionRecovery clears only the exact owner and fence", async () => {
+    const env = await setup();
+    const guard = env.execution.claimExecution(env.request.request_id, "worker-a");
+    expect(guard).toMatchObject({ acquired: true, owner: "worker-a", fence: 1 });
+    expect(env.execution.acknowledgeExecutionRecovery(env.request.request_id, "worker-b", 1)).toBe(false);
+    expect(env.execution.acknowledgeExecutionRecovery(env.request.request_id, "worker-a", 99)).toBe(false);
+    expect(env.execution.getExecutionClaim(env.request.request_id)).toMatchObject({ active: true, owner: "worker-a", fence: 1 });
+    expect(env.execution.acknowledgeExecutionRecovery(env.request.request_id, "worker-a", 1)).toBe(true);
+    expect(env.execution.getExecutionClaim(env.request.request_id)).toMatchObject({ active: false });
+    const next = env.execution.claimExecution(env.request.request_id, "worker-b");
+    expect(next.acquired).toBe(true);
+    if (!next.acquired) throw new Error("expected claim");
+    expect(next.owner).toBe("worker-b");
+    expect(next.fence).toBeGreaterThan(1);
+    env.execution.releaseExecution(next);
   });
 });
