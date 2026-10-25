@@ -1,15 +1,16 @@
 # Shellfish work board
 
-- Revision: setup-r1, proposed allocation. Coordinator: Vedant, awaiting acknowledgement.
-- Current objective: [shared contract checkpoint](CURRENT-BATON.md).
-- Accepted claim channel: not selected. Vedant names the existing channel at adoption.
-- No product work is ACTIVE. Gate labels below are not allocated baton IDs.
+- Revision: setup-r1 adopted. Coordinator: **Vedant** (B-0001).
+- Current objective: [shared contract checkpoint B-0001](CURRENT-BATON.md).
+- Accepted claim channel: **GitHub PR comments** on `vedantd/shellfish`.
+- Clone mode: **separate clones**.
+- No product work is ACTIVE. Implementation IDs after B-0001 are allocated on claim.
 
 ## Feature gates
 
 | Gate | Observable outcome | Status and evidence |
 | --- | --- | --- |
-| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | NOT STARTED, scaffold inspection only |
+| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | **IN PROGRESS** — coordinator ACK done; fixture AssetRef + observation period still open |
 | C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | NOT STARTED, fixtures exist, handlers are TODO |
 | C2 | Authorization reserves once and only then permits a required signature | NOT STARTED, registry/auth core are stubs |
 | C3 | Verified execution changes accounting once, timeout retains reservation | NOT STARTED, no runtime evidence |
@@ -17,16 +18,15 @@
 
 ## Queued work and claims
 
-| Lane | Proposed owner | First bounded outcome | Depends on | Record |
-| --- | --- | --- | --- | --- |
-| Credit and registry | Gita | Shared fixtures, lender/match outputs and reserve/retry proof | C0 contract acknowledgement | [Gita work](work/SETUP-GITA.md) |
-| Authorization and execution | Vedant | Network/signing spike and gate consuming the agreed reservation interface | C0 contract acknowledgement | [Vedant work](work/SETUP-VEDANT.md) |
-| Policy examples | Nick | Two exact rules and expected results | Final PRD | Non-coding input to Gita |
-| Adversarial examples | Shell | Six bounded negative cases | Final PRD and agreed signing route | Non-coding input to both |
+| Lane | Owner | First bounded outcome | Depends on | Record | State |
+| --- | --- | --- | --- | --- | --- |
+| Credit and registry | Gita | Shared fixtures, lender/match outputs and reserve/retry proof | C0 examples | [Gita work](work/SETUP-GITA.md) | READY, unclaimed |
+| Authorization and execution | Vedant | Network/signing spike and gate consuming the agreed reservation interface | C0 examples | [Vedant work](work/SETUP-VEDANT.md) | READY, unclaimed |
+| Policy examples | Nick | Two exact rules and expected results | Final PRD | Non-coding input to Gita | READY |
+| Adversarial examples | Shell | Six bounded negative cases | Final PRD and agreed signing route | Non-coding input to both | READY |
 
-Each proposed code lane is READY and unclaimed. No acknowledgement or accepted code
-contract exists yet. The coordinator allocates IDs and records real claim receipts.
-The profile is the exact path map. No timeout-based takeover exists.
+Coordinator ACK recorded 2026-10-25 00:41 UTC. Profile is the exact path map.
+No timeout-based takeover exists.
 
 ## Dependency graph
 
@@ -39,7 +39,7 @@ flowchart TD
   M --> A[Vedant exact authorization]
   V --> A
   R --> A
-  A --> S[Reserve then controlled signing]
+  A --> S[Reserve then ALLOW then controlled signing]
   S --> X[Vedant persist submit and verify]
   X --> E[Gita apply outcome once]
   E --> U[Vedant receipt and UI]
@@ -56,15 +56,22 @@ flowchart TD
 
 ## Contract decisions for C0
 
-These are proposed defaults. Do not implement them as accepted decisions until both
-engineers acknowledge the versioned example and affected signature/storage interfaces.
+### Decided (adopted with B-0001)
 
-- One reservation point: final authorization reserves through Gita's registry before
-  ALLOW. Origination consumes the existing reservation without reserving again.
+- One reservation point: final authorization **reserves through Gita's registry before ALLOW**.
+  Origination **consumes** the existing reservation without reserving again.
+- Claim channel: GitHub PR comments. Clone mode: separate.
+- Schemas sole writer: Gita; Vedant accepts before freeze.
+
+### Still open — must land in the first accepted fixture/schema (Gita publishes)
+
+- **Asset identity:** use full `AssetRef` `{ currency, issuer }` on mandate, offer,
+  evidence `known_exposure`, and registry. Today mandate has object; offer/evidence use
+  string `"RLUSD"` — FAIL until unified.
+- **Observation period:** add evidence observation dates or history months so Lender B’s
+  ≥12-month rule is computable. Today history is counts only — FAIL until fixed.
 - Exact retry returns the existing result. Changed payload under the same key fails.
   A new request with a consumed authorization nonce fails. One loan per demo mandate.
-- Use full currency/issuer identity everywhere. Add evidence observation dates or
-  history months for lender B's 12-month rule.
 - Bind firm principal, nominal annual rate, fees and the actual payment schedule.
   Distinguish interest basis points from all-in cost. Do not silently rewrite the offer.
 - Separate offer hash, prepared non-signature transaction commitment and final signed
@@ -74,6 +81,9 @@ engineers acknowledge the versioned example and affected signature/storage inter
 - Atomic reserve, nonce/idempotency handling and the basic race test belong in P0.
   FR-14's P1 label does not override the PRD section 11.4.2 atomic-reserve requirement.
 - Literal `sig-demo-*` strings are fixtures, not cryptographic verification evidence.
+
+Do not treat open items as accepted code until both engineers ACK the versioned example
+in a PR comment.
 
 ## Proposed 12 hour order
 

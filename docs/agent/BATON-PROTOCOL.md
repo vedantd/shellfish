@@ -1,6 +1,6 @@
 # Shellfish two person baton protocol
 
-Status: setup-r1 prepared under Gita's documentation request. Coordinator adoption pending.
+Status: setup-r1 **adopted** by Vedant (B-0001, 2026-10-25). Claim channel: GitHub PR comments. Clone mode: separate.
 
 ## Canonical records
 
@@ -16,21 +16,18 @@ acting in their session. Other agents submit proposed central-record diffs.
 
 ## Bootstrap and claims
 
-Gita requested this setup. The setup editor can draft central records under that request.
-Vedant is the proposed coordinator, not an acknowledged active owner. No product claim exists.
-Vedant adopts setup-r1, names one existing shared claim channel and confirms clone mode.
-He then allocates IDs and acknowledges each owner, base, contract and exclusive scope.
+Gita requested the initial setup. Vedant **adopted** setup-r1 as coordinator (B-0001):
+claim channel = GitHub PR comments on `vedantd/shellfish`; clone mode = separate;
+accepted base = `7fbcfc7…`. Product implementation remains unclaimed until C0 examples
+are accepted and a lane claims a bounded slice.
 
-Example acknowledgement, completed with real evidence at adoption:
+Recorded acknowledgement (do not treat as a coding grant):
 
 ```text
-ACK setup-r1. Coordinator: Vedant. Claim channel: name the existing shared channel.
-Accepted base: exact commit and any contract patch. Contract: accepted version.
-Allocate B-0001 to the current objective and record each scoped owner acknowledgement.
+ACK setup-r1. Coordinator: Vedant. Claim channel: GitHub PR comments on vedantd/shellfish.
+Clone mode: separate. Accepted base: 7fbcfc718b5f7d8b9cb63ebd3f1f6eb9787486b8.
+Allocate B-0001 to the C0 contract checkpoint. Lane scopes READY until claimed.
 ```
-
-Do not paste the example as evidence of a real acknowledgement. A claim record must
-include an attributable source and actual time. Setup approval does not start coding.
 
 ## States
 

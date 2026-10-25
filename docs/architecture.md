@@ -14,11 +14,11 @@ Lender A / Lender B adapters
 Nick compatibility
   → bounded permitted envelope
 Shellfish authorization
-  → ALLOW/DENY + facility reservation
+  → reserve facility, then ALLOW/DENY + reservation_id
 Controlled signer
   → exact approved LoanSet bytes
 XRPL adapter
-  → submitAndWait / reconcile
+  → consume reservation → submitAndWait / reconcile
 Receipts + exposure registry
 ```
 
@@ -26,9 +26,9 @@ Receipts + exposure registry
 
 | Package | Owner | Role |
 |---------|-------|------|
-| `@shellfish/schemas` | Shared | Zod contracts (mandate, evidence, offer, receipt) |
-| `@shellfish/authorization` | You | Mandate verify + policy gate |
-| `@shellfish/xrpl` | You | LoanSet / LoanPay adapter |
+| `@shellfish/schemas` | **Gita** (Vedant accepts before freeze) | Zod contracts (mandate, evidence, offer, receipt) |
+| `@shellfish/authorization` | Vedant | Mandate verify + policy gate; reserves before ALLOW |
+| `@shellfish/xrpl` | Vedant | LoanSet / LoanPay adapter |
 | `@shellfish/evidence` | Gita | Passport + known-exposure |
 | `@shellfish/compatibility` | Gita | Nick matcher + lender policies |
 | `@shellfish/registry` | Gita | Facilities / reservations |
@@ -41,3 +41,4 @@ Receipts + exposure registry
 See the PRD in this folder for the full build contract.
 
 For per-module implementation steps, see [`HOW_TO_BUILD.md`](HOW_TO_BUILD.md).
+For claims and C0 gaps, see [`agent/CURRENT-BATON.md`](agent/CURRENT-BATON.md).

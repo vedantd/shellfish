@@ -1,6 +1,6 @@
 # `@shellfish/api`
 
-**Owner:** You (orchestration). Gita’s handlers are mounted here but implemented in her packages.
+**Owner:** Vedant (orchestration). Gita’s handlers are mounted here but implemented in her packages.
 
 Fastify REST backend. Sequence the flow; keep packages thin.
 
@@ -8,7 +8,7 @@ Fastify REST backend. Sequence the flow; keep packages thin.
 
 - HTTP contracts from PRD §7.1
 - Persistence (SQLite via `src/db/schema.sql`)
-- Ordering: evidence → evaluate → match → authorize → **reserve** → sign → submit → reconcile → receipt
+- Ordering: evidence → evaluate → match → **authorize (includes reserve)** → sign → submit → reconcile → receipt
 
 ## Build steps
 
@@ -21,8 +21,8 @@ Fastify REST backend. Sequence the flow; keep packages thin.
 | `GET /v1/evidence/:id` | `@shellfish/evidence` |
 | `POST /v1/lenders/:id/evaluate` | `@shellfish/compatibility` `evaluateLender` |
 | `POST /v1/offers/match` | `@shellfish/compatibility` `matchOffers` |
-| `POST /v1/authorizations` | `@shellfish/authorization` `authorizeExactAction` |
-| `POST /v1/loans/originate` | registry `reserveFacility` → xrpl `originateLoan` → settle |
+| `POST /v1/authorizations` | `@shellfish/authorization` `authorizeExactAction` (**calls `reserveFacility` before ALLOW**) |
+| `POST /v1/loans/originate` | **consume** existing reservation → xrpl `originateLoan` → settle |
 | `GET /v1/loans/:id` | local state + chain Loan ID |
 | `GET /v1/receipts/:id` | assembled receipt transitions |
 | `POST /v1/demo/repay` | xrpl repay + evidence `recordPerformanceEvent` |
@@ -30,20 +30,25 @@ Fastify REST backend. Sequence the flow; keep packages thin.
 3. Parse request bodies with Zod schemas at the edge.
 4. Map package errors → stable denial codes + one human explanation.
 5. Idempotency keys: `request_id` + `facility_id` + `proposal_hash`.
-6. State machine (do not skip):  
-   `REQUESTED → UNDERWRITING → MATCHED → AUTHORIZED → RESERVED → SIGNED → SUBMITTED → VALIDATED_ACTIVE`  
+6. State machine (do not skip):
+   `REQUESTED → UNDERWRITING → MATCHED → RESERVED → AUTHORIZED → SIGNED → SUBMITTED → VALIDATED_ACTIVE`
    (or `DENIED` / `RECONCILING` / `RELEASED`).
 
 ## Orchestration rule
 
 ```
-ALLOW from authorization
-  → reserveFacility (Gita)   // before any signature
-  → controlled sign (You)
+authorizeExactAction
+  → reserveFacility (Gita)     // required before ALLOW
+  → return ALLOW + reservation_id
+  → controlled sign (Vedant)
+POST /v1/loans/originate
+  → consume existing reservation (do not reserve again)
   → submit LoanSet
   → on validated success: settleReservation COMMITTED
   → on failure/timeout: RECONCILING then RELEASED if confirmed failed
 ```
+
+Denial paths never reserve or sign.
 
 ## Done when
 

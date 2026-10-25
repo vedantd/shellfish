@@ -1,6 +1,6 @@
 # `@shellfish/web`
 
-**Owner:** You
+**Owner:** Vedant
 
 Three-screen judge demo (PRD §10.1).
 

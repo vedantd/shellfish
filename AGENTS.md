@@ -14,8 +14,9 @@ Neither Nick nor Shell has an implementation assignment.
 5. Read [architecture](docs/architecture.md), the linked PRD, and relevant code/tests.
 6. Check [authorizations](docs/agent/AUTHORIZATIONS.md) for any gated action.
 
-The current setup is READY and unclaimed. Vedant is the proposed coordinator.
-His acknowledgement adopts the allocation and claim channel. Setup does not start product coding.
+Coordinator **Vedant acknowledged** setup-r1 (baton **B-0001**). Claim channel:
+GitHub PR comments on `vedantd/shellfish`. Clone mode: separate clones.
+Product coding stays unclaimed until C0 examples are accepted and a lane is claimed.
 
 ## Two person ownership
 

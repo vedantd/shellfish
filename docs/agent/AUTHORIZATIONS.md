@@ -1,14 +1,15 @@
 # Shellfish authorization ledger
 
 This records attributable scope. It does not grant filesystem access or verify identity.
-Maintainer after adoption: the acknowledged coordinator. Current adoption is pending.
+Maintainer: acknowledged coordinator **Vedant** (B-0001).
 
 | ID | Human and source | Status | Scope |
 | --- | --- | --- | --- |
 | AUTH-SETUP-001 | Gita, direct Codex request on 24 October 2026 New York time | APPROVED | Local two-party baton documentation setup only |
-| Product implementation | No implementation grant issued by this setup | NOT GRANTED | Future bounded coding request and acknowledged work claim |
-| Dependency installation | Gita's supplied instructions require asking first | NOT GRANTED | No install command executed |
-| Commit/push/publication/deployment | No grant in this task | NOT GRANTED | Keep each action separate |
+| AUTH-ALIGN-001 | Vedant, PRD alignment + setup-r1 ACK on 25 October 2026 | APPROVED | Docs reconcile + coordinator ACK; no product code |
+| Product implementation | No implementation grant issued | NOT GRANTED | Future bounded coding request and acknowledged work claim |
+| Dependency installation | Ask Gita first | NOT GRANTED | No install from this alignment pass |
+| Commit/push/publication/deployment | No grant in this task | NOT GRANTED | Keep each action separate; push only if Vedant asks |
 | Stateful Devnet execution | No grant in this task | NOT GRANTED | Network choice and bounded execution belong to the implementation checkpoint |
 
 NOT GRANTED describes the absence of a grant, not a historical rejection.
@@ -28,10 +29,20 @@ For actual approvals use APPROVED, PROPOSED, REJECTED, REVOKED, SUPERSEDED or EX
   `docs/agent/work/SETUP-GITA.md`, `docs/agent/work/SETUP-VEDANT.md`.
 - Excludes application changes, fixtures, dependency installation, keys, database writes,
   product implementation, commit, push, publication, deployment and Devnet submissions.
-- Stop: verified local setup and handoff. Vedant acknowledgement remains an attributable
-  coordination action, not an action the setup editor can perform on his behalf.
+- Stop: verified local setup and handoff. Completed by Gita's session; adoption by Vedant is AUTH-ALIGN-001.
 
-Platform permission to write this directory is separate from this task authorization.
-Do not contact teammates or send messages through tools from this setup request.
+## AUTH-ALIGN-001
+
+- Requester and approver: Vedant (tech lead / coordinator).
+- Source: Cursor session, PRD vs baton alignment plan execute, 25 October 2026 UTC.
+- Allowed: record PRD alignment evidence; ACK setup-r1; allocate B-0001; set claim channel
+  to GitHub PR comments and clone mode to separate; reconcile ownership and
+  reserve-before-ALLOW wording in scaffold docs (`HOW_TO_BUILD`, architecture, schemas/
+  authorization/api READMEs, root README, AGENTS, fixtures README C0 pointers).
+- Excludes: fixture JSON / Zod field changes, package implementation, dependency install,
+  Devnet, and push unless separately requested.
+- Stop: docs aligned; next action is Gita’s C0 fixture publish for Vedant accept.
+
+Platform permission to write is separate from this ledger.
 Reuse later explicit grants within their exact scope. Do not reopen unchanged covered
 approvals or treat a proposal, preselected choice, silence or agent claim as consent.

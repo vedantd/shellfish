@@ -10,36 +10,34 @@ An accountable business can delegate bounded borrowing authority to an AI agent;
 
 | Person | Codes? | Owns |
 |--------|--------|------|
-| **You** | Yes | Shellfish authorization, controlled signing, XRPL adapter, API orchestration, demo UI |
-| **Gita** | Yes | Evidence passport, lender policy adapters, Nick matching, facility registry, fixtures/tests |
+| **Vedant** (PRD `You`) | Yes | Shellfish authorization, controlled signing, XRPL adapter, API orchestration, demo UI, root manifests |
+| **Gita** | Yes | Schemas (sole writer), evidence, lender adapters, Nick matching, facility registry, fixtures, DB schema |
 | **Nick** | No | Lender policy semantics, pitch, judge Q&A |
 | **Shell** | No | Security review, denial scenarios, claim review |
 
-Nick and Shell do **not** merge implementation code. Module names (“Nick”, “Shellfish”) do not imply who codes them.
+Nick and Shell do **not** merge implementation code. Module names (“Nick”, “Shellfish”) do not imply who codes them. Vedant **accepts** schema/fixture contracts before freeze; he does not co-edit `packages/schemas/`.
 
 ## Two person baton
 
-The scaffold label **You** means **Vedant**, the tech lead. Start at
-[the current baton](docs/agent/CURRENT-BATON.md), then read
+Start at [B-0001 current baton](docs/agent/CURRENT-BATON.md), then
 [the operating profile](docs/agent/PROJECT-PROFILE.md) and
 [the work board](docs/agent/WORK-BOARD.md).
-The two scoped work records define Gita's credit/registry lane and Vedant's
-authorization/execution lane. Coordinator acknowledgement and code claims are pending.
+Coordinator **Vedant acknowledged** setup-r1. Claim channel: **GitHub PR comments**. Clone mode: **separate**. Product coding still requires a claimed lane after C0.
 
 ## Repo layout
 
 ```
-apps/web/                    # You — screens A / B / C
-services/api/                # You — Fastify orchestrator
-packages/schemas/            # Shared — Zod contracts (PRD §6)
-packages/authorization/      # You — mandate verify + policy gate
-packages/xrpl/               # You — LoanSet / LoanPay adapter
+apps/web/                    # Vedant — screens A / B / C
+services/api/                # Vedant — Fastify orchestrator (mounts Gita routes)
+packages/schemas/            # Gita — Zod contracts (Vedant accepts before freeze)
+packages/authorization/      # Vedant — mandate verify; reserve then ALLOW
+packages/xrpl/               # Vedant — LoanSet / LoanPay adapter
 packages/evidence/           # Gita — passport + known exposure
 packages/compatibility/      # Gita — Nick matcher + lender policies
 packages/registry/           # Gita — facilities / reservations
-fixtures/                    # HarborSupply / Lender A+B seed data
-tests/                       # Invariant + fixture schema tests
-docs/                        # PRD + architecture note
+fixtures/                    # Gita — HarborSupply / Lender A+B seed data
+tests/                       # Split by profile ownership
+docs/                        # PRD + architecture + agent baton
 ```
 
 ## Prerequisites
@@ -113,15 +111,15 @@ No micro-bond / secondary debt marketplace, no universal credit score, no produc
 
 | Endpoint | Owner |
 |----------|-------|
-| `POST /v1/mandates` | You |
-| `POST /v1/authorizations` | You |
-| `POST /v1/loans/originate` | You |
-| `GET /v1/loans/:id` | You |
-| `GET /v1/receipts/:id` | You |
+| `POST /v1/mandates` | Vedant |
+| `POST /v1/authorizations` | Vedant (reserves before ALLOW) |
+| `POST /v1/loans/originate` | Vedant (consumes reservation) |
+| `GET /v1/loans/:id` | Vedant |
+| `GET /v1/receipts/:id` | Vedant |
 | `GET /v1/evidence/:id` | Gita |
 | `POST /v1/lenders/:id/evaluate` | Gita |
 | `POST /v1/offers/match` | Gita |
-| `POST /v1/demo/repay` | You + Gita |
+| `POST /v1/demo/repay` | Vedant + Gita |
 
 Handlers currently return TODO placeholders. Implement against `@shellfish/schemas` and `fixtures/`.
 
@@ -138,7 +136,7 @@ Handlers currently return TODO placeholders. Implement against `@shellfish/schem
 
 ### Hour 0–3 interface freeze
 
-Before parallel work: You prove Devnet loan path + signing boundary; Gita freezes evidence / offer / compatibility response schemas; agree on API shapes. Until then, each engineer may use local fixtures — integration must consume canonical schemas, not ad-hoc fields.
+Before parallel work: Vedant proves Devnet loan path + signing boundary; Gita freezes evidence / offer / compatibility schemas (`packages/schemas` sole writer); both accept C0 examples via GitHub PR comments. Until then, each engineer may use local fixtures — integration must consume canonical schemas, not ad-hoc fields.
 
 ## How to build each module
 

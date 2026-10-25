@@ -1,6 +1,6 @@
 # `@shellfish/xrpl`
 
-**Owner:** You (XRPL + Shellfish)
+**Owner:** Vedant (XRPL + Shellfish)
 
 LoanSet / LoanPay adapter + controlled signing boundary.
 
