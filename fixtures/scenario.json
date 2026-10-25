@@ -1,0 +1,61 @@
+{
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN",
+  "scenario_id": "harbor-rep-happy-v1",
+  "clock": "2026-10-24T18:11:00Z",
+  "provenance": "SYNTHETIC",
+  "native_signing_permitted": false,
+  "money_scale": 100,
+  "rep_scale": 1000000,
+  "principal_id": "business:harbor-supply-demo",
+  "loan_asset": {
+    "currency": "USD",
+    "issuer": "sim:usd-issuer"
+  },
+  "rep_asset": {
+    "mpt_issuance_id": "sim:rep-issuance",
+    "issuer": "sim:rep-issuer",
+    "asset_scale": 6
+  },
+  "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+  "evidence_version": "ev-c0-rep-1",
+  "facility": {
+    "facility_id": "facility-A-001",
+    "lender_id": "lender-A",
+    "asset": {
+      "currency": "USD",
+      "issuer": "sim:usd-issuer"
+    },
+    "limit_minor": "500000",
+    "version": 1
+  },
+  "opening": {
+    "active_principal_minor": "100000",
+    "reserved_principal_minor": "0",
+    "defaulted_principal_minor": "0",
+    "facility_committed_minor": "100000",
+    "facility_reserved_minor": "0",
+    "reputation": {
+      "seed_u": "1000000000",
+      "available_u": "760000000",
+      "reserved_u": "0",
+      "bonded_u": "240000000",
+      "pending_return_u": "0",
+      "growth_u": "0",
+      "forfeited_u": "0",
+      "suspended": false,
+      "version": 1
+    }
+  },
+  "opening_loans": [
+    {
+      "loan_id": "sim:opening-loan-A-001",
+      "principal_minor": "100000",
+      "original_bond_u": "240000000",
+      "maturity": "2027-04-24T18:11:00Z",
+      "provenance": "SYNTHETIC"
+    }
+  ]
+}

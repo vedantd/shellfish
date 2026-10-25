@@ -1,0 +1,24 @@
+{
+  "model_version": "REP-CURVE-v0.2",
+  "rep_scale": 1000000,
+  "money_scale": 100,
+  "seed_u": "1000000000",
+  "max_surviving_u": "1200000000",
+  "rolling_reward_cap_u": "20000000",
+  "rolling_window_seconds": 2592000,
+  "curve": {
+    "linear_numerator": 1,
+    "linear_denominator": 5,
+    "quadratic_numerator": 1,
+    "quadratic_denominator": 25000
+  },
+  "reward": {
+    "rate_numerator": 1,
+    "rate_denominator": 100,
+    "base_numerator": 1,
+    "base_denominator": 5,
+    "period_seconds": 2592000
+  },
+  "fixed_original_bond_until_full_repayment": true,
+  "default_suspends_principal": true
+}

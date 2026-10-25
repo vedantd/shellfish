@@ -1,7 +1,7 @@
 {
   "name": "@shellfish/registry",
   "version": "0.1.0",
-  "description": "Gita — lender facility registry + atomic reservation stubs (SQLite)",
+  "description": "Gita \u2014 lender facility registry + atomic reservation stubs (SQLite)",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -24,6 +24,6 @@
     "typescript": "^5.7.2"
   },
   "peerDependencies": {
-    "better-sqlite3": "^11.7.0"
+    "better-sqlite3": "12.10.1"
   }
 }

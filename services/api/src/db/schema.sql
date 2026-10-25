@@ -1,6 +1,7 @@
 -- Shellfish demo registry (PRD §7.2)
 -- Apply with: pnpm db:init
--- Reservation CAS / idempotency logic is NOT implemented yet.
+-- Legacy orchestration tables remain intact.
+-- REP-CURVE tables are initialized by @shellfish/registry initializeRegistrySchema.
 
 PRAGMA foreign_keys = ON;
 

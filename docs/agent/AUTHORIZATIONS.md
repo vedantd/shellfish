@@ -13,6 +13,9 @@ Maintainer: acknowledged coordinator **Vedant** (B-0001).
 | Commit/push/publication/deployment | No grant in this task | NOT GRANTED | Keep each action separate; push only if Vedant asks |
 | Stateful Devnet execution | No grant in this task | NOT GRANTED | Network choice and bounded execution belong to the implementation checkpoint |
 
+The setup-pass absence of a grant below is historical. AUTH-GITA-HANDOFF-001
+records Gita's later direct implementation and delivery authority for this checkpoint.
+
 NOT GRANTED describes the absence of a grant, not a historical rejection.
 For actual approvals use APPROVED, PROPOSED, REJECTED, REVOKED, SUPERSEDED or EXPIRED.
 
@@ -82,3 +85,23 @@ approvals or treat a proposal, preselected choice, silence or agent claim as con
   `docs/agent/work/SETUP-VEDANT.md`, and a GitHub PR for attributable claim-channel notice.
 - Excludes: product package/fixture implementation, dependency install, Devnet, deployment.
 - Stop: acceptance recorded; Gita still publishes C0 fixtures including REP fields.
+
+## AUTH-GITA-HANDOFF-001
+
+- Status: APPROVED. Sponsor: Gita, direct instructions in this Codex chat on 2026-10-25 10:45 UTC.
+- Source: Gita requested verification against the baton, pause at the Vedant dependency,
+  commit and push, then a WhatsApp draft for her to send. She explicitly requested updates
+  to both contributors' batons reflecting completed work, decisions and dependencies.
+- Authorized delivery: the reviewed Gita producer implementation, C0 fixtures/contracts,
+  previously approved runtime/SDK pins and the narrow handoff records to existing origin/main.
+- Narrow central-record exception: CURRENT-B2026-10-25 10:45 UTCON, WORK-BOARD and this grant entry may
+  record producer evidence and pending dependencies. SETUP-VEDANT receives an incoming
+  consumer handoff. No coordinator takeover, new baton ID or Vedant ACK is granted.
+- Earlier implementation/install approvals are scoped to Gita's direct coding request,
+  locked dependencies, Node 24/SQLite 12.10.1 test and requested XRPL.js stable update.
+- Excludes new native transactions, deployment, force-push, unrelated work, new installs
+  and sending WhatsApp. The requested message is a draft for Gita.
+- Stop: verify delivery, report actual commit/remote ref and pause pending Vedant feedback.
+
+This later direct grant supersedes the initial setup-only absence of delivery authority
+for this exact checkpoint. It does not create standing release or installation authority.

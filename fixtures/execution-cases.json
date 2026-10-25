@@ -1,0 +1,753 @@
+{
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN",
+  "reservation_id": "res-A-999",
+  "stake_proof": {
+    "proof_id": "sim:stake-proof-003",
+    "request_id": "req-003",
+    "network": "devnet",
+    "rep_asset": {
+      "mpt_issuance_id": "sim:rep-issuance",
+      "issuer": "sim:rep-issuer",
+      "asset_scale": 6
+    },
+    "sender": "sim:borrower-harbor-supply",
+    "destination": "sim:rep-issuer",
+    "amount_u": "720000000",
+    "payload_hash": "sha256:4be77a7d8b36fa52d473b06141587efbc5afd260a3a5505fd2b90b1b4a99a19b",
+    "provenance": "SYNTHETIC",
+    "simulated_verified": true,
+    "validated": false,
+    "tx_hash": null,
+    "ledger_index": null,
+    "native_signing_permitted": false
+  },
+  "cases": [
+    {
+      "case_id": "stake-redeemed",
+      "event": "STAKE_REDEEMED",
+      "parent_case_id": null,
+      "before": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "200000",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "200000",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "720000000",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 2
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "200000",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "200000",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "720000000",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 2
+        }
+      },
+      "principal_reduction_minor": "0",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "RECONCILING"
+    },
+    {
+      "case_id": "origination-success",
+      "event": "ORIGINATION_SUCCESS",
+      "parent_case_id": "stake-redeemed",
+      "before": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "200000",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "200000",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "720000000",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 2
+        }
+      },
+      "after": {
+        "active_principal_minor": "300000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "300000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "960000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "principal_reduction_minor": "0",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "ACTIVE"
+    },
+    {
+      "case_id": "submission-unknown",
+      "event": "SUBMISSION_UNKNOWN",
+      "parent_case_id": "stake-redeemed",
+      "before": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "200000",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "200000",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "720000000",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 2
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "200000",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "200000",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "720000000",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 2
+        }
+      },
+      "principal_reduction_minor": "0",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "RECONCILING"
+    },
+    {
+      "case_id": "cancel-before-burn",
+      "event": "CANCELLED_BEFORE_BURN",
+      "parent_case_id": null,
+      "before": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "200000",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "200000",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "720000000",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 2
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "760000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "principal_reduction_minor": "0",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "CANCELLED"
+    },
+    {
+      "case_id": "failed-after-burn",
+      "event": "FAILED_AFTER_BURN",
+      "parent_case_id": "stake-redeemed",
+      "before": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "200000",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "200000",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "720000000",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 2
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "720000000",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "principal_reduction_minor": "0",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "RETURN_PENDING"
+    },
+    {
+      "case_id": "failed-return",
+      "event": "RETURN_VALIDATED",
+      "parent_case_id": "failed-after-burn",
+      "before": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "720000000",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "760000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 4
+        }
+      },
+      "principal_reduction_minor": "0",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "CANCELLED"
+    },
+    {
+      "case_id": "clean-full-day90",
+      "event": "FULL_REPAYMENT",
+      "parent_case_id": "origination-success",
+      "before": {
+        "active_principal_minor": "300000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "300000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "960000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "732000000",
+          "growth_u": "12000000",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 4
+        }
+      },
+      "principal_reduction_minor": "200000",
+      "reward_intervals": [
+        {
+          "principal_minor": "200000",
+          "elapsed_seconds": 7776000
+        }
+      ],
+      "reward_eligible": true,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "12000000",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "RETURN_PENDING"
+    },
+    {
+      "case_id": "clean-return",
+      "event": "RETURN_VALIDATED",
+      "parent_case_id": "clean-full-day90",
+      "before": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "732000000",
+          "growth_u": "12000000",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 4
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "772000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "12000000",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 5
+        }
+      },
+      "principal_reduction_minor": "0",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "REPAID"
+    },
+    {
+      "case_id": "late-full",
+      "event": "FULL_REPAYMENT",
+      "parent_case_id": "origination-success",
+      "before": {
+        "active_principal_minor": "300000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "300000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "960000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "720000000",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 4
+        }
+      },
+      "principal_reduction_minor": "200000",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "RETURN_PENDING"
+    },
+    {
+      "case_id": "partial-day30",
+      "event": "PARTIAL_REPAYMENT",
+      "parent_case_id": "origination-success",
+      "before": {
+        "active_principal_minor": "300000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "300000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "960000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "after": {
+        "active_principal_minor": "250000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "250000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "960000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 4
+        }
+      },
+      "principal_reduction_minor": "50000",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "ACTIVE"
+    },
+    {
+      "case_id": "partial-then-full-day90",
+      "event": "FULL_REPAYMENT",
+      "parent_case_id": "partial-day30",
+      "before": {
+        "active_principal_minor": "250000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "250000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "960000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 4
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "730000000",
+          "growth_u": "10000000",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 5
+        }
+      },
+      "principal_reduction_minor": "150000",
+      "reward_intervals": [
+        {
+          "principal_minor": "200000",
+          "elapsed_seconds": 2592000
+        },
+        {
+          "principal_minor": "150000",
+          "elapsed_seconds": 5184000
+        }
+      ],
+      "reward_eligible": true,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "10000000",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "RETURN_PENDING"
+    },
+    {
+      "case_id": "default",
+      "event": "DEFAULT",
+      "parent_case_id": "origination-success",
+      "before": {
+        "active_principal_minor": "300000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "300000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "960000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "200000",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "40000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "0",
+          "growth_u": "0",
+          "forfeited_u": "720000000",
+          "suspended": true,
+          "version": 4
+        }
+      },
+      "principal_reduction_minor": "200000",
+      "reward_intervals": [],
+      "reward_eligible": false,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "0",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "DEFAULTED"
+    },
+    {
+      "case_id": "reward-budget-cap",
+      "event": "FULL_REPAYMENT",
+      "parent_case_id": null,
+      "before": {
+        "active_principal_minor": "300000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "300000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "55000000",
+          "reserved_u": "0",
+          "bonded_u": "960000000",
+          "pending_return_u": "0",
+          "growth_u": "15000000",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "55000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "725000000",
+          "growth_u": "20000000",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 4
+        }
+      },
+      "principal_reduction_minor": "200000",
+      "reward_intervals": [
+        {
+          "principal_minor": "200000",
+          "elapsed_seconds": 7776000
+        }
+      ],
+      "reward_eligible": true,
+      "reward_budget_remaining_u": "5000000",
+      "expected_growth_u": "5000000",
+      "prior_30_day_awards_u": "15000000",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "RETURN_PENDING"
+    },
+    {
+      "case_id": "surviving-reputation-cap",
+      "event": "FULL_REPAYMENT",
+      "parent_case_id": null,
+      "before": {
+        "active_principal_minor": "300000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "300000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "239000000",
+          "reserved_u": "0",
+          "bonded_u": "960000000",
+          "pending_return_u": "0",
+          "growth_u": "199000000",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 3
+        }
+      },
+      "after": {
+        "active_principal_minor": "100000",
+        "reserved_principal_minor": "0",
+        "defaulted_principal_minor": "0",
+        "facility_committed_minor": "100000",
+        "facility_reserved_minor": "0",
+        "reputation": {
+          "seed_u": "1000000000",
+          "available_u": "239000000",
+          "reserved_u": "0",
+          "bonded_u": "240000000",
+          "pending_return_u": "721000000",
+          "growth_u": "200000000",
+          "forfeited_u": "0",
+          "suspended": false,
+          "version": 4
+        }
+      },
+      "principal_reduction_minor": "200000",
+      "reward_intervals": [
+        {
+          "principal_minor": "200000",
+          "elapsed_seconds": 7776000
+        }
+      ],
+      "reward_eligible": true,
+      "reward_budget_remaining_u": "20000000",
+      "expected_growth_u": "1000000",
+      "prior_30_day_awards_u": "0",
+      "original_bond_u": "720000000",
+      "native_evidence": null,
+      "state": "RETURN_PENDING"
+    }
+  ]
+}

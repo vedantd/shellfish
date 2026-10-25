@@ -1,0 +1,82 @@
+{
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN",
+  "reservation_id": "res-A-999",
+  "state": "AWAITING_STAKE",
+  "request": {
+    "request_id": "req-003",
+    "idempotency_key": "idem-harbor-003",
+    "principal_id": "business:harbor-supply-demo",
+    "contract_version": "C0-REP-1",
+    "mode": "SIMULATED_LOAN",
+    "mandate_hash": "sha256:b4544175829342a73b9bf669989aa374845b5857f128ee938af55fe6fa96e47f",
+    "rep_asset": {
+      "mpt_issuance_id": "sim:rep-issuance",
+      "issuer": "sim:rep-issuer",
+      "asset_scale": 6
+    },
+    "agent_id": "agent:procurement-01",
+    "mandate_id": "m-001",
+    "nonce": "unique-mandate-01",
+    "offer_id": "offer-A-777",
+    "facility_id": "facility-A-001",
+    "network": "devnet",
+    "asset": {
+      "currency": "USD",
+      "issuer": "sim:usd-issuer"
+    },
+    "evidence_hash": "sha256:c05926db4e1022e572dddb2d5096aa06268ca18e83471df02821f180b3e8dc60",
+    "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+    "model_version": "REP-CURVE-v0.2",
+    "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+    "principal_minor": "200000",
+    "max_stake_u": "760000000",
+    "expires_at": "2026-10-24T18:21:00Z"
+  },
+  "payload_hash": "sha256:4be77a7d8b36fa52d473b06141587efbc5afd260a3a5505fd2b90b1b4a99a19b",
+  "quote": {
+    "exposure_minor": "100000",
+    "principal_minor": "200000",
+    "bond_u": "720000000",
+    "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+    "exposure_version": 1
+  },
+  "before": {
+    "active_principal_minor": "100000",
+    "reserved_principal_minor": "0",
+    "defaulted_principal_minor": "0",
+    "facility_committed_minor": "100000",
+    "facility_reserved_minor": "0",
+    "reputation": {
+      "seed_u": "1000000000",
+      "available_u": "760000000",
+      "reserved_u": "0",
+      "bonded_u": "240000000",
+      "pending_return_u": "0",
+      "growth_u": "0",
+      "forfeited_u": "0",
+      "suspended": false,
+      "version": 1
+    }
+  },
+  "after": {
+    "active_principal_minor": "100000",
+    "reserved_principal_minor": "200000",
+    "defaulted_principal_minor": "0",
+    "facility_committed_minor": "100000",
+    "facility_reserved_minor": "200000",
+    "reputation": {
+      "seed_u": "1000000000",
+      "available_u": "40000000",
+      "reserved_u": "720000000",
+      "bonded_u": "240000000",
+      "pending_return_u": "0",
+      "growth_u": "0",
+      "forfeited_u": "0",
+      "suspended": false,
+      "version": 2
+    }
+  }
+}

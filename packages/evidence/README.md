@@ -2,31 +2,66 @@
 
 **Owner:** Gita
 
-Evidence passport + known-exposure. **Not** a credit approval. **Not** a universal score.
+Versioned evidence passports and participating-source exposure. Lenders make their own credit decisions.
 
 ## What this module handles
 
-- Versioned, attributable repayment history
-- Known exposure with coverage label (`participating_sources_only`)
-- Freshness / expiry of the passport
-- Optional tier label that must **never** change facility headroom
+- Explicit seeded passport lookup with detached return values.
+- Shared schema and content commitment validation.
+- Freshness checked at an injected clock on every lookup.
+- Observation dates and accepted history months checked for consistency.
+- Trusted performance-attestation updates with event deduplication and per-subject serialization.
 
 ## Build steps
 
-1. Implement `getEvidencePassport(subjectId)` — load from `fixtures/evidence-passport.json` first.
-2. Validate with `EvidencePassport` from `@shellfish/schemas`.
-3. Reject / flag stale passports (`expires_at` in the past) so authorization can emit `DENY_EVIDENCE_STALE`.
-4. Always return issuer id, signature, evidence hash, and coverage — never strip provenance.
-5. Implement `recordPerformanceEvent` for repay/default feedback (can stay stub until after H18).
-6. Wire API: `GET /v1/evidence/:id` in `services/api` to call this package.
+The usable source is `createEvidenceService({ passports, hash, now, attestPerformance? })`.
+The API supplies the fixture or attestor feed. `hash` is the shared canonical SHA-256
+content hasher supplied by the caller. No file, network, clock or issuer key is hidden here.
 
-## Do **not** do here
+```ts
+const evidence = createEvidenceService({
+  passports: [acceptedPassport],
+  hash: contentHash,
+  now: () => fixtureClock,
+});
+const passport = await evidence.getEvidencePassport(principalId);
+```
 
-- Lender approve/decline (that’s `compatibility`)
-- Facility reservation (that’s `registry`)
-- ALLOW/DENY on a loan (that’s `authorization`)
+`configureEvidenceService(options)` supplies the same service to the existing module-level
+`getEvidencePassport` and `recordPerformanceEvent` exports. Unconfigured calls fail closed.
+The fixed fixture clock belongs to simulation. Native requests need current signed evidence.
+
+`recordPerformanceEvent` requires `eventId`, `subjectId`, `loanId`, `eventType`, an exact
+monetary string and `observedAt`. It requires a trusted `attestPerformance(event, current)`
+callback that returns a fresh attested passport. The callback verifies and persists its
+source evidence. Reusing an event ID with changed content fails.
+The service checks identity/context and the expected counter change. It never adds
+accepted history months or REP from a raw payment notification.
+No public HTTP history-mutation endpoint should call this with unverified input.
+
+The service is an in-memory read model. Durable source history and outcome IDs belong
+to the attestor/registry. A process restart does not create a verified ledger history.
+Content hashes prove content consistency. Cryptographic attestor signature verification
+belongs to the trusted source adapter and final authorization boundary.
+
+The registry exposes current portfolio state through `getCreditStatus` and Gita's
+`GET /v1/facilities/:id/credit-status` route. That live read is separate from a signed
+passport. Reserving or repaying a loan does not silently rewrite an attestor signature
+or reissue a lender approval. Show each source's observation time. Use the trusted
+attestor callback to publish a new signed version when the demo requires that step.
+
+## Boundaries
+
+Lender decisions live in `compatibility`. Reservations and REP accounting live in
+`registry`. Final loan authorization and required signatures belong to Vedant's gate.
+The optional tier does not set facility headroom.
 
 ## Done when
 
-- Same subject returns the same fixture-correct passport.
-- Optional tier present or absent does not imply credit limit.
+- Same subject returns the seeded passport with provenance preserved.
+- Unknown, expired, altered or internally inconsistent evidence fails.
+- Trusted updates apply once in this service and reject altered event replays.
+- API wires `GET /v1/evidence/:id` to the explicit service.
+
+Checks: `tests/evidence.test.ts` exercises actual lookup, freshness, content integrity,
+observation windows, trusted updates, concurrency and replay behavior.

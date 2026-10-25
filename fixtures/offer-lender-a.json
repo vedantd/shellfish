@@ -6,7 +6,10 @@
   "active_commitments": "1000.00",
   "reserved": "0.00",
   "offer_id": "offer-A-777",
-  "asset": "RLUSD",
+  "asset": {
+    "currency": "USD",
+    "issuer": "sim:usd-issuer"
+  },
   "principal": "2000.00",
   "apr_bps": 550,
   "term_days": 90,
@@ -15,5 +18,18 @@
   "expires_at": "2026-10-24T22:00:00Z",
   "underwriting_policy": "lenderA-v2",
   "approval_ref": "uw-A-349",
-  "lender_signature": "sig-demo-lender"
+  "lender_signature": "sig-simulated-lender",
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN",
+  "rate_kind": "NOMINAL_ANNUAL",
+  "schedule": {
+    "kind": "BULLET",
+    "payment_total": 1,
+    "payment_interval_seconds": 7776000,
+    "native_acceptance": "PENDING_VEDANT"
+  },
+  "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+  "offer_hash": "sha256:cb57516abfe39e46c7b8a265ff96dc88980ef87af2d0f7614ab07038258a81cb"
 }

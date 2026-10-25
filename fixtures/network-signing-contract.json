@@ -1,0 +1,33 @@
+{
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN",
+  "status": "AWAITING_VEDANT",
+  "native_ready": false,
+  "endpoint": null,
+  "native_loan_asset": null,
+  "borrower_account": null,
+  "broker_id": null,
+  "native_rep_asset": null,
+  "required_signer_route": null,
+  "native_schedule": null,
+  "sdk_pin": "5.3.0",
+  "commitments": {
+    "canonicalization": "SORTED_KEYS_JSON_UTF8_V1",
+    "offer_hash": "sha256:cb57516abfe39e46c7b8a265ff96dc88980ef87af2d0f7614ab07038258a81cb",
+    "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+    "request_payload_hash": "sha256:4be77a7d8b36fa52d473b06141587efbc5afd260a3a5505fd2b90b1b4a99a19b",
+    "prepared_transaction_commitment": null,
+    "final_signed_transaction_hash": null,
+    "prepared_fields_frozen_after_autofill": true
+  },
+  "missing_inputs": [
+    "Vedant accepts C0-REP-1 and selects first integration mode.",
+    "Real endpoint, asset, borrower, broker, vault and REP issuance identifiers.",
+    "Principal mandate signature format and required signer route.",
+    "Native schedule, interest/fee rounding, grace and vault redemption compatibility.",
+    "Autofilled non-signature transaction fields and their commitment/signature domains.",
+    "Verified native stake/origination/outcome evidence and reconciliation coverage."
+  ]
+}

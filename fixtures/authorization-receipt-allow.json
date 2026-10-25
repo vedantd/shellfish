@@ -3,8 +3,8 @@
   "compatible": true,
   "offer_id": "offer-A-777",
   "mandate_id": "m-001",
-  "proposal_hash": "sha256:canonical-proposal",
-  "envelope_hash": "sha256:demo-envelope",
+  "proposal_hash": "sha256:4be77a7d8b36fa52d473b06141587efbc5afd260a3a5505fd2b90b1b4a99a19b",
+  "envelope_hash": "sha256:63b08912e9bd2245ad0b2bd3a3ec8e2b592527fa77f67d74882d2f43998273a3",
   "decision": "ALLOW",
   "reason_codes": [],
   "checks": {
@@ -18,5 +18,15 @@
   "signature_state": "NOT_YET_SIGNED",
   "xrpl_state": "NOT_SUBMITTED",
   "tx_hash": null,
-  "decision_time": "2026-10-24T18:11:00Z"
+  "decision_time": "2026-10-24T18:11:00Z",
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN",
+  "quote_bond_u": "720000000",
+  "stake_proof_id": "sim:stake-proof-003",
+  "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+  "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+  "prepared_tx_commitment": null,
+  "native_signing_permitted": false
 }

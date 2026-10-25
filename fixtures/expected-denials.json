@@ -1,22 +1,131 @@
 {
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN",
+  "baseline_scenario_id": "harbor-rep-happy-v1",
   "cases": [
     {
       "id": "over-amount",
-      "request_principal": "3000.00",
+      "mutation": {
+        "request_principal": "3000.00"
+      },
       "expected_code": "DENY_AMOUNT",
-      "note": "Agent max is 2,500"
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "Check mandate amount before reserving or redeeming REP."
     },
     {
       "id": "over-rate",
-      "request_apr_bps": 900,
+      "mutation": {
+        "request_apr_bps": 900
+      },
       "expected_code": "DENY_RATE",
-      "note": "Mandate max is 600 bps"
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "The mandate caps the nominal annual rate at 600 bps."
     },
     {
       "id": "replay",
-      "reuse_nonce": "unique-mandate-01",
+      "mutation": {
+        "new_request_id": "req-replay",
+        "reuse_nonce": "unique-mandate-01"
+      },
       "expected_code": "DENY_REPLAY",
-      "note": "Never second loan on same nonce + proposal"
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "A new request cannot reuse a consumed mandate nonce. Exact retries return existing state."
+    },
+    {
+      "id": "stale-evidence",
+      "mutation": {
+        "evidence.expires_at": "2026-10-24T18:10:00Z"
+      },
+      "expected_code": "DENY_EVIDENCE_STALE",
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "Fixture clock stays inside mandate and offer validity. Rebuild the synthetic attestation after mutation."
+    },
+    {
+      "id": "rep-insufficient",
+      "mutation": {
+        "quote_case_id": "old-exposure-rep-denial"
+      },
+      "expected_code": "DENY_REP_CAPACITY",
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "Lender approval cannot override the REP budget."
+    },
+    {
+      "id": "missing-rep-consent",
+      "mutation": {
+        "rep_consent.authorized": false
+      },
+      "expected_code": "DENY_REP_CONSENT",
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "REP spending needs principal consent."
+    },
+    {
+      "id": "wrong-stake-amount",
+      "mutation": {
+        "stake_proof.amount_u": "719999999"
+      },
+      "expected_code": "DENY_STAKE_PROOF",
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "Delivered REP must match the exact quoted bond."
+    },
+    {
+      "id": "wrong-rep-destination",
+      "mutation": {
+        "stake_proof.destination": "sim:treasury-not-issuer"
+      },
+      "expected_code": "DENY_STAKE_PROOF",
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "Redemption destination must be the actual REP issuer."
+    },
+    {
+      "id": "stake-proof-reuse",
+      "mutation": {
+        "stake_proof.request_id": "different-request"
+      },
+      "expected_code": "DENY_STAKE_PROOF",
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "Proof must bind uniquely to this request."
+    },
+    {
+      "id": "principal-suspended",
+      "mutation": {
+        "reputation.suspended": true
+      },
+      "expected_code": "DENY_SUSPENDED",
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "Default suspension persists after active exposure falls."
+    },
+    {
+      "id": "changed-key-payload",
+      "mutation": {
+        "same_idempotency_key": true,
+        "request_principal": "1999.00"
+      },
+      "expected_code": "DENY_IDEMPOTENCY_CONFLICT",
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "A key cannot select two payloads."
+    },
+    {
+      "id": "issuer-swap",
+      "mutation": {
+        "asset.issuer": "sim:different-issuer"
+      },
+      "expected_code": "DENY_ASSET",
+      "expected_new_reservations": 0,
+      "expected_native_signatures": 0,
+      "note": "The issuer is part of the loan asset identity."
     }
   ]
 }

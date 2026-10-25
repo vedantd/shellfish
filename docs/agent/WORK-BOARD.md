@@ -4,23 +4,24 @@
 - Current objective: [shared contract checkpoint B-0001](CURRENT-BATON.md).
 - Accepted claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
-- No product work is ACTIVE. Implementation IDs after B-0001 are allocated on claim.
+- Gita producer implementation is verified and PAUSED at her request. Vedant integration is READY.
+- Updated at Gita's explicit baton handoff request. Coordinator claims and new IDs remain Vedant's.
 
 ## Feature gates
 
 | Gate | Observable outcome | Status and evidence |
 | --- | --- | --- |
-| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | **IN PROGRESS** — REP-CURVE-v0.2 engineering-accepted; fixture AssetRef + REP fields still open |
-| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | NOT STARTED, fixtures exist, handlers are TODO |
-| C2 | Authorization reserves once and only then permits a required signature | NOT STARTED, registry/auth core are stubs |
-| C3 | Verified execution changes accounting once, timeout retains reservation | NOT STARTED, no runtime evidence |
-| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | NOT STARTED, no runtime evidence |
+| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | REVIEW: producer contracts implemented, Vedant acceptance/native term selection pending |
+| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | Producer implementation and HTTP tests PASS. Consumer acceptance pending |
+| C2 | Authorization reserves once and only then permits a required signature | Atomic registry PASS. Vedant authorization and required signer integration pending |
+| C3 | Verified execution changes accounting once, timeout retains reservation | Registry accounting/timeout/retry PASS and native fixture happy path recorded. App native integration pending |
+| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | Producer checks PASS. Connected UI/denials, six security TODOs and final demo pending |
 
 ## Queued work and claims
 
 | Lane | Owner | First bounded outcome | Depends on | Record | State |
 | --- | --- | --- | --- | --- | --- |
-| Credit and registry | Gita | Shared fixtures, lender/match outputs and reserve/retry proof | C0 examples | [Gita work](work/SETUP-GITA.md) | READY, unclaimed |
+| Credit and registry | Gita | Shared fixtures, lender/match outputs and reserve/retry proof | C0 examples | [Gita work](work/SETUP-GITA.md) | PAUSED after verified producer delivery, consumer ACK pending |
 | Authorization and execution | Vedant | Network/signing spike and gate consuming the agreed reservation interface | C0 examples | [Vedant work](work/SETUP-VEDANT.md) | READY, unclaimed |
 | Policy examples | Nick | Two exact rules and expected results | Final PRD | Non-coding input to Gita | READY |
 | Adversarial examples | Shell | Six bounded negative cases | Final PRD and agreed signing route | Non-coding input to both | READY |
@@ -66,7 +67,7 @@ flowchart TD
   engineering accept 2026-10-25). Stake = C(E+P)−C(E). Facility + REP reserved before ALLOW.
   Validated REP redemption before controlled LoanSet. No AMM / consensus change.
 
-### Still open — must land in the first accepted fixture/schema (Gita publishes)
+### Historical producer requirements, implemented for consumer review
 
 - **Asset identity:** use full `AssetRef` `{ currency, issuer }` on mandate, offer,
   evidence `known_exposure`, and registry. Today mandate has object; offer/evidence use
@@ -118,3 +119,10 @@ success commits once, and UI mode/hash claims match actual evidence.
 Deferred: full repayment UX, extra dashboards/lenders, policy language parser, real KYC,
 institution APIs, calibrated scores, production custody and secondary debt markets.
 Record unfinished gates here at each checkpoint. Deferred is not COMPLETE.
+
+## Producer handoff at Gita's request
+
+Recorded 2026-10-25 10:45 UTC. 128 repository tests PASS / six existing TODOs, 37 separate fixtures PASS.
+Gita is paused after commit/push of her verified slice. Vedant's exact dependencies and
+checks are in SETUP-VEDANT.md. No consumer ACK or full C0-C4 completion is invented.
+Native default and fresh native execution of the shared return queue remain NOT RUN.

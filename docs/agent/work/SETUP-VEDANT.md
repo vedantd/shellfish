@@ -1,4 +1,53 @@
-# Vedant initial work record
+# Vedant work record
+
+## Incoming Gita producer handoff
+
+- Updated at Gita's explicit request on 2026-10-25 10:45 UTC. Coordinator remains Vedant.
+- Consumer integration is READY. Gita's producer implementation is locally verified and
+  she is PAUSED after delivery. This notice does not invent a coding claim or consumer ACK.
+- Read the current checkpoint in SETUP-GITA.md and packages/registry/README.md first.
+- Contract: C0-REP-1 / REP-CURVE-v0.2. Base 64d31b1 plus the producer commit containing
+  this record. Accept the exact delivered interfaces in the established claim channel.
+
+### Required next actions
+
+1. Pull origin/main and reproduce build/typecheck, 128 repository passes plus six existing
+   TODOs, and 37 separate fixture passes. Use Node 24.21 / SQLite 12.10.1 / XRPL.js 5.3.0.
+2. Inject `openFixtureCreditBackend(config.databasePath).services` into `gitaRoutes` for
+   simulation and close the backend on app shutdown. Without registry injection the
+   facility/status/quote routes return 503. Native mode needs trusted sources.
+3. Consume `registry.reserveRequest` once before ALLOW. Reuse its reservation in
+   origination. Require verified REP redemption before the controlled LoanSet signature.
+4. Consume `createExecutionStore`, `freezePreparedAction` and immutable signed attempts.
+   Decode/hash-check signed bytes, persist before submit and reconcile the same blob.
+5. Supply `verifyNativePortfolio`, `verifyNativeEvent` and `verifyReturnFailure`. Native
+   servicing events must bind `servicing.nextPaymentDueAt` to post-LoanManage state.
+6. Consume `createReturnStore` for issuer returns. Keep unknown outcomes OWED and the
+   issuer lane retained. Verify exact delivery and credit memo before atomic settlement.
+7. Wire receipts/UI to the same persisted request and registry status. Replace the six
+   security TODOs with connected denial/replay/race/timeout checks. Run the migrated
+   native return path and a separately overdue native LoanManage default.
+
+### Available producer exports
+
+- Schemas: AssetRef, EvidencePassport, AtomicReservationRequest, CreditStatus and CreditQuote.
+- Services: createEvidenceService, createCompatibilityService, openFixtureCreditBackend.
+- Registry: reserveRequest, getCreditStatus, quoteCredit, applyEvent, getRequest and getLoan.
+- Execution: createExecutionStore and createReturnStore. No raw event/signing mutation HTTP API.
+- UI reads: GET `/v1/facilities/:id/credit-status`, POST `/v1/facilities/:id/quote`.
+  Quotes grant no permission. Final reserve reprices atomically.
+
+### Decisions and proof boundary
+
+- Approved math is unchanged. REP burns before origination. Default forfeits the
+  restoration right, with no second burn. Full repayment restores through issuer Payment.
+- Native POC terms 1,000/30 days/100 origination fee/10 service fee stay separate from
+  C0 terms 2,000/90 days/zero fees. Select and accept the exact connected-demo terms.
+- Native repayment/REP mechanics passed in the isolated fixture. Native default, the
+  migrated return queue and the production authorization/UI integration remain unproven.
+- No edit to Vedant authorization, XRPL source, entrypoint or UI accompanies this notice.
+
+## Historical initial assignment
 
 - Label: SETUP-VEDANT → claim next sequential ID when starting implementation (after C0).
 - State: READY. Owner and human sponsor: Vedant.

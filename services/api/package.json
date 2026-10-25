@@ -1,7 +1,7 @@
 {
   "name": "@shellfish/api",
   "version": "0.1.0",
-  "description": "You — Fastify HTTP orchestration + storage (mounts You + Gita modules)",
+  "description": "You \u2014 Fastify HTTP orchestration + storage (mounts You + Gita modules)",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -18,7 +18,7 @@
     "@shellfish/registry": "workspace:*",
     "@shellfish/schemas": "workspace:*",
     "@shellfish/xrpl": "workspace:*",
-    "better-sqlite3": "^11.7.0",
+    "better-sqlite3": "12.10.1",
     "fastify": "^5.1.0"
   },
   "devDependencies": {

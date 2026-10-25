@@ -1,0 +1,165 @@
+{
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN",
+  "quote_cases": [
+    {
+      "case_id": "happy-2000",
+      "opening_bonds_u": [
+        "240000000"
+      ],
+      "exposure_minor": "100000",
+      "principal_minor": "200000",
+      "available_u": "760000000",
+      "expected_bond_u": "720000000",
+      "expected_admit": true
+    },
+    {
+      "case_id": "old-exposure-rep-denial",
+      "opening_bonds_u": [
+        "240000000",
+        "320000000",
+        "400000000"
+      ],
+      "exposure_minor": "300000",
+      "principal_minor": "200000",
+      "available_u": "40000000",
+      "expected_bond_u": "1040000000",
+      "expected_admit": false
+    },
+    {
+      "case_id": "increasing-cost-0",
+      "opening_bonds_u": [],
+      "exposure_minor": "0",
+      "principal_minor": "100000",
+      "available_u": "1000000000",
+      "expected_bond_u": "240000000",
+      "expected_admit": true
+    },
+    {
+      "case_id": "increasing-cost-1000",
+      "opening_bonds_u": [
+        "240000000"
+      ],
+      "exposure_minor": "100000",
+      "principal_minor": "100000",
+      "available_u": "760000000",
+      "expected_bond_u": "320000000",
+      "expected_admit": true
+    },
+    {
+      "case_id": "increasing-cost-2000",
+      "opening_bonds_u": [
+        "240000000",
+        "320000000"
+      ],
+      "exposure_minor": "200000",
+      "principal_minor": "100000",
+      "available_u": "440000000",
+      "expected_bond_u": "400000000",
+      "expected_admit": true
+    },
+    {
+      "case_id": "increasing-cost-3000",
+      "opening_bonds_u": [
+        "240000000",
+        "320000000",
+        "400000000"
+      ],
+      "exposure_minor": "300000",
+      "principal_minor": "100000",
+      "available_u": "40000000",
+      "expected_bond_u": "480000000",
+      "expected_admit": false
+    }
+  ],
+  "race_cases": [
+    {
+      "case_id": "facility-race",
+      "facility_headroom_minor": "150000",
+      "exposure_minor": "100000",
+      "available_u": "760000000",
+      "requests": [
+        {
+          "mandate_id": "facility-race-m-1",
+          "nonce": "facility-race-nonce-1",
+          "principal_minor": "100000"
+        },
+        {
+          "mandate_id": "facility-race-m-2",
+          "nonce": "facility-race-nonce-2",
+          "principal_minor": "100000"
+        }
+      ],
+      "expected_first_bond_u": "320000000",
+      "expected_second_bond_u": "400000000",
+      "expected_success_count": 1,
+      "expected_second_reason": "DENY_CAPACITY"
+    },
+    {
+      "case_id": "rep-race",
+      "facility_headroom_minor": "400000",
+      "exposure_minor": "100000",
+      "available_u": "760000000",
+      "requests": [
+        {
+          "mandate_id": "rep-race-m-1",
+          "nonce": "rep-race-nonce-1",
+          "principal_minor": "150000"
+        },
+        {
+          "mandate_id": "rep-race-m-2",
+          "nonce": "rep-race-nonce-2",
+          "principal_minor": "150000"
+        }
+      ],
+      "expected_first_bond_u": "510000000",
+      "expected_second_bond_u": "690000000",
+      "expected_success_count": 1,
+      "expected_second_reason": "DENY_REP_CAPACITY"
+    },
+    {
+      "case_id": "pending-exposure-requote",
+      "facility_headroom_minor": "400000",
+      "exposure_minor": "100000",
+      "available_u": "760000000",
+      "requests": [
+        {
+          "mandate_id": "pending-exposure-requote-m-1",
+          "nonce": "pending-exposure-requote-nonce-1",
+          "principal_minor": "100000"
+        },
+        {
+          "mandate_id": "pending-exposure-requote-m-2",
+          "nonce": "pending-exposure-requote-nonce-2",
+          "principal_minor": "100000"
+        }
+      ],
+      "expected_first_bond_u": "320000000",
+      "expected_second_bond_u": "400000000",
+      "expected_success_count": 2,
+      "expected_second_reason": "ALLOW"
+    }
+  ],
+  "retry_cases": [
+    {
+      "case_id": "exact-retry",
+      "relation": "IDENTICAL_RETRY",
+      "expected": "RETURN_EXISTING",
+      "expected_additional_reservations": 0
+    },
+    {
+      "case_id": "changed-key-payload",
+      "relation": "KEY_PAYLOAD_CONFLICT",
+      "expected": "DENY_IDEMPOTENCY_CONFLICT",
+      "expected_additional_reservations": 0
+    },
+    {
+      "case_id": "new-request-consumed-nonce",
+      "relation": "CONSUMED_NONCE",
+      "expected": "DENY_REPLAY",
+      "expected_additional_reservations": 0
+    }
+  ]
+}

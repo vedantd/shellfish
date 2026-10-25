@@ -1,7 +1,7 @@
 {
   "name": "@shellfish/xrpl",
   "version": "0.1.0",
-  "description": "You — XRPL LoanSet/LoanPay adapter + controlled signing boundary stubs",
+  "description": "You \u2014 XRPL LoanSet/LoanPay adapter + controlled signing boundary stubs",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@shellfish/schemas": "workspace:*",
-    "xrpl": "^4.0.0"
+    "xrpl": "5.3.0"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

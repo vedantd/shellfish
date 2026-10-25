@@ -2,10 +2,10 @@
   "name": "shellfish",
   "private": true,
   "version": "0.1.0",
-  "description": "Shellfish — Agentic Credit Gateway for XRP Ledger",
+  "description": "Shellfish \u2014 Agentic Credit Gateway for XRP Ledger",
   "packageManager": "pnpm@9.15.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=24.21.0 <25"
   },
   "scripts": {
     "dev": "pnpm -r --parallel --filter @shellfish/api --filter @shellfish/web dev",

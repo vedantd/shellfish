@@ -3,19 +3,29 @@
   "issuer_id": "demo-attestor",
   "issued_at": "2026-10-24T18:00:00Z",
   "expires_at": "2026-10-25T18:00:00Z",
-  "evidence_version": "ev-12",
-  "signature": "sig-demo-attestor",
+  "evidence_version": "ev-c0-rep-1",
+  "signature": "sig-simulated-attestor",
   "history": {
     "on_time": 8,
     "late": 1,
-    "default": 0
+    "default": 0,
+    "observation_start": "2026-04-24T18:00:00Z",
+    "observation_end": "2026-10-24T18:00:00Z",
+    "accepted_history_months": 6
   },
   "known_exposure": {
-    "asset": "RLUSD",
-    "amount": "3000.00",
+    "asset": {
+      "currency": "USD",
+      "issuer": "sim:usd-issuer"
+    },
+    "amount": "1000.00",
     "coverage": "participating_sources_only",
     "as_of": "2026-10-24T18:00:00Z"
   },
   "optional_tier": "A_DEMO",
-  "evidence_hash": "sha256:demo-evidence-harbor-supply-ev12"
+  "evidence_hash": "sha256:c05926db4e1022e572dddb2d5096aa06268ca18e83471df02821f180b3e8dc60",
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN"
 }
