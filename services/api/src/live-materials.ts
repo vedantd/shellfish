@@ -16,12 +16,12 @@ export function buildLiveAuthMaterials(config: LiveRuntimeConfig, now: Date) {
   const schedule = {
     kind: "BULLET" as const,
     payment_total: 1 as const,
-    payment_interval_seconds: config.paymentIntervalSec ?? 2592000,
+    payment_interval_seconds: config.paymentIntervalSec ?? 90 * 86400,
     native_acceptance: "PENDING_VEDANT" as const,
   };
   // Do not rewrite the accepted 90-day, zero-fee commercial terms to fit env defaults.
   if (schedule.payment_interval_seconds * (config.paymentTotal ?? 1) !== 90 * 86400 || (config.paymentTotal ?? 1) !== 1 ||
-      !/^(0|0\.0+)$/.test(config.loanOriginationFee ?? "100") || !/^(0|0\.0+)$/.test(config.loanServiceFee ?? "10")) {
+      !/^(0|0\.0+)$/.test(config.loanOriginationFee ?? "0") || !/^(0|0\.0+)$/.test(config.loanServiceFee ?? "0")) {
     throw new Error("LIVE_CONFIG_TERMS_MISMATCH: select and accept exact native schedule and fees before authorization");
   }
   const offer = {

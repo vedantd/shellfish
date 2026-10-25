@@ -1,0 +1,155 @@
+{
+  "report_format": "SHELLFISH_NATIVE_PREFLIGHT_V1",
+  "checked_at": "2026-10-25T13:55:19.897Z",
+  "approved_schema": {
+    "status": "AVAILABLE",
+    "source": "packages/schemas/src/index.ts",
+    "source_sha256": "f8c1af70b2f00d09757e4ce7173add066ee06fd4f68dbeeed2c772ee4852dd74",
+    "source_files": [
+      {
+        "path": "packages/schemas/src/index.ts",
+        "sha256": "f8c1af70b2f00d09757e4ce7173add066ee06fd4f68dbeeed2c772ee4852dd74"
+      },
+      {
+        "path": "packages/schemas/src/c0.ts",
+        "sha256": "ab17f77d077285d3773b9ea1e16eb1d337a1773dfd5243a3e35fe76b0e994289"
+      },
+      {
+        "path": "packages/schemas/src/credit.ts",
+        "sha256": "c977ec507e605871e746c3a24bd8035f7b99c641e06f5baab444756446ff7265"
+      },
+      {
+        "path": "packages/schemas/src/commitments.ts",
+        "sha256": "8138c7f047b5a23b837af1bbb24801ff9eda3d3315f9fa8a4bfba135d8545c4a"
+      }
+    ]
+  },
+  "accepted_fixture": {
+    "status": "PASS",
+    "mode": "SIMULATED_LOAN",
+    "native_fields_missing": [
+      "endpoint",
+      "native_loan_asset",
+      "borrower_account",
+      "broker_id",
+      "native_rep_asset",
+      "required_signer_route",
+      "native_schedule"
+    ]
+  },
+  "public_runtime": {
+    "status": "CHECKED_UNVERIFIED",
+    "input_shape": "GET /v1/network",
+    "declared_live_ready_is_proof": false,
+    "fee_coverage": "NOT_EXPOSED_BY_PUBLIC_SIGNING"
+  },
+  "configuration": {
+    "status": "CONFIGURATION_INCOMPLETE",
+    "known_selection_consistent": false,
+    "findings": [
+      {
+        "code": "PUBLIC_RUNTIME_LENDER_MAPPING_MISMATCH",
+        "field": "sources.offer.lender_id",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_SCHEMA_MISMATCH",
+        "field": "sources.portfolio",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_MODE_MISMATCH",
+        "field": "sources.portfolio.mode",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_MODE_MISMATCH",
+        "field": "sources.mandate.mode",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_MODE_MISMATCH",
+        "field": "sources.offer.mode",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_MODE_MISMATCH",
+        "field": "sources.request.mode",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_MODE_MISMATCH",
+        "field": "sources.evidence.mode",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_IDENTITY_OR_SCALE_MISMATCH",
+        "field": "selection.principal_id",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_IDENTITY_OR_SCALE_MISMATCH",
+        "field": "selection.borrower_account",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_IDENTITY_OR_SCALE_MISMATCH",
+        "field": "selection.offer_id",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_IDENTITY_OR_SCALE_MISMATCH",
+        "field": "selection.facility_id",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_ASSET_MISMATCH",
+        "field": "selection.loan_asset",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_ASSET_MISMATCH",
+        "field": "selection.rep_asset",
+        "severity": "ERROR"
+      },
+      {
+        "code": "NATIVE_LOAN_SCALE_SOURCE_MISSING",
+        "field": "sources.native_asset_metadata",
+        "severity": "ERROR"
+      },
+      {
+        "code": "NATIVE_OPENING_HISTORY_REQUIRED",
+        "field": "sources.portfolio.opening",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_EXPIRED_OR_INVALID",
+        "field": "sources.mandate.expires_at",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_EXPIRED_OR_INVALID",
+        "field": "sources.offer.expires_at",
+        "severity": "ERROR"
+      },
+      {
+        "code": "SOURCE_EXPIRED_OR_INVALID",
+        "field": "sources.request.expires_at",
+        "severity": "ERROR"
+      }
+    ]
+  },
+  "contract_acceptance": {
+    "native_successor": "PENDING_VEDANT_ACK",
+    "required_signer_route": "RUNTIME_SHAPE_KNOWN_OWNER_ACK_PENDING",
+    "native_schedule": "RUNTIME_SHAPE_KNOWN_OWNER_ACK_PENDING"
+  },
+  "native_evidence": {
+    "status": "NATIVE_EVIDENCE_NOT_AVAILABLE",
+    "checks_run": []
+  },
+  "native_ready": false,
+  "can_sign": false,
+  "can_submit": false,
+  "scope": "OFFLINE_CONFIGURATION_ONLY"
+}

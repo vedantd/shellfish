@@ -1,0 +1,39 @@
+{
+  "format": "SHELLFISH_NATIVE_SELECTION_DRAFT_V1",
+  "mode": "LIVE_DEVNET",
+  "network": "devnet",
+  "network_id": 2,
+  "endpoint": "wss://s.devnet.rippletest.net:51233",
+  "principal_id": "devnet:rw81MZkvXRwcB1wmfECQqqCHawR5XJDQLJ",
+  "borrower_account": "rw81MZkvXRwcB1wmfECQqqCHawR5XJDQLJ",
+  "broker_id": "89C2AB0D9BF508325499D5C4F159229D5C2C74069F06F9C7FBF6B6DEC84C2657",
+  "loan_asset": {
+    "mpt_issuance_id": "0061AD14EB09D79906964D3F9C8F08961D4DFF4B44E34836"
+  },
+  "loan_asset_scale": 6,
+  "money_scale": "100",
+  "rep_asset": {
+    "mpt_issuance_id": "0061AD17471EA55463727A8E062AD2108619D165D784B492",
+    "issuer": "rfVsgv1SZPRrPtmvHptq3yTynHNFkF7mvi",
+    "asset_scale": 6
+  },
+  "sdk_pin": "5.3.0",
+  "offer_id": "offer-live-product-90d-0fee",
+  "facility_id": "devnet:89C2AB0D9BF508325499D5C4F159229D5C2C74069F06F9C7FBF6B6DEC84C2657",
+  "terms": {
+    "principal_minor": "200000",
+    "fees_minor": "0",
+    "apr_bps": 550,
+    "term_days": 90,
+    "payment_total": 1,
+    "payment_interval_seconds": 7776000,
+    "grace_seconds": 604800
+  },
+  "required_signer_route": { "status": "PENDING_VEDANT" },
+  "native_schedule": { "status": "PENDING_VEDANT" },
+  "notes": {
+    "commercial_terms": "C0 product: 90-day bullet, zero fees, 550 bps — not playground 30-day/100+10",
+    "public_accounts_source": "fixtures/xrpl-poc-replay native-result 2026-10-25T08-52-39-891Z-c8c11959 (public addresses/MPT/broker only; no seeds)",
+    "gita_p2_required": "Matching LIVE_DEVNET evidence passport + approved offer + portfolio seed + reservation request + native_asset_metadata. Default sim fixtures must not be relabeled."
+  }
+}
