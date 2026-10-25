@@ -7,6 +7,7 @@ import {
   type NetworkInfo,
   type OriginateResult,
 } from "../lib/api";
+import { AssetDisplay, ExplorerLink } from "../components/ExplorerLink";
 import { demoMandate } from "../demo/c0Materials";
 import { useDemoSession } from "../state/demoSession";
 
@@ -106,7 +107,7 @@ export function AuthorizationReceiptScreen() {
       }
 
       if (isLive && !session.matchedOffer) {
-        setError("Load a matched LIVE offer on Screen B before denial demos.");
+        setError("Find a matched Devnet offer in Credit & lenders before checking guardrails.");
         return;
       }
 
@@ -175,143 +176,105 @@ export function AuthorizationReceiptScreen() {
   const receipt = session.receipt;
   const originate = session.originate;
   const joined = session.joinedRequest as Record<string, unknown> | null;
+  const signing = network?.public_signing && typeof network.public_signing === "object"
+    ? network.public_signing as Record<string, unknown> : null;
+  const transactions = Array.isArray(joined?.transactions)
+    ? joined.transactions.filter((v): v is Record<string, unknown> => Boolean(v && typeof v === "object")) : [];
+  const attempts = Array.isArray(joined?.attempts)
+    ? joined.attempts.filter((v): v is Record<string, unknown> => Boolean(v && typeof v === "object")) : [];
+  const eventLabels: Record<string, string> = {
+    STAKE_VALIDATED: "REP stake payment", ORIGINATION_VALIDATED: "LoanSet",
+    REP_RETURN_VALIDATED: "REP return payment", REPAYMENT: "LoanPay", DEFAULT: "LoanManage",
+  };
 
   return (
     <section className="screen">
-      <h2>Authorization &amp; receipt</h2>
+      <p className="eyebrow">Authorization &amp; ledger receipt</p>
+      <h2>Every action accounted for.</h2>
       <p className="lede">
-        Mode: <strong>{mode}</strong>
         {isLive
-          ? " — LIVE Devnet. Show explorer links only for real validated hashes."
-          : " — labeled SIMULATED_LOAN; tx_hash stays null (not on-chain)."}
-        {isLive && network?.live_ready === false
-          ? " live_ready is false (handles not fully configured)."
-          : ""}
+          ? "Review the approved action, reputation bond and Devnet record. Each native identifier opens directly in the explorer."
+          : "Preview the authorization and loan flow in simulation. Simulated records do not create ledger transactions."}
+        {isLive && network?.live_ready === false ? " Devnet connection is not ready yet." : ""}
       </p>
 
       <div className="actions" style={{ marginTop: 0 }}>
         <button type="button" disabled={busy} onClick={() => void runHappyPath()}>
-          {busy
-            ? "Working…"
-            : isLive
-              ? "Run LIVE ALLOW → stake → LoanSet"
-              : "Run simulated ALLOW → originate"}
+          {busy ? "Processing loan…" : isLive ? "Authorize & originate loan" : "Preview loan authorization"}
         </button>
       </div>
 
-      <div className="actions">
-        <button
-          type="button"
-          className="deny"
-          disabled={busy}
-          onClick={() => void runDenial("amount")}
-        >
-          Deny amount (3,000)
-        </button>
-        <button
-          type="button"
-          className="deny"
-          disabled={busy}
-          onClick={() => void runDenial("rate")}
-        >
-          Deny rate (9%)
-        </button>
-        <button
-          type="button"
-          className="deny"
-          disabled={busy}
-          onClick={() => void runDenial("replay")}
-        >
-          Deny replay
-        </button>
-      </div>
+      <details className="guardrails">
+        <summary>Check borrowing guardrails</summary>
+        <p className="note">These checks demonstrate denied requests against the current mandate.</p>
+        <div className="actions">
+          <button type="button" className="deny" disabled={busy} onClick={() => void runDenial("amount")}>Excess amount · 3,000</button>
+          <button type="button" className="deny" disabled={busy} onClick={() => void runDenial("rate")}>Excess rate · 9%</button>
+          <button type="button" className="deny" disabled={busy} onClick={() => void runDenial("replay")}>Repeated request</button>
+        </div>
+      </details>
 
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error" role="alert">{error}</p> : null}
+
+      {signing ? (
+        <div className="doc-strip">
+          <h3>Devnet assets</h3>
+          <dl className="grid">
+            <div><dt>Loan token</dt><dd><AssetDisplay asset={signing.native_loan_asset} native={isLive} /></dd></div>
+            <div><dt>Reputation token</dt><dd><AssetDisplay asset={signing.native_rep_asset} native={isLive} /></dd></div>
+            <div><dt>Borrower</dt><dd><ExplorerLink kind="account" value={signing.borrower_account} native={isLive} /></dd></div>
+          </dl>
+        </div>
+      ) : null}
 
       {denial ? (
-        <div className="ledger">
-          <h3>Denial receipt</h3>
-          <p>decision: {denial.decision}</p>
-          <p>reasons: {(denial.reason_codes ?? []).join(", ") || "—"}</p>
-          <p>reservation_id: {denial.reservation_id ?? "null"}</p>
-          <p>mode: {denial.mode}</p>
+        <div className="ledger ledger-denied">
+          <h3>Request declined</h3>
+          <p><span className="pill-status decline">{denial.decision}</span></p>
+          <p>Reason · {(denial.reason_codes ?? []).join(", ") || "—"}</p>
+          <p>Reservation · {denial.reservation_id ?? "None created"}</p>
         </div>
       ) : null}
 
       {receipt ? (
-        <div className="ledger">
-          <h3>Authorization</h3>
-          <p>
-            decision: {receipt.decision} · mode: {receipt.mode}
-          </p>
-          <p>request_id: {receipt.request_id}</p>
-          <p>reservation_id: {receipt.reservation_id ?? "—"}</p>
-          <p>proposal_hash: {receipt.proposal_hash ?? "—"}</p>
-          <p>quote_bond_u: {receipt.quote_bond_u ?? "—"}</p>
-          <p>
-            tx_hash: {receipt.tx_hash ?? "null"} · native_signing:{" "}
-            {String(receipt.native_signing_permitted)}
-          </p>
-          {receipt.stake_proof_id ? (
-            <p>stake_proof_id: {receipt.stake_proof_id}</p>
-          ) : null}
+        <div className={`ledger ${receipt.decision === "DENY" ? "ledger-denied" : ""}`}>
+          <h3>Authorization record</h3>
+          <dl className="grid">
+            <div><dt>Decision</dt><dd><span className={`pill-status ${receipt.decision === "ALLOW" ? "approve" : "decline"}`}>{receipt.decision}</span></dd></div>
+            <div><dt>REP bond · atomic units</dt><dd>{receipt.quote_bond_u ?? "—"}</dd></div>
+            <div><dt>Request</dt><dd className="mono">{receipt.request_id}</dd></div>
+            <div><dt>Reservation</dt><dd className="mono">{receipt.reservation_id ?? "—"}</dd></div>
+          </dl>
+          {receipt.tx_hash ? <p>Transaction · <ExplorerLink kind="transaction" value={receipt.tx_hash} native={isLive && receipt.mode === "LIVE_DEVNET"} /></p> : null}
+          {receipt.stake_proof_id ? <p>Stake proof · <ExplorerLink kind="transaction" value={receipt.stake_proof_id} native={isLive && receipt.mode === "LIVE_DEVNET"} /></p> : null}
+          <details className="technical-details"><summary>Application commitment</summary><p className="mono">{receipt.proposal_hash ?? "—"}</p></details>
         </div>
       ) : null}
 
       {originate ? (
         <div className="ledger">
-          <h3>
-            Originate {originate.simulated ? "(simulated)" : "(live)"}
-          </h3>
-          <p>
-            simulated: {String(originate.simulated)} · validated:{" "}
-            {String(originate.validated)}
-          </p>
-          <p>loanId: {originate.loanId ?? "—"}</p>
-          <p>
-            txHash:{" "}
-            {originate.txHash ? (
-              <span className={isLive ? "hash-pulse" : undefined}>
-                {originate.txHash}
-              </span>
-            ) : (
-              "null"
-            )}
-          </p>
-          {originate.explorer && originate.txHash ? (
-            <p>
-              explorer:{" "}
-              <a href={originate.explorer} target="_blank" rel="noreferrer">
-                {originate.explorer}
-              </a>
-            </p>
-          ) : (
-            <p>explorer: none (sim or missing hash)</p>
-          )}
+          <h3>{originate.simulated ? "Simulated loan" : "LoanSet record"}</h3>
+          <p><span className={`pill-status ${originate.validated ? "approve" : "pending"}`}>{originate.simulated ? "Simulation" : originate.validated ? "Validated on Devnet" : "Awaiting validation"}</span></p>
+          <p>Loan ID · <span className="mono">{originate.loanId ?? "—"}</span></p>
+          <p>LoanSet transaction · <ExplorerLink kind="transaction" value={originate.txHash} native={isLive && originate.simulated !== true} /></p>
         </div>
       ) : null}
 
       {joined ? (
         <div className="ledger">
-          <h3>Joined request view</h3>
-          <p>GET /v1/requests/:id — source of truth after ALLOW</p>
-          <p>
-            request state:{" "}
-            {String(
-              (joined as { request_state?: string }).request_state ??
-                (joined.request as { state?: string } | undefined)?.state ??
-                joined.state ??
-                "—",
-            )}
-          </p>
-          <pre style={{ margin: "0.5rem 0 0", whiteSpace: "pre-wrap" }}>
-            {JSON.stringify(joined, null, 2).slice(0, 1800)}
-            {JSON.stringify(joined).length > 1800 ? "\n…" : ""}
-          </pre>
+          <h3>Loan activity</h3>
+          <p>Current state · <strong>{String(joined.request_state ?? (joined.request as { state?: string } | undefined)?.state ?? joined.state ?? "—")}</strong></p>
+          {transactions.length ? <div className="transaction-list">{transactions.map((event, index) => (
+            <div className="transaction-row" key={String(event.event_id ?? index)}>
+              <span>{eventLabels[String(event.kind)] ?? String(event.kind ?? "Transaction")}</span>
+              <ExplorerLink kind="transaction" value={event.tx_hash} native={isLive && joined.mode === "LIVE_DEVNET" && joined.network === "devnet"} />
+              <span className={`pill-status ${event.recorded_validated === true ? "approve" : "pending"}`}>{event.recorded_validated === true ? "Recorded" : joined.mode === "SIMULATED_LOAN" ? "Simulation" : "Pending"}</span>
+            </div>
+          ))}</div> : <p className="note">No recorded ledger transactions yet.</p>}
+          {attempts.length ? <details className="technical-details"><summary>Transaction attempts</summary>{attempts.map((attempt,index) => <p key={index}>{String(attempt.phase ?? "Attempt")} · <ExplorerLink kind="transaction" value={attempt.tx_hash} native={isLive && joined.mode === "LIVE_DEVNET" && joined.network === "devnet"} /> · {String(attempt.state ?? "Pending")}</p>)}</details> : null}
+          <details className="technical-details"><summary>Full request record</summary><pre>{JSON.stringify(joined, null, 2)}</pre></details>
         </div>
       ) : null}
-
-      <p className="note">API: {apiBase}</p>
     </section>
   );
 }

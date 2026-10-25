@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import {
   api,
   ApiError,
-  formatAsset,
   type Mandate,
   type NetworkInfo,
 } from "../lib/api";
+import { AssetDisplay, ExplorerLink } from "../components/ExplorerLink";
 import { demoMandate } from "../demo/c0Materials";
 import { useDemoSession } from "../state/demoSession";
 
@@ -31,6 +31,9 @@ export function BorrowerWorkspace() {
 
   const isLive = network?.mode === "LIVE_DEVNET";
   const display = (isLive ? liveIntent?.mandate : null) ?? session.mandate ?? demoMandate;
+  const hasLiveMandate = Boolean(liveIntent?.mandate || session.mandate?.mode === "LIVE_DEVNET");
+  const signing = network?.public_signing && typeof network.public_signing === "object"
+    ? network.public_signing as Record<string, unknown> : null;
   const requested =
     isLive && liveIntent?.offer
       ? `${liveIntent.offer.principal ?? "—"} · ${liveIntent.offer.apr_bps ?? "—"} bps · ${liveIntent.offer.term_days ?? "—"} days`
@@ -84,23 +87,34 @@ export function BorrowerWorkspace() {
 
   return (
     <section className="screen">
-      <h2>Borrower workspace</h2>
+      <p className="eyebrow">Your borrowing workspace</p>
+      <h2>Credit, on your terms.</h2>
       <p className="lede">
         {isLive
-          ? "LIVE Devnet mandate from the API credit-intent (native signature). Commercial terms stay the locked C0 product schedule."
-          : "Confirm the principal mandate. Validation calls the API; commercial terms stay the fixed C0 example (ceiling 2,500 · request 2,000 @ 550 bps / 90 days)."}
+          ? "Review the limits your agent can act within. Your signed mandate keeps every Devnet loan within the approved amount, rate and term."
+          : "Review your agent’s borrowing limits in this simulation. The example requests 2,000 at 5.5% for 90 days, within a 2,500 ceiling."}
       </p>
 
       <div className="doc-strip">
-        <h3>Signed mandate</h3>
-        <dl className="grid">
+        <h3>Your agent’s permission</h3>
+        {isLive && !hasLiveMandate ? (
+          <div className="empty-state">
+            <p>Load your current borrowing permission from Devnet.</p>
+            <p className="note">Confirm permission to review the signed limits for your agent.</p>
+            {signing ? <dl className="grid">
+              <div><dt>Borrower account</dt><dd><ExplorerLink kind="account" value={signing.borrower_account} native={isLive} /></dd></div>
+              <div><dt>Loan token</dt><dd><AssetDisplay asset={signing.native_loan_asset} native={isLive} /></dd></div>
+              <div><dt>Reputation token</dt><dd><AssetDisplay asset={signing.native_rep_asset} native={isLive} /></dd></div>
+            </dl> : null}
+          </div>
+        ) : <dl className="grid">
           <div>
             <dt>Principal</dt>
-            <dd>{display.principal_id}</dd>
+            <dd className="mono">{display.principal_id}</dd>
           </div>
           <div>
             <dt>Agent</dt>
-            <dd>{display.agent_id}</dd>
+            <dd className="mono">{display.agent_id}</dd>
           </div>
           <div>
             <dt>Ceiling</dt>
@@ -111,17 +125,21 @@ export function BorrowerWorkspace() {
           </div>
           <div>
             <dt>Asset</dt>
-            <dd>{formatAsset(display.asset)}</dd>
+            <dd><AssetDisplay asset={display.asset} native={display.mode === "LIVE_DEVNET" && display.network === "devnet"} /></dd>
           </div>
           <div>
-            <dt>Requested (demo)</dt>
+            <dt>Requested loan</dt>
             <dd>{requested}</dd>
           </div>
           <div>
-            <dt>Mandate hash</dt>
+            <dt>Borrower account</dt>
+            <dd><ExplorerLink kind="account" value={display.xrpl_borrower} native={display.mode === "LIVE_DEVNET" && display.network === "devnet"} /></dd>
+          </div>
+          <div>
+            <dt>Mandate commitment</dt>
             <dd className="mono">{display.mandate_hash ?? "—"}</dd>
           </div>
-        </dl>
+        </dl>}
       </div>
 
       <div className="actions">
@@ -129,10 +147,8 @@ export function BorrowerWorkspace() {
           {busy
             ? "Validating…"
             : validated
-              ? "Re-validate mandate"
-              : isLive
-                ? "Validate LIVE mandate"
-                : "Validate mandate"}
+              ? "Confirm permission again"
+              : "Confirm borrowing permission"}
         </button>
         {validated && session.mandate ? (
           <Link className="btn secondary" to="/credit">
@@ -144,8 +160,8 @@ export function BorrowerWorkspace() {
       {error ? <p className="error">{error}</p> : null}
       {validated ? (
         <p className="note">
-          API accepted mandate <span className="mono">{session.mandate?.mandate_id}</span>. No
-          reservation was created.
+          Permission confirmed · <span className="mono">{session.mandate?.mandate_id}</span>. No
+          credit has been reserved yet.
         </p>
       ) : null}
     </section>

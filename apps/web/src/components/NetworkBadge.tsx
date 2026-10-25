@@ -34,8 +34,8 @@ export function NetworkBadge() {
             : "Waiting for GET /v1/network"
       }
     >
-      {mode}
-      {live && network?.live_ready === false ? " · not live_ready" : ""}
+      {live ? "XRPL Devnet" : sim ? "Demo mode" : error ? "API offline" : "Connecting…"}
+      {live && network?.live_ready === false ? " · connecting" : ""}
     </div>
   );
 }

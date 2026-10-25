@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import {
   api,
   ApiError,
-  formatAsset,
   type EvidencePassport,
   type LenderEvaluateResult,
   type LenderOffer,
 } from "../lib/api";
+import { AssetDisplay } from "../components/ExplorerLink";
 import { EVIDENCE_ID, FACILITY_ID, SUBJECT_ID } from "../demo/c0Materials";
 import { useDemoSession } from "../state/demoSession";
 
@@ -18,7 +18,7 @@ export function CreditLenderDecisions() {
 
   async function runCreditPath() {
     if (!session.mandate) {
-      setError("Validate the mandate on Screen A first.");
+      setError("Confirm borrowing permission in your workspace first.");
       return;
     }
     setBusy(true);
@@ -91,15 +91,16 @@ export function CreditLenderDecisions() {
 
   return (
     <section className="screen">
-      <h2>Credit &amp; lenders</h2>
+      <p className="eyebrow">Credit &amp; lender decisions</p>
+      <h2>Find the right fit.</h2>
       <p className="lede">
-        One evidence passport → Lender A approve / Lender B decline → firm match. Quote
-        is informational only and grants no permission.
+        Share one evidence passport with participating lenders. Compare their decisions
+        and review the offer that fits your borrowing permission.
       </p>
 
       <div className="actions" style={{ marginTop: 0, marginBottom: "1rem" }}>
         <button type="button" disabled={busy} onClick={() => void runCreditPath()}>
-          {busy ? "Running…" : "Load evidence · evaluate · match"}
+          {busy ? "Comparing lenders…" : "Check my credit options"}
         </button>
         {session.matchedOffer ? (
           <Link className="btn secondary" to="/receipt">
@@ -126,7 +127,7 @@ export function CreditLenderDecisions() {
           </p>
           {evidence.known_exposure?.asset ? (
             <p className="note">
-              Asset {formatAsset(evidence.known_exposure.asset as never)}
+              Asset <AssetDisplay asset={evidence.known_exposure.asset} native={evidence.mode === "LIVE_DEVNET" && session.mandate?.network === "devnet"} />
             </p>
           ) : null}
         </div>
@@ -193,7 +194,7 @@ export function CreditLenderDecisions() {
 
       {session.matchedOffer ? (
         <div className="doc-strip">
-          <h3>Compatible firm offer (unedited)</h3>
+          <h3>Your matched offer</h3>
           <dl className="grid">
             <div>
               <dt>Offer</dt>
@@ -212,7 +213,7 @@ export function CreditLenderDecisions() {
             </div>
             <div>
               <dt>Asset</dt>
-              <dd>{formatAsset(session.matchedOffer.asset as never)}</dd>
+              <dd><AssetDisplay asset={session.matchedOffer.asset} native={session.mandate?.mode === "LIVE_DEVNET" && session.mandate.network === "devnet"} /></dd>
             </div>
           </dl>
         </div>
@@ -224,12 +225,12 @@ export function CreditLenderDecisions() {
           <span className="mono">
             {(session.matchedOffer?.facility_id as string | undefined) ?? FACILITY_ID}
           </span>{" "}
-          credit-status loaded from API (REP buckets / headroom).
+          · Current REP balance and facility headroom loaded.
         </div>
       ) : null}
       {session.quote ? (
         <div className="note">
-          Curve quote returned — <strong>preview only; grants no permission</strong>.
+          Reputation bond estimate ready. <strong>Final approval reserves credit and REP together.</strong>
         </div>
       ) : null}
     </section>
