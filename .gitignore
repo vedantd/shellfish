@@ -35,3 +35,8 @@ coverage/
 # Test / temp
 tmp/
 temp/
+
+# Playground: track source; never commit funded seeds or local env
+playground/**/.wallets/
+playground/**/.env
+playground/**/node_modules/
