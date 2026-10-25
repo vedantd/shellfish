@@ -17,6 +17,15 @@ An accountable business can delegate bounded borrowing authority to an AI agent;
 
 Nick and Shell do **not** merge implementation code. Module names (“Nick”, “Shellfish”) do not imply who codes them.
 
+## Two person baton
+
+The scaffold label **You** means **Vedant**, the tech lead. Start at
+[the current baton](docs/agent/CURRENT-BATON.md), then read
+[the operating profile](docs/agent/PROJECT-PROFILE.md) and
+[the work board](docs/agent/WORK-BOARD.md).
+The two scoped work records define Gita's credit/registry lane and Vedant's
+authorization/execution lane. Coordinator acknowledgement and code claims are pending.
+
 ## Repo layout
 
 ```
