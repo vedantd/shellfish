@@ -1,32 +1,32 @@
 # Shellfish work board
 
-- Revision: setup-r1 adopted. Coordinator: **Vedant** (B-0001).
-- Current objective: [shared contract checkpoint B-0001](CURRENT-BATON.md).
+- Revision: setup-r1 adopted. Coordinator: **Vedant** (B-0001 accepted; **B-0002** allocated).
+- Current objective: [B-0002 Vedant consumer integration](CURRENT-BATON.md) on accepted C0-REP-1.
 - Accepted claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
-- Gita producer implementation is verified and PAUSED at her request. Vedant integration is READY.
-- Updated at Gita's explicit baton handoff request. Coordinator claims and new IDs remain Vedant's.
+- Gita producer PAUSED. Vedant consumer ACK recorded 2026-10-25 11:07 UTC (AUTH-C0-CONSUMER-001).
+- Accepted base: `08397b5449a6f2853e8d5da921ae29034353e4d2`.
 
 ## Feature gates
 
 | Gate | Observable outcome | Status and evidence |
 | --- | --- | --- |
-| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | REVIEW: producer contracts implemented, Vedant acceptance/native term selection pending |
-| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | Producer implementation and HTTP tests PASS. Consumer acceptance pending |
-| C2 | Authorization reserves once and only then permits a required signature | Atomic registry PASS. Vedant authorization and required signer integration pending |
-| C3 | Verified execution changes accounting once, timeout retains reservation | Registry accounting/timeout/retry PASS and native fixture happy path recorded. App native integration pending |
-| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | Producer checks PASS. Connected UI/denials, six security TODOs and final demo pending |
+| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | **ACCEPTED** C0-REP-1 for `SIMULATED_LOAN` first integration. LIVE_DEVNET IDs still open |
+| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | Producer + fixtures ACCEPTED with C0. Connected UI still B-0002 |
+| C2 | Authorization reserves once and only then permits a required signature | Registry PASS. Vedant authorization wiring = **B-0002 ACTIVE** |
+| C3 | Verified execution changes accounting once, timeout retains reservation | Registry + native fixture happy path recorded. App integration = B-0002 |
+| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | Producer checks PASS. Connected demo pending B-0002 |
 
 ## Queued work and claims
 
 | Lane | Owner | First bounded outcome | Depends on | Record | State |
 | --- | --- | --- | --- | --- | --- |
-| Credit and registry | Gita | Shared fixtures, lender/match outputs and reserve/retry proof | C0 examples | [Gita work](work/SETUP-GITA.md) | PAUSED after verified producer delivery, consumer ACK pending |
-| Authorization and execution | Vedant | Network/signing spike and gate consuming the agreed reservation interface | C0 examples | [Vedant work](work/SETUP-VEDANT.md) | READY, unclaimed |
+| Credit and registry | Gita | Shared fixtures, lender/match outputs and reserve/retry proof | C0 examples | [Gita work](work/SETUP-GITA.md) | PAUSED — producer delivered; C0 consumer ACK done |
+| Authorization and execution | Vedant | Wire auth + XRPL + API/UI to Gita exports (`SIMULATED_LOAN` first) | C0-REP-1 accepted | [Vedant work](work/SETUP-VEDANT.md) | **ACTIVE B-0002** |
 | Policy examples | Nick | Two exact rules and expected results | Final PRD | Non-coding input to Gita | READY |
 | Adversarial examples | Shell | Six bounded negative cases | Final PRD and agreed signing route | Non-coding input to both | READY |
 
-Coordinator ACK recorded 2026-10-25 00:41 UTC. Profile is the exact path map.
+Coordinator ACK of setup-r1: 2026-10-25 00:41 UTC. C0 consumer ACK: 2026-10-25 11:07 UTC.
 No timeout-based takeover exists.
 
 ## Dependency graph
@@ -88,8 +88,9 @@ flowchart TD
   FR-14's P1 label does not override the PRD section 11.4.2 atomic-reserve requirement.
 - Literal `sig-demo-*` strings are fixtures, not cryptographic verification evidence.
 
-Do not treat open items as accepted code until both engineers ACK the versioned example
-in a PR comment.
+C0-REP-1 producer package was accepted by Vedant (AUTH-C0-CONSUMER-001) after reproduce.
+Remaining open items are LIVE_DEVNET field fill-in and connected B-0002 integration —
+not a re-open of the accepted fixture/schema package.
 
 ## Proposed 12 hour order
 

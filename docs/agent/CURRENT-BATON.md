@@ -1,17 +1,15 @@
 # Current Shellfish baton
 
-- Label / ID: **B-0001** (replaces SETUP-DRAFT).
-- State: REVIEW. Gita producer implementation is verified. Vedant consumer acceptance is pending.
+- Label / ID: **B-0001** (C0 contract checkpoint) → consumer ACK recorded; next work **B-0002**.
+- State: **ACCEPTED** for C0-REP-1 consumer freeze (SIMULATED_LOAN first integration). LIVE_DEVNET native identifiers remain open.
 - Coordinator: **Vedant, acknowledged** 2026-10-25 00:41 UTC.
-- Objective owner: coordinator (Vedant) for C0 contract freeze. Sponsor: Gita.
-- Updated: 2026-10-25 10:45 UTC. Gita is paused at her explicit handoff request.
-- Profile: setup-r1 adopted. Claim receipt: this baton + GitHub PR comments channel.
-- Repository: Shellfish. Branch: `main`.
-- Accepted base: `cf601b40639899d36c34b3df49b6499b0975a434` (includes REP-CURVE docs).
-- Claim channel: **GitHub PR comments** on `vedantd/shellfish`.
+- Objective owner: coordinator (Vedant). Sponsor: Gita.
+- Updated: 2026-10-25 11:07 UTC (Vedant consumer ACK after reproduce).
+- Profile: setup-r1 adopted. Claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
-- Current checkpoint: producer code delivered for C0 review under Gita's later direct implementation request.
-- Delivery base: 64d31b1 plus the producer commit containing this record. No Vedant ACK is invented.
+- Repository: Shellfish. Branch: `main`.
+- Accepted base: **`08397b5449a6f2853e8d5da921ae29034353e4d2`** (Gita producer handoff).
+- Delivery: Gita PAUSED after verified producer delivery (AUTH-GITA-HANDOFF-001). Vedant ACK: AUTH-C0-CONSUMER-001.
 
 ## Incoming approved model decision
 
@@ -32,44 +30,52 @@ Simulation: [rep-exposure-curve.html](../simulations/rep-exposure-curve.html).
 ### Vedant engineering acceptance (coordinator)
 
 - Status: **ACCEPTED for C0 contract design** — 2026-10-25 03:35 UTC.
-- Source: Vedant reviewed the model and decision after Gita's pull; instructed Cursor to record acceptance.
 - Ledger: AUTH-REP-ENG-001.
-- Meaning: Shellfish C0 and later implementation **will follow** REP-CURVE-v0.2 as the reputation-bond policy. This is not a claim that code, Devnet, or native MPT flows are done.
-- Execution mapping locked for C0:
+- Execution mapping locked:
   1. Quote REP bond from the curve against E = active + reserved principal.
   2. Atomically reserve **facility headroom and REP** (Gita registry) **before** ALLOW.
   3. Validate issuer-bound REP redemption / stake proof **before** controlled LoanSet signature.
   4. Originate consumes those reservations; timeout stays RECONCILING with capacity retained.
   5. No AMM, no XRPL consensus change; simulation is explanatory only.
-- C0 payload fields that must appear in the shared fixture/contracts:
-  `model_version` (`REP-CURVE-v0.2`), principal REP spend consent, stake proof /
-  redemption reference, pending return credit states, verified outcome / suspension fields —
-  plus prior AssetRef + observation-period requirements.
+
+### Vedant consumer acceptance of C0-REP-1 (coordinator)
+
+- Status: **ACCEPTED** — 2026-10-25 11:07 UTC.
+- Ledger: AUTH-C0-CONSUMER-001.
+- Source: Vedant pulled `08397b5`, reproduced checks, instructed Cursor to record acceptance.
+- Accepted package: fixtures under `C0-REP-1` / `REP-CURVE-v0.2`, schemas (`packages/schemas` incl. `c0.ts`),
+  evidence, compatibility, registry (reserve/status/quote/events/returns/execution stores),
+  Gita HTTP routes, and isolated native E2E evidence under `fixtures/xrpl-poc-replay/`.
+- First integration mode: **`SIMULATED_LOAN`** per [`fixtures/network-signing-contract.json`](../../fixtures/network-signing-contract.json).
+  `native_ready` remains false until Vedant fills endpoint/asset/borrower/broker/schedule/signer fields.
+- SDK pin accepted for integration: **xrpl 5.3.0**; runtime **Node 24.21.0** / better-sqlite3 12.10.1.
+- Does **not** claim: connected auth/UI demo, LIVE_DEVNET product path, native default, or migrated return-queue native re-run.
+- Preserve reserve-before-ALLOW and stake-before-LoanSet.
 
 ## Next bounded outcome
 
-Freeze the first producer/consumer contract (C0): one accepted evidence / offer / match /
-reservation / outcome example, plus network/signing contract. Not the full 12-hour demo.
+**B-0002** (allocated): Vedant wires authorization + XRPL adapter + API/UI to consume Gita exports
+under C0-REP-1, starting in `SIMULATED_LOAN`. Publish filled network/signing fields when selecting LIVE_DEVNET.
 
 ## Acceptance
 
 - [x] Vedant acknowledges coordinator role, setup-r1, shared claim channel and clone mode.
-- [x] Coordinator allocates B-0001 and records ownership map (scopes remain READY until claimed).
+- [x] Coordinator allocates B-0001 and records ownership map.
 - [x] Vedant engineering-accepts REP-CURVE-v0.2 for C0 (policy math + execution mapping).
-- [ ] Gita and Vedant accept one evidence, offer, match, reservation and outcome example (fixtures).
-- [x] Single reservation call point decided: authorize reserves before ALLOW; originate consumes.
-- [x] REP stake proof required before controlled LoanSet signature (mapping accepted; not implemented).
-- [x] Producer fixtures/code bind asset identity, observation period, terms and REP fields. Consumer acceptance remains pending.
-- [x] Producer contracts/store separate commercial terms, prepared commitment and final signed hash. Native consumer integration remains pending.
-- [x] Next consumer checks are named in the incoming handoff and both work records. Connected integration gate remains open.
+- [x] Gita delivered and Vedant accepts one evidence, offer, match, reservation and outcome example (C0-REP-1).
+- [x] Single reservation call point: authorize reserves before ALLOW; originate consumes.
+- [x] REP stake proof required before controlled LoanSet signature (mapping accepted; product wiring = B-0002).
+- [x] Producer fixtures/code bind AssetRef, observation period, terms and REP fields.
+- [x] Producer contracts separate commercial terms, prepared commitment and final signed hash.
+- [x] Consumer reproduced build/typecheck/128 tests + 37 fixture tests at `08397b5`.
+- [ ] LIVE_DEVNET identifiers and required signer route filled in network-signing-contract.
+- [ ] Connected integration (auth → sign → submit → Gita accounting → UI) proven on B-0002.
 
 ## Scope
 
 Use the [profile's exact allocation](PROJECT-PROFILE.md#exclusive-file-scopes-after-acknowledged-claims).
-Lane records: [Gita](work/SETUP-GITA.md) PAUSED after verified producer delivery,
-[Vedant](work/SETUP-VEDANT.md) READY for consumer review and integration.
-Gita authorized the narrow baton/dependency update directly. Coordinator ownership and
-allocation of new IDs remain with Vedant.
+Lane records: [Gita](work/SETUP-GITA.md) PAUSED after delivery,
+[Vedant](work/SETUP-VEDANT.md) ACTIVE for B-0002 consumer integration (claim recorded here + claim channel).
 
 ## Fixed product boundaries
 
@@ -79,60 +85,23 @@ Reservation precedes required signing. Unknown execution retains capacity.
 Simulation remains labeled. Full repayment UX and secondary trading are outside
 the first 12-hour slice.
 
-## Historical setup and engineering evidence
+## Consumer verification evidence (2026-10-25 11:06 UTC)
 
 | Check | Result | Scope |
 | --- | --- | --- |
-| Git baseline and status | PASS | Local `main` at `7fbcfc7`, clean at alignment edit start |
-| Repo PRD equals Gita's final PDF | PASS | SHA-256 `1ee77372d9cc27a587055ccceb123e66177346e925523bc63355d86824d34787` |
-| PRD product thesis vs baton roles | PASS | Vedant=You, Gita=credit/registry, Nick/Shell non-coding |
-| PRD non-goals vs baton boundaries | PASS | No micro-bonds, universal score, production custody |
-| Atomic reserve as P0 (PRD §11.4.2) | PASS | Board notes FR-14 P1 does not override |
-| Schemas ownership docs vs AGENTS | FAIL then fixed | Scaffold said Shared; now Gita sole writer + Vedant accept |
-| Reserve vs ALLOW order in build docs | FAIL then fixed | Standardized to reserve-before-ALLOW |
-| Fixture asset identity consistency | FAIL (open C0) | Mandate `{currency,issuer}`; offer/evidence string `RLUSD` |
-| Evidence observation period for Lender B | FAIL (open C0) | History counts only; no months/window for ≥12 month rule |
-| Tests/typecheck/build this pass | SKIP | Docs-only; no install or runtime claimed |
-| Native loan and repayment | SKIP | Outside this baton |
-| REP-CURVE-v0.2 product math | PASS (Nick/Gita policy) | Decision record + model |
-| REP-CURVE-v0.2 engineering accept | PASS (Vedant) | C0 design only; not implemented |
-| REP curve simulation | SKIP as prod proof | Explanatory HTML only |
-
-No fixture parse, security TODO, or rate conversion is presented as full acceptance.
-
-## Current C0 dependencies
-
-- Vedant accepts the delivered C0-REP-1 fixtures, registry/event APIs and source revision.
-- Select exact connected-demo native asset, accounts, broker, schedule, fees and signer route.
-- Wire producer services into authorization, native verification, receipts and UI.
-- Reproduce combined checks before closing C0 or claiming full demo acceptance.
-
-## Historical release and operations
-
-This pass records engineering acceptance of REP-CURVE-v0.2 on central agent docs only.
-No application source, fixtures JSON, package code, database, keys or PRD binary changed
-by the acceptance itself. Commit/push of this acknowledgement is a separate coordinator
-action when requested. No Devnet submission authorized.
-
-## Incoming verified producer handoff
-
-Gita explicitly requested this update, commit/push and pause on 2026-10-25 10:45 UTC.
-This does not transfer coordinator ownership or record Vedant acceptance.
-
-- Producer implementation: schemas/fixtures, evidence, A/B lender decisions, match, atomic
-  facility+REP reserve, nonce/retry protection, exact curve, fixed bonds, rewards/default,
-  verified event accounting, durable attempts, issuer returns and status/quote API.
-- Checks: build/typecheck PASS, 128 repository tests PASS / six existing TODOs, 37 separate
-  fixture tests PASS / zero TODOs. Includes original simultaneous 2,500-vs-4,000 vector.
-- Native fixture proof: issuance, redemption, LoanSet, LoanPay and restoration passed.
-  Native default and fresh execution of the migrated return queue remain NOT RUN.
-- Dependency graph: Gita producer exports → Vedant authorization/required signer + native
-  verifiers → persisted execution → Gita accounting → Vedant receipt/UI acceptance.
-- Full Shellfish completion is not claimed. Gita is waiting for consumer feedback.
+| Pull / base | PASS | `main` at `08397b5` |
+| Node / pnpm | PASS | Node 24.21.0, pnpm 9.15.0 |
+| `pnpm build` | PASS | Workspace |
+| `pnpm typecheck` | PASS | Workspace |
+| `pnpm test` | PASS | 128 passed / 6 todo (existing security TODOs) |
+| Fixture node tests | PASS | 37 passed / 0 todo (`fixtures/xrpl-poc-replay`) |
+| C0-REP-1 fixtures package | PASS (review) | AssetRef, observation months, REP fields, reservation/quote examples present |
+| LIVE_DEVNET product wiring | NOT STARTED | B-0002 |
+| Native default / return-queue native | NOT RUN | As recorded by Gita |
 
 ## Exact next action
 
-Vedant pulls the producer delivery, reads SETUP-VEDANT.md and packages/registry/README.md,
-accepts the exact C0 package in the agreed claim channel, then injects the shared backend
-and wires the required signer and verified outcomes. Preserve reserve-before-ALLOW and
-stake-before-LoanSet signing. Gita remains paused until feedback or a resume instruction.
+Vedant executes **B-0002**: inject `openFixtureCreditBackend`, implement `authorizeExactAction`
+(reserve once before ALLOW), controlled signer + XRPL originate/repay consuming reservation,
+native/simulated verifiers, receipts/UI. Gita stays paused until feedback or a resume request.
+Stop at first connected simulation checkpoint before expanding to LIVE_DEVNET term selection.
