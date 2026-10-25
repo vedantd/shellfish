@@ -1,0 +1,136 @@
+<div id="rep-exposure-curve">
+  <style>
+    #rep-exposure-curve { display: grid; gap: 16px; color: var(--foreground); }
+    #rep-exposure-curve .curve-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    #rep-exposure-curve .curve-field { display: grid; gap: 8px; }
+    #rep-exposure-curve .curve-label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+    #rep-exposure-curve .curve-metrics { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+    #rep-exposure-curve .curve-plot { width: 100%; min-width: 0; }
+    #rep-exposure-curve .curve-svg { display: block; width: 100%; }
+    #rep-exposure-curve .curve-svg text { fill: var(--foreground); font-size: 12px; font-weight: 400; }
+    #rep-exposure-curve .curve-budget { stroke: var(--muted-foreground); stroke-width: 1; stroke-dasharray: 4 4; }
+    #rep-exposure-curve .curve-line { stroke: var(--viz-series-1); stroke-width: 2.5; fill: none; }
+    #rep-exposure-curve .curve-mark { fill: var(--viz-series-1); }
+    #rep-exposure-curve .curve-band { fill: color-mix(in srgb, var(--viz-series-1) 12%, transparent); }
+    #rep-exposure-curve .curve-grid { stroke: var(--border); stroke-width: 1; }
+    #rep-exposure-curve .curve-segment { transition: transform 160ms ease; }
+    @media (max-width: 440px) { #rep-exposure-curve .curve-fields { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) { #rep-exposure-curve .curve-segment { transition: none; } }
+  </style>
+  <div>
+    <h3>Reputation required as Alice borrows more</h3>
+    <div class="text-small text-muted">REP-CURVE-v0.2 · 1,000 REP budget · no previous excess bonds</div>
+  </div>
+  <div class="curve-fields">
+    <label class="form-label curve-field">
+      <span class="curve-label"><span>Outstanding credit</span><output class="tabular-nums" data-value="exposure">0 demo USD</output></span>
+      <input class="form-range" data-control="exposure" type="range" min="0" max="4000" step="100" value="0" aria-label="Alice outstanding credit in demo USD">
+    </label>
+    <label class="form-label curve-field">
+      <span class="curve-label"><span>New loan</span><output class="tabular-nums" data-value="principal">2,000 demo USD</output></span>
+      <input class="form-range" data-control="principal" type="range" min="250" max="2000" step="50" value="2000" aria-label="New loan principal in demo USD">
+    </label>
+  </div>
+  <div class="curve-plot">
+    <svg class="curve-svg" role="img" aria-label="Convex total REP requirement versus Alice outstanding credit">
+      <title>Alice total REP requirement</title>
+      <desc>The highlighted interval shows the extra reputation needed for the selected new loan. The dashed line is the 1,000 REP budget.</desc>
+      <g data-layer="grid"></g>
+      <rect data-chart-frame fill="none" stroke="var(--border)" stroke-width="1"></rect>
+      <rect class="curve-band" data-layer="band"></rect>
+      <path class="curve-line" data-layer="curve"></path>
+      <line class="curve-budget" data-layer="budget"></line>
+      <g class="curve-segment" data-layer="start"><circle class="curve-mark" r="4"></circle></g>
+      <g class="curve-segment" data-layer="end"><circle class="curve-mark" r="5"></circle></g>
+      <g data-layer="labels"></g>
+    </svg>
+  </div>
+  <div class="curve-metrics tabular-nums" aria-live="polite">
+    <span>New bond: <strong data-result="bond">560 REP</strong></span>
+    <span>Free after loan: <strong data-result="free">440 REP</strong></span>
+    <span>Clean 30-day reward: <strong data-result="reward">4 REP</strong></span>
+  </div>
+  <div class="text-small" data-result="status">Within REP budget · lender and mandate checks remain separate</div>
+</div>
+<script>
+(() => {
+  const root = document.getElementById('rep-exposure-curve');
+  const svg = root.querySelector('svg');
+  const controls = { exposure: root.querySelector('[data-control="exposure"]'), principal: root.querySelector('[data-control="principal"]') };
+  const ns = 'http://www.w3.org/2000/svg';
+  const curve = e => .2 * e + .00004 * e * e;
+  const format = n => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const state = { exposure: 0, principal: 2000 };
+  const observation = Array.from({length: 61}, (_, i) => ({x: i * 100, y: curve(i * 100)}));
+  function element(tag, attrs, text) {
+    const node = document.createElementNS(ns, tag);
+    for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  function loadState(value) {
+    const saved = value?.modelContent?.repCurve;
+    if (!saved) return;
+    for (const key of ['exposure', 'principal']) {
+      const value = Number(saved[key]);
+      if (Number.isFinite(value)) state[key] = Math.max(Number(controls[key].min), Math.min(Number(controls[key].max), value));
+    }
+  }
+  loadState(window.openai?.widgetState);
+  function draw() {
+    const width = Math.max(280, root.querySelector('.curve-plot').getBoundingClientRect().width);
+    const height = 310;
+    const frame = { x: 64, y: 30, w: width - 82, h: 222 };
+    const maxX = Math.max(...observation.map(d => d.x));
+    const maxY = Math.ceil(Math.max(1000, ...observation.map(d => d.y)) * 1.1 / 500) * 500;
+    const x = e => frame.x + 6 + e / maxX * (frame.w - 12);
+    const y = r => frame.y + frame.h - 6 - r / maxY * (frame.h - 12);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('height', height);
+    const box = svg.querySelector('[data-chart-frame]');
+    for (const [key, value] of Object.entries({x:frame.x, y:frame.y, width:frame.w, height:frame.h})) box.setAttribute(key, value);
+    const grid = svg.querySelector('[data-layer="grid"]'); grid.replaceChildren();
+    const labels = svg.querySelector('[data-layer="labels"]'); labels.replaceChildren();
+    for (const value of [0, 1000, 2000, 3000].filter(v => v <= maxY)) {
+      grid.append(element('line', { x1: frame.x, x2: frame.x + frame.w, y1:y(value), y2:y(value), class:'curve-grid' }));
+      labels.append(element('text', { x:frame.x-10, y:y(value)+4, 'text-anchor':'end' }, format(value)));
+    }
+    for (const value of [0, 2000, 4000, 6000]) {
+      labels.append(element('text', { x:x(value), y:frame.y+frame.h+20, 'text-anchor': value===0?'start':value===6000?'end':'middle' }, format(value)));
+    }
+    labels.append(element('text', {x:frame.x, y:16, class:'axis-title', 'data-axis':'y'}, 'Total requirement (REP)'));
+    labels.append(element('text', {x:frame.x+frame.w/2, y:height-5, 'text-anchor':'middle', class:'axis-title', 'data-axis':'x'}, 'Outstanding credit (demo USD)'));
+    svg.querySelector('[data-layer="curve"]').setAttribute('d', observation.map((d,i) => `${i?'L':'M'}${x(d.x)},${y(d.y)}`).join(' '));
+    const budget = svg.querySelector('[data-layer="budget"]');
+    for (const [key, value] of Object.entries({x1:frame.x,x2:frame.x+frame.w,y1:y(1000),y2:y(1000)})) budget.setAttribute(key,value);
+    labels.append(element('text',{x:frame.x+frame.w-8,y:y(1000)-8,'text-anchor':'end'},'1,000 REP budget'));
+    const band=svg.querySelector('[data-layer="band"]');
+    for(const [key,value] of Object.entries({x:x(state.exposure),y:frame.y,width:x(state.exposure+state.principal)-x(state.exposure),height:frame.h})) band.setAttribute(key,value);
+    const start=svg.querySelector('[data-layer="start"]'), end=svg.querySelector('[data-layer="end"]');
+    start.setAttribute('transform',`translate(${x(state.exposure)},${y(curve(state.exposure))})`);
+    end.setAttribute('transform',`translate(${x(state.exposure+state.principal)},${y(curve(state.exposure+state.principal))})`);
+    start.setAttribute('data-tooltip',`${format(state.exposure)} demo USD · ${format(curve(state.exposure))} REP`);
+    end.setAttribute('data-tooltip',`${format(state.exposure+state.principal)} demo USD · ${format(curve(state.exposure+state.principal))} REP`);
+    const bond=curve(state.exposure+state.principal)-curve(state.exposure);
+    const free=1000-curve(state.exposure+state.principal);
+    const reward=.01*.2*state.principal;
+    for(const key of ['exposure','principal']) {
+      controls[key].value=state[key];
+      root.querySelector(`[data-value="${key}"]`).textContent=`${format(state[key])} demo USD`;
+    }
+    root.querySelector('[data-result="bond"]').textContent=`${format(bond)} REP`;
+    root.querySelector('[data-result="free"]').textContent=free>=0?`${format(free)} REP`:`${format(-free)} REP short`;
+    root.querySelector('[data-result="reward"]').textContent=`${format(reward)} REP`;
+    const status=root.querySelector('[data-result="status"]');
+    status.textContent=free>=0?'Within REP budget · lender and mandate checks remain separate':'Exceeds REP budget · deny this loan under REP-CURVE-v0.2';
+    status.classList.toggle('text-destructive',free<0);
+  }
+  for (const key of ['exposure', 'principal']) controls[key].addEventListener('input', () => {
+    state[key] = Number(controls[key].value); draw();
+    if (window.openai?.setWidgetState) window.openai.setWidgetState({modelContent:{repCurve:{...state}},privateContent:null}).catch(()=>{});
+  });
+  window.addEventListener('openai:set_globals', event => {loadState(event.detail?.globals?.widgetState);draw();});
+  new ResizeObserver(draw).observe(root.querySelector('.curve-plot'));
+  draw();
+})();
+</script>

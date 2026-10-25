@@ -46,3 +46,23 @@ For actual approvals use APPROVED, PROPOSED, REJECTED, REVOKED, SUPERSEDED or EX
 Platform permission to write is separate from this ledger.
 Reuse later explicit grants within their exact scope. Do not reopen unchanged covered
 approvals or treat a proposal, preselected choice, silence or agent claim as consent.
+
+## AUTH-REP-MATH-001
+
+- Status: APPROVED for policy documentation and this scoped handoff.
+- Approver: Gita directly. Nick's mathematical-policy approval is confirmed by Gita.
+- Recorded: 2026-10-25 03:09 UTC.
+- Source: direct user request in Assess XLS-0066 creditworthiness, 24 October 2026.
+- Approved subject: REP-CURVE-v0.2 as specified in [the decision record](../decisions/REP-CURVE-v0.2.md).
+- Requested actions: save mathematical-model.md, include the simulation HTML, append XRP/XRPL pseudocode and amendment requirements, record approval, and inform Vedant's agent baton.
+- Authorized paths: root mathematical-model.md, docs/simulations/rep-exposure-curve.html,
+  docs/simulations/rep-exposure-curve.fragment.html, docs/decisions/REP-CURVE-v0.2.md,
+  the incoming notice in CURRENT-BATON.md, this ledger entry and Gita's work-record handoff.
+- Central-record exception: this direct human instruction permits the narrow incoming
+  notice and approval entry. It does not transfer coordinator ownership.
+- Excludes product implementation, schema/fixture changes, installs, native transactions,
+  database writes, commits, pushes and deployment.
+- Engineering acceptance: Vedant still accepts the C0 contracts and allocates claims.
+  Product math approval and engineering acceptance are separate facts.
+- Nick attribution: approval reported by Gita. No direct Nick message or signature invented.
+- Stop: verified local files and durable baton notice. No remote delivery is implied.

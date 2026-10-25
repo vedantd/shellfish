@@ -12,6 +12,30 @@
 - Clone mode: **separate clones**.
 - Setup state: documentation aligned to PRD v1.1. No product implementation claim or release grant.
 
+## Incoming approved model decision
+
+Recorded by Gita's agent at Gita's explicit request, 2026-10-25 03:09 UTC.
+
+**Nick and Gita approved REP-CURVE-v0.2**, as confirmed by Gita in the current request.
+Nick's approval is attributed through Gita. This does not assert a separate Nick signature.
+Read the [canonical mathematical model](../../mathematical-model.md) and
+[approval record](../decisions/REP-CURVE-v0.2.md) before finalizing C0.
+The [standalone simulation](../simulations/rep-exposure-curve.html) is included.
+
+- New stake is C(E + P) minus C(E), where C(E) = 0.2E + 0.00004E squared.
+- E covers active plus reserved principal across participating lenders for one principal and asset.
+- Retain each original bond until full repayment. Default forfeits it and suspends borrowing.
+- Reward base principal-time exposure, not the convex surcharge.
+- Gita owns policy/registry. Vedant owns signer/native integration. No XRPL consensus change or AMM.
+- C0 now needs the model version, REP spend consent, stake proof, pending return states and verified outcome contracts.
+- The current coordinating ID, state, owners and claims remain unchanged. Product math approval does not claim implementation or engineering acceptance.
+- This incoming notice is authorized by Gita's direct request. Further central-record edits remain with Vedant.
+
+**Coordinator next action:** acknowledge this incoming decision in the established
+PR-comment channel and incorporate the model fields into C0. Gita publishes the
+versioned fixture and registry contract. Vedant accepts the execution mapping and
+allocates bounded lane claims. No new ID has been allocated by this agent.
+
 ## Next bounded outcome
 
 Freeze the first producer/consumer contract (C0): one accepted evidence / offer / match /

@@ -58,3 +58,21 @@ acknowledged slice. Full repayment UX remains deferred.
 **Next action:** Publish C0 fixture + registry contract (AssetRef + observation period)
 and request Vedant’s acceptance in a GitHub PR comment. Stop for consumer acceptance
 before expanding into the next slice. Editing this file does not claim work.
+
+## Approved reputation model handoff
+
+- Recorded: 2026-10-25 03:09 UTC.
+- Product math: REP-CURVE-v0.2 approved by Nick and Gita, as confirmed by Gita.
+- Files: [canonical model](../../../mathematical-model.md),
+  [decision](../../decisions/REP-CURVE-v0.2.md),
+  [simulation](../../simulations/rep-exposure-curve.html).
+- Completed in this request: documentation, simulation export, exact accounting and
+  pseudocode handoff. No application implementation.
+- Scope source: AUTH-REP-MATH-001. This lane remains READY and unclaimed.
+- Gita's next C0 output: curve policy/hash, exact units, principal REP consent, quote
+  and atomic reserve contracts, unique stake/outcome references, pending issuer credits,
+  base-exposure appreciation, suspension and idempotent return rules.
+- Vedant's consumer action: read the incoming B-0001 notice, accept the C0 execution
+  mapping, preserve reserve-before-ALLOW, and bind the required signer to validated
+  REP redemption before LoanSet. No AMM or consensus implementation is required.
+- Contract acceptance, IDs and implementation claims remain pending coordinator action.
