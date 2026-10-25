@@ -7,6 +7,7 @@ import { ScenarioFixture } from "@shellfish/schemas";
 import { repayLoan } from "@shellfish/xrpl";
 import { config } from "../config.js";
 import { getApprovedOffer, requireCreditBackend } from "../credit-context.js";
+import { runDemoReset } from "../demo-reset.js";
 
 const fixturesDir = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -15,6 +16,29 @@ const fixturesDir = resolve(
 
 /** Shared demo repay — You (XRPL) + Gita (registry accounting). */
 export async function demoRoutes(app: FastifyInstance) {
+  app.post("/v1/demo/reset", async (_req, reply) => {
+    try {
+      return await runDemoReset();
+    } catch (err) {
+      const code =
+        err instanceof Error && "code" in err && typeof err.code === "string"
+          ? err.code
+          : err instanceof Error && err.message === "DEMO_RESET_DISABLED"
+            ? "DEMO_RESET_DISABLED"
+            : "DEMO_RESET_FAILED";
+      reply.code(code === "DEMO_RESET_DISABLED" ? 403 : 500);
+      return {
+        ok: false,
+        code,
+        message:
+          err instanceof Error
+            ? err.message
+            : "Demo reset failed",
+        mode: config.networkMode,
+      };
+    }
+  });
+
   app.post<{
     Body: {
       loan_id?: string;

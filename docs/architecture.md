@@ -40,5 +40,6 @@ Receipts + exposure registry
 
 See the PRD in this folder for the full build contract.
 
+For **what the current demo can do** (UI + API coverage for product/design agents), see [`DEMO-SCOPE.md`](DEMO-SCOPE.md).
 For per-module implementation steps, see [`HOW_TO_BUILD.md`](HOW_TO_BUILD.md).
 For claims and C0 gaps, see [`agent/CURRENT-BATON.md`](agent/CURRENT-BATON.md).

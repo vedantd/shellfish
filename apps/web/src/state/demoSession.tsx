@@ -38,6 +38,7 @@ export type DemoSession = {
   setOriginate: (o: OriginateResult | null) => void;
   setJoinedRequest: (v: unknown | null) => void;
   clearExecution: () => void;
+  resetDemo: () => void;
 };
 
 const Ctx = createContext<DemoSession | null>(null);
@@ -66,17 +67,31 @@ export function DemoSessionProvider({ children }: { children: ReactNode }) {
     setJoinedRequest(null);
   }, []);
 
+  const resetDemo = useCallback(() => {
+    setMandate(null);
+    setEvidence(null);
+    setLenderA(null);
+    setLenderB(null);
+    setMatchedOffer(null);
+    setMatchEnvelope(null);
+    setCreditStatus(null);
+    setQuote(null);
+    setReceipt(null);
+    setOriginate(null);
+    setJoinedRequest(null);
+  }, []);
+
   const value = useMemo(
     () => ({
       mandate, evidence, lenderA, lenderB, matchedOffer, matchEnvelope,
       creditStatus, quote, receipt, originate, joinedRequest,
       setMandate, setEvidence, setLenderA, setLenderB, setMatch,
       setCreditStatus, setQuote, setReceipt, setOriginate, setJoinedRequest,
-      clearExecution,
+      clearExecution, resetDemo,
     }),
     [
       mandate, evidence, lenderA, lenderB, matchedOffer, matchEnvelope,
-      creditStatus, quote, receipt, originate, joinedRequest, setMatch, clearExecution,
+      creditStatus, quote, receipt, originate, joinedRequest, setMatch, clearExecution, resetDemo,
     ],
   );
 

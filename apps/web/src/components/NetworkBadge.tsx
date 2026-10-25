@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
 import { api, type NetworkInfo } from "../lib/api";
 
-export function NetworkBadge() {
+type Props = {
+  refreshKey?: number;
+};
+
+export function NetworkBadge({ refreshKey = 0 }: Props) {
   const [network, setNetwork] = useState<NetworkInfo | null>(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    setNetwork(null);
+    setError(false);
     void api<NetworkInfo>("/v1/network")
       .then((info) => {
         if (!cancelled) setNetwork(info);
@@ -17,7 +23,7 @@ export function NetworkBadge() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   const mode = network?.mode ?? (error ? "API_OFFLINE" : "…");
   const live = mode === "LIVE_DEVNET";

@@ -1,4 +1,5 @@
 import { createFixtureCreditServices } from "../db/fixtures.js";
+import { getCreditBackend } from "../credit-context.js";
 import type { FastifyInstance } from "fastify";
 import { EvidenceError, type EvidenceService } from "@shellfish/evidence";
 import { CompatibilityError, type CompatibilityService } from "@shellfish/compatibility";
@@ -17,13 +18,14 @@ export async function gitaRoutes(app: FastifyInstance, options: GitaRouteOptions
     const mode = options.mode ?? process.env.NETWORK_MODE ?? "SIMULATED_LOAN";
     if (mode !== "SIMULATED_LOAN" && mode !== "LIVE_DEVNET")
         throw new Error("Invalid credit route mode");
-    const services: GitaRouteOptions["services"] = options.services ?? (mode === "SIMULATED_LOAN" ? createFixtureCreditServices() : undefined);
+    const fallbackServices: GitaRouteOptions["services"] = options.services ?? (mode === "SIMULATED_LOAN" ? createFixtureCreditServices() : undefined);
+    /** Prefer the live credit backend after demo reset so facility/evidence stay current. */
+    const resolveServices = () => getCreditBackend()?.services ?? fallbackServices;
     const unavailable = () => ({ code: "CREDIT_SOURCE_NOT_CONFIGURED", message: "Inject the verified evidence and registry services for native mode", mode });
     const requireMode = (payload: {
         mode: string;
     }) => { if (payload.mode !== mode)
         throw new CompatibilityError("DENY_UNSUPPORTED_NETWORK", "Credit data must use the configured execution mode"); };
-    const registry = services?.registry;
     function error(reply: {
         code: (status: number) => unknown;
     }, err: unknown) {
@@ -42,6 +44,7 @@ export async function gitaRoutes(app: FastifyInstance, options: GitaRouteOptions
             id: string;
         };
     }>("/v1/evidence/:id", async (req, reply) => {
+        const services = resolveServices();
         if (!services) {
             reply.code(503);
             return unavailable();
@@ -64,6 +67,7 @@ export async function gitaRoutes(app: FastifyInstance, options: GitaRouteOptions
             evidence?: unknown;
         };
     }>("/v1/lenders/:id/evaluate", async (req, reply) => {
+        const services = resolveServices();
         if (!services) {
             reply.code(503);
             return unavailable();
@@ -89,6 +93,7 @@ export async function gitaRoutes(app: FastifyInstance, options: GitaRouteOptions
             evidence?: unknown;
         };
     }>("/v1/offers/match", async (req, reply) => {
+        const services = resolveServices();
         if (!services) {
             reply.code(503);
             return unavailable();
@@ -113,6 +118,7 @@ export async function gitaRoutes(app: FastifyInstance, options: GitaRouteOptions
             id: string;
         };
     }>("/v1/facilities/:id", async (req, reply) => {
+        const services = resolveServices();
         if (!services?.registry) {
             reply.code(503);
             return unavailable();
@@ -126,6 +132,7 @@ export async function gitaRoutes(app: FastifyInstance, options: GitaRouteOptions
         }
     });
     app.get<{ Params: { id: string } }>("/v1/facilities/:id/credit-status", async (req, reply) => {
+        const registry = resolveServices()?.registry ?? getCreditBackend()?.registry;
         if (!registry) { reply.code(503); return unavailable(); }
         try {
             const status = registry.getCreditStatus(req.params.id);
@@ -134,6 +141,7 @@ export async function gitaRoutes(app: FastifyInstance, options: GitaRouteOptions
         } catch (err) { return error(reply, err); }
     });
     app.post<{ Params: { id: string }; Body: unknown }>("/v1/facilities/:id/quote", async (req, reply) => {
+        const registry = resolveServices()?.registry ?? getCreditBackend()?.registry;
         if (!registry) { reply.code(503); return unavailable(); }
         try {
             const quote = registry.quoteCredit(req.params.id, req.body);
