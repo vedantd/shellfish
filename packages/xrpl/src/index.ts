@@ -291,6 +291,6 @@ export async function repayLoan(input: {
 
 export const packageOwner = "You" as const;
 
-export { Wallet } from "xrpl";
+export { Client, Wallet } from "xrpl";
 export * from "./lifecycle.js";
 export * from "./return-worker.js";

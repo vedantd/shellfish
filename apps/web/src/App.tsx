@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { DemoResetButton } from "./components/DemoResetButton";
 import { NetworkBadge } from "./components/NetworkBadge";
 import { UiIcon } from "./components/UiIcon";
 import { DemoSessionProvider, useDemoSession } from "./state/demoSession";
@@ -34,14 +36,18 @@ function ReputationGuide() {
 export function App() {
   const location = useLocation();
   const step = location.pathname.startsWith("/credit") ? 1 : location.pathname.startsWith("/receipt") ? 2 : 0;
+  const [networkRefreshKey, setNetworkRefreshKey] = useState(0);
   return <DemoSessionProvider><div className="app">
     <header className="header">
       <Link className="brand" to="/borrower" aria-label="Cobb home"><img src="/brand/cobb-wordmark.png" alt="Cobb" /><span className="brand-divider" /><span className="brand-descriptor">Agent credit,<br />on your terms.</span></Link>
-      <NetworkBadge />
+      <div className="header-actions">
+        <DemoResetButton onResetComplete={() => setNetworkRefreshKey((key) => key + 1)} />
+        <NetworkBadge refreshKey={networkRefreshKey} />
+      </div>
     </header>
     <div className="workspace-intro"><p className="eyebrow">The Cobb workspace</p><h1>Good credit starts with clear limits.</h1><p>Give your agent room to act, with reputation behind every loan.</p></div>
     <nav className="nav" aria-label="Credit journey">{steps.map((item, index) => <Link key={item.path} to={item.path} className={`${step === index ? "active" : ""} ${step > index ? "complete" : ""}`} aria-current={step === index ? "step" : undefined}><span className="nav-icon"><UiIcon name={step > index ? "check" : item.icon} /></span><span><strong>{item.title}</strong><small>{item.detail}</small></span><span className="nav-number">0{index + 1}</span></Link>)}</nav>
-    <div className="workspace-layout"><main className="main"><Routes>
+    <div className="workspace-layout"><main className="main" key={networkRefreshKey}><Routes>
       <Route path="/" element={<Navigate to="/borrower" replace />} />
       <Route path="/borrower" element={<BorrowerWorkspace />} />
       <Route path="/credit" element={<CreditLenderDecisions />} />
