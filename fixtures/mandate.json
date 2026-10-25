@@ -1,0 +1,20 @@
+{
+  "mandate_id": "m-001",
+  "principal_id": "business:harbor-supply-demo",
+  "agent_id": "agent:procurement-01",
+  "xrpl_borrower": "rDEMOBorrowerHarborSupply00000001",
+  "asset": {
+    "currency": "RLUSD",
+    "issuer": "rISSUERDemoRLUSD000000000000001"
+  },
+  "max_principal": "2500.00",
+  "max_apr_bps": 600,
+  "max_total_fees": "30.00",
+  "max_term_days": 90,
+  "allowed_purposes": ["working_capital"],
+  "allowed_lenders": ["lender-A"],
+  "expires_at": "2026-10-24T23:00:00Z",
+  "nonce": "unique-mandate-01",
+  "policy_version": "borrower-v1",
+  "principal_signature": "sig-demo-principal"
+}

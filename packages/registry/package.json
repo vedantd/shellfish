@@ -1,0 +1,29 @@
+{
+  "name": "@shellfish/registry",
+  "version": "0.1.0",
+  "description": "Gita — lender facility registry + atomic reservation stubs (SQLite)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsc -p tsconfig.json --watch"
+  },
+  "dependencies": {
+    "@shellfish/schemas": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "better-sqlite3": "^11.7.0"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "cases": [
+    {
+      "id": "over-amount",
+      "request_principal": "3000.00",
+      "expected_code": "DENY_AMOUNT",
+      "note": "Agent max is 2,500"
+    },
+    {
+      "id": "over-rate",
+      "request_apr_bps": 900,
+      "expected_code": "DENY_RATE",
+      "note": "Mandate max is 600 bps"
+    },
+    {
+      "id": "replay",
+      "reuse_nonce": "unique-mandate-01",
+      "expected_code": "DENY_REPLAY",
+      "note": "Never second loan on same nonce + proposal"
+    }
+  ]
+}

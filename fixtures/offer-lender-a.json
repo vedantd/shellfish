@@ -1,0 +1,19 @@
+{
+  "lender_id": "lender-A",
+  "borrower_id": "business:harbor-supply-demo",
+  "facility_id": "facility-A-001",
+  "facility_limit": "5000.00",
+  "active_commitments": "1000.00",
+  "reserved": "0.00",
+  "offer_id": "offer-A-777",
+  "asset": "RLUSD",
+  "principal": "2000.00",
+  "apr_bps": 550,
+  "term_days": 90,
+  "fees": "0.00",
+  "purpose": "working_capital",
+  "expires_at": "2026-10-24T22:00:00Z",
+  "underwriting_policy": "lenderA-v2",
+  "approval_ref": "uw-A-349",
+  "lender_signature": "sig-demo-lender"
+}

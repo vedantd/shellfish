@@ -1,0 +1,6 @@
+{
+  "decision": "DECLINE",
+  "lender_id": "lender-B",
+  "reason_codes": ["UNDERWRITING_DECLINED"],
+  "human_explanation": "Requires ≥12 months accepted repayment history; HarborSupply demo evidence shows ~6 months."
+}

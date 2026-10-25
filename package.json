@@ -1,0 +1,23 @@
+{
+  "name": "shellfish",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Shellfish — Agentic Credit Gateway for XRP Ledger",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @shellfish/api --filter @shellfish/web dev",
+    "build": "pnpm -r build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:init": "pnpm --filter @shellfish/api db:init",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r --if-present lint"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

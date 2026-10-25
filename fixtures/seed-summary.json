@@ -1,0 +1,21 @@
+{
+  "borrower": "HarborSupply (fictional)",
+  "known_exposure": "3000.00 RLUSD (participating_sources_only)",
+  "lender_a": {
+    "facility_limit": "5000.00",
+    "committed": "1000.00",
+    "headroom": "4000.00",
+    "expected": "APPROVE 2000 @ 550 bps / 90 days"
+  },
+  "lender_b": {
+    "expected": "DECLINE — requires ≥12 months history"
+  },
+  "agent_mandate": {
+    "max_principal": "2500.00",
+    "max_apr_bps": 600,
+    "max_term_days": 90,
+    "purpose": "working_capital",
+    "allowed_lenders": ["lender-A"]
+  },
+  "happy_path": "2000 @ 550 bps → COMPATIBLE → ALLOW → signing → validated or labeled simulation"
+}

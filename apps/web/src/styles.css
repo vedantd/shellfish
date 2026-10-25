@@ -1,0 +1,152 @@
+:root {
+  color-scheme: light dark;
+  --bg: #0b1220;
+  --panel: #121a2b;
+  --text: #e8eef8;
+  --muted: #9aa8bf;
+  --accent: #15b3a0;
+  --live: #2ecc71;
+  --sim: #f39c12;
+  --border: #243049;
+  font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  line-height: 1.45;
+  background: var(--bg);
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+h1 {
+  margin: 0.2rem 0 0;
+  font-size: 1.6rem;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.nav a {
+  color: var(--text);
+  text-decoration: none;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  font-size: 0.9rem;
+}
+
+.nav a:hover {
+  border-color: var(--accent);
+}
+
+.main {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.screen h2 {
+  margin-top: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.todo {
+  color: var(--sim);
+  font-size: 0.9rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.badge-live {
+  background: color-mix(in srgb, var(--live) 20%, transparent);
+  color: var(--live);
+  border-color: var(--live);
+}
+
+.badge-sim {
+  background: color-mix(in srgb, var(--sim) 20%, transparent);
+  color: var(--sim);
+  border-color: var(--sim);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.grid dt {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.grid dd {
+  margin: 0.2rem 0 0;
+  font-weight: 600;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9rem;
+  background: color-mix(in srgb, var(--bg) 55%, var(--panel));
+}
+
+.card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.checklist {
+  padding-left: 1.2rem;
+  color: var(--muted);
+}
