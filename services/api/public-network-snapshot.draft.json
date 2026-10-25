@@ -1,0 +1,26 @@
+{
+  "mode": "LIVE_DEVNET",
+  "live_ready": false,
+  "explorer_base": "https://devnet.xrpl.org/transactions/",
+  "public_signing": {
+    "endpoint": "wss://s.devnet.rippletest.net:51233",
+    "native_loan_asset": {
+      "mpt_issuance_id": "0061AD14EB09D79906964D3F9C8F08961D4DFF4B44E34836"
+    },
+    "borrower_account": "rw81MZkvXRwcB1wmfECQqqCHawR5XJDQLJ",
+    "broker_account": "rN2Le8eZo7W76zTfN2WNPiwUWzFvxN6NaV",
+    "broker_id": "89C2AB0D9BF508325499D5C4F159229D5C2C74069F06F9C7FBF6B6DEC84C2657",
+    "native_rep_asset": {
+      "mpt_issuance_id": "0061AD17471EA55463727A8E062AD2108619D165D784B492",
+      "issuer": "rfVsgv1SZPRrPtmvHptq3yTynHNFkF7mvi",
+      "asset_scale": 6
+    },
+    "required_signer_route": "shellfish.authorizeExactAction→stake→dualSignLoanSet",
+    "native_schedule": {
+      "payment_total": 1,
+      "payment_interval_sec": 7776000,
+      "grace_period_sec": 604800
+    },
+    "sdk_pin": "5.3.0"
+  }
+}

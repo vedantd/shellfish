@@ -245,8 +245,24 @@ describe("LIVE material commercial consistency", () => {
     facilityId: "test:facility", principalMinor: "200000", loanBrokerId: "C".repeat(64),
     maxStakeU: "760000000", wsUrl: "wss://example.invalid", paymentTotal: 1,
   } as Parameters<typeof buildLiveAuthMaterials>[0];
-  it("rejects default 30-day/100+10-fee selection against advertised 90-day/zero-fee terms", () => {
-    expect(() => buildLiveAuthMaterials(publicDraft, clock)).toThrow(/LIVE_CONFIG_TERMS_MISMATCH/);
+  it("rejects playground 30-day/100+10-fee selection against advertised 90-day/zero-fee terms", () => {
+    expect(() =>
+      buildLiveAuthMaterials(
+        {
+          ...publicDraft,
+          paymentIntervalSec: 30 * 86400,
+          loanOriginationFee: "100",
+          loanServiceFee: "10",
+        },
+        clock,
+      ),
+    ).toThrow(/LIVE_CONFIG_TERMS_MISMATCH/);
+  });
+  it("accepts env defaults aligned to 90-day zero-fee product terms", () => {
+    const result = buildLiveAuthMaterials(publicDraft, clock);
+    expect(result.offer.term_days).toBe(90);
+    expect(result.offer.fees).toBe("0.00");
+    expect(result.offer.schedule.payment_interval_seconds).toBe(90 * 86400);
   });
   it("constructs canonical commitments for an explicitly coherent test selection", () => {
     const result = buildLiveAuthMaterials({ ...publicDraft, paymentIntervalSec: 90 * 86400,

@@ -13,12 +13,26 @@
 
 ### Remaining backend work in dependency order
 
-1. Select coherent native accounts, loan asset/scale, schedule and fees. The current native defaults conflict with the advertised 90-day, zero-fee offer and are rejected before authorization.
-2. Supply matching native evidence/approved-offer inputs to `live-backend.ts`. Gita prepares source/schema records against the selection. Transaction hashes alone do not create underwriting or a passport.
+1. ~~Select coherent native accounts, loan asset/scale, schedule and fees.~~ **PASS (draft)** — 2026-10-25.
+   Locked product terms: 90-day / zero fees / interval 7776000 / 550 bps / principal_minor 200000.
+   Env defaults fixed in `@shellfish/xrpl` + `.env.live.example`. Draft + preflight report:
+   [`services/api/NATIVE-SELECTION.md`](../../../services/api/NATIVE-SELECTION.md).
+   Preflight exit 2 / `CONFIGURATION_INCOMPLETE` solely from default SIM source docs (expected).
+2. Supply matching native evidence/approved-offer inputs to `live-backend.ts`. **Gita prepares**
+   LIVE_DEVNET portfolio/mandate/offer/request/evidence + `native_asset_metadata` against the
+   selection in `services/api/native-selection.draft.json`. Vedant injects nonempty services.
+   Transaction hashes alone do not create underwriting or a passport.
 3. Connect execution-store fencing, finalized-field commitments and signed-attempt persistence before submission. Reconcile the saved attempt after timeout or restart, including completed native outcomes.
 4. Replace structural-only portfolio/event checks with authenticated ledger-backed verification and the required native mandate/signing validation.
 5. Connect the issuer-return worker to the existing durable return store. Verified repayment creates owed REP, then a validated issuer Payment makes it available once.
 6. Run the granted connected Devnet smoke and C4 checks. Record native default and the fresh migrated return-queue proof separately. Close the six security TODOs with the actual application path.
+
+### Exact Gita ask after Priority 1 selection
+
+Please produce LIVE_DEVNET source records bound to
+[`services/api/native-selection.draft.json`](../../../services/api/native-selection.draft.json)
+(public borrower/broker/MPT/broker_id + 90d/0-fee terms). Do not relabel SIMULATED_LOAN fixtures.
+Schema successor for `network-signing-contract` `native_ready` remains separate after smoke.
 
 UI integration can proceed now against the documented routes. Borrower and lender screens still need wiring, and the receipt screen should consume the joined read view. Existing helpers, APIs and SQLite persistence are delivered. The historical entries below retain their original checkpoint evidence.
 
@@ -174,4 +188,7 @@ authorization or registry checks. No synthetic native hash or inferred settlemen
   REP redemption before controlled LoanSet; no AMM/consensus.
 - Lane remains READY and unclaimed for coding.
 
-**Next action (B-0002 follow-up):** Pull `fbc8de9`, use the served OpenAPI and joined request view for UI integration, and complete the six native backend items in the current handoff above. SQLite UI persistence is complete. AUTH-DEVNET-001 remains the bounded native smoke grant. No full native lifecycle acceptance is recorded yet.
+**Next action (B-0002 follow-up):** Priority 1 native selection draft is done
+(`services/api/NATIVE-SELECTION.md`). Wait for Gita Priority 2 LIVE source docs, then inject
+into `live-backend.ts`. Parallel OK: UI A/B/C against OpenAPI, or execution-store fencing.
+Devnet smoke only after P2 inject. AUTH-DEVNET-001 remains the bounded smoke grant.

@@ -84,13 +84,14 @@ export function readLiveSessionConfigFromEnv(
     loanMptIssuanceId,
     repIssuanceId,
     repIssuerAddress,
+    // Product C0 terms: 90-day bullet, zero fees (not playground 30-day / 100+10).
     paymentTotal: Number(env.SHELLFISH_PAYMENT_TOTAL?.trim() || "1"),
     paymentIntervalSec: Number(
-      env.SHELLFISH_PAYMENT_INTERVAL_SEC?.trim() || "2592000",
+      env.SHELLFISH_PAYMENT_INTERVAL_SEC?.trim() || String(90 * 86400),
     ),
     gracePeriodSec: Number(env.SHELLFISH_GRACE_PERIOD_SEC?.trim() || "604800"),
-    loanOriginationFee: env.SHELLFISH_LOAN_ORIGINATION_FEE?.trim() || "100",
-    loanServiceFee: env.SHELLFISH_LOAN_SERVICE_FEE?.trim() || "10",
+    loanOriginationFee: env.SHELLFISH_LOAN_ORIGINATION_FEE?.trim() || "0",
+    loanServiceFee: env.SHELLFISH_LOAN_SERVICE_FEE?.trim() || "0",
   };
 }
 
@@ -130,7 +131,7 @@ export function publicLiveSigningFields(config: LiveSessionConfig): {
     required_signer_route: "shellfish.authorizeExactAction→stake→dualSignLoanSet",
     native_schedule: {
       payment_total: config.paymentTotal ?? 1,
-      payment_interval_sec: config.paymentIntervalSec ?? 2592000,
+      payment_interval_sec: config.paymentIntervalSec ?? 90 * 86400,
       grace_period_sec: config.gracePeriodSec ?? 604800,
     },
     sdk_pin: "5.3.0",
@@ -170,8 +171,8 @@ export async function createXrplLiveLedger(
         paymentTotal: config.paymentTotal ?? 1,
         paymentIntervalSec: interval,
         gracePeriodSec: config.gracePeriodSec ?? 604800,
-        loanOriginationFee: config.loanOriginationFee ?? "100",
-        loanServiceFee: config.loanServiceFee ?? "10",
+        loanOriginationFee: config.loanOriginationFee ?? "0",
+        loanServiceFee: config.loanServiceFee ?? "0",
       };
       const fullySigned = await buildDualSignedLoanSet({
         client,
