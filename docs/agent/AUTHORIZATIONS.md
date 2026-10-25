@@ -8,10 +8,12 @@ Maintainer: acknowledged coordinator **Vedant** (B-0001).
 | AUTH-SETUP-001 | Gita, direct Codex request on 24 October 2026 New York time | APPROVED | Local two-party baton documentation setup only |
 | AUTH-ALIGN-001 | Vedant, PRD alignment + setup-r1 ACK on 25 October 2026 | APPROVED | Docs reconcile + coordinator ACK; no product code |
 | AUTH-REP-ENG-001 | Vedant, engineering accept of REP-CURVE-v0.2 | APPROVED | C0 design acceptance only; not implementation |
-| Product implementation | No implementation grant issued | NOT GRANTED | Future bounded coding request and acknowledged work claim |
-| Dependency installation | Ask Gita first | NOT GRANTED | No install from this alignment pass |
-| Commit/push/publication/deployment | No grant in this task | NOT GRANTED | Keep each action separate; push only if Vedant asks |
-| Stateful Devnet execution | No grant in this task | NOT GRANTED | Network choice and bounded execution belong to the implementation checkpoint |
+| AUTH-GITA-HANDOFF-001 | Gita, producer delivery 2026-10-25 | APPROVED | Producer implementation + handoff records |
+| AUTH-C0-CONSUMER-001 | Vedant, C0-REP-1 consumer ACK 2026-10-25 | APPROVED | Accept C0 package; allocate B-0002; baton docs only |
+| Product implementation (B-0002 code) | Claimed for Vedant on B-0002 | APPROVED (bounded) | Auth/XRPL/API/UI wiring to accepted C0; no Gita path edits |
+| Dependency installation | Gita-locked pins already on main | SUPERSEDED for verify | Consumer used Node 24.21 / pnpm 9.15 against existing lockfile |
+| Commit/push of this ACK | Vedant request to record baton | APPROVED when Vedant pushes | Baton/board/ledger/SETUP-VEDANT only unless separately asked |
+| Stateful Devnet execution | No new grant in this ACK | NOT GRANTED | LIVE_DEVNET still requires explicit execution grant |
 
 The setup-pass absence of a grant below is historical. AUTH-GITA-HANDOFF-001
 records Gita's later direct implementation and delivery authority for this checkpoint.
@@ -94,9 +96,10 @@ approvals or treat a proposal, preselected choice, silence or agent claim as con
   to both contributors' batons reflecting completed work, decisions and dependencies.
 - Authorized delivery: the reviewed Gita producer implementation, C0 fixtures/contracts,
   previously approved runtime/SDK pins and the narrow handoff records to existing origin/main.
-- Narrow central-record exception: CURRENT-B2026-10-25 10:45 UTCON, WORK-BOARD and this grant entry may
+- Narrow central-record exception: CURRENT-BATON, WORK-BOARD and this grant entry may
   record producer evidence and pending dependencies. SETUP-VEDANT receives an incoming
-  consumer handoff. No coordinator takeover, new baton ID or Vedant ACK is granted.
+  consumer handoff. No coordinator takeover, new baton ID or Vedant ACK is granted
+  by this entry alone (consumer ACK is AUTH-C0-CONSUMER-001).
 - Earlier implementation/install approvals are scoped to Gita's direct coding request,
   locked dependencies, Node 24/SQLite 12.10.1 test and requested XRPL.js stable update.
 - Excludes new native transactions, deployment, force-push, unrelated work, new installs
@@ -105,3 +108,22 @@ approvals or treat a proposal, preselected choice, silence or agent claim as con
 
 This later direct grant supersedes the initial setup-only absence of delivery authority
 for this exact checkpoint. It does not create standing release or installation authority.
+
+## AUTH-C0-CONSUMER-001
+
+- Status: APPROVED for C0-REP-1 consumer acceptance and B-0002 allocation.
+- Approver: Vedant (tech lead / coordinator), 2026-10-25 11:07 UTC.
+- Source: Vedant pulled Gita's `08397b5` handoff; instructed Cursor to verify and record baton ACK.
+- Reproduced: `pnpm build` PASS, `pnpm typecheck` PASS, `pnpm test` 128 PASS / 6 todo,
+  `node --test fixtures/xrpl-poc-replay/{replay,native-helpers}.test.mjs` 37 PASS.
+- Accepted: C0-REP-1 fixtures/schemas/registry/evidence/compatibility/Gita routes for
+  first integration in **`SIMULATED_LOAN`**. SDK pin xrpl **5.3.0**, Node **24.21.0**.
+- Allocated: **B-0002** — Vedant authorization, XRPL adapter, API bootstrap injection,
+  receipts/UI against Gita exports. Preserve reserve-before-ALLOW and stake-before-LoanSet.
+- Allowed paths for this ACK record: `docs/agent/CURRENT-BATON.md`, `WORK-BOARD.md`,
+  `AUTHORIZATIONS.md`, `docs/agent/work/SETUP-VEDANT.md`, and a GitHub PR comment/PR for
+  the claim channel.
+- Excludes: editing Gita package sources, LIVE_DEVNET submission, deployment, force-push.
+- Does not mark LIVE_DEVNET ready until `fixtures/network-signing-contract.json` is filled
+  and separately accepted.
+- Stop: acceptance on baton; Vedant proceeds with B-0002 implementation in his scopes.

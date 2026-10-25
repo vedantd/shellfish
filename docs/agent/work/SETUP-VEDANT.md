@@ -1,13 +1,25 @@
 # Vedant work record
 
+## C0-REP-1 consumer ACK and B-0002 claim
+
+- Recorded: 2026-10-25 11:07 UTC. Ledger: AUTH-C0-CONSUMER-001. Parent: B-0001 → **B-0002**.
+- State: **ACTIVE** on B-0002. Gita remains PAUSED on producer lane.
+- Accepted base: `08397b5449a6f2853e8d5da921ae29034353e4d2`.
+- Contract: C0-REP-1 / REP-CURVE-v0.2. First mode: **SIMULATED_LOAN**.
+- Checks reproduced locally (Node 24.21.0): build PASS, typecheck PASS, 128 tests PASS /
+  6 todo, 37 fixture tests PASS.
+- Claim: Vedant owns authorization, XRPL, remaining API (inject backend), web, named tests.
+  Do not edit Gita schemas/registry/evidence/compatibility/fixtures/gita routes except via request.
+- Stop for B-0002 first checkpoint: simulated authorize → reserve → originate consume →
+  receipt/status path without inventing native hashes.
+
 ## Incoming Gita producer handoff
 
 - Updated at Gita's explicit request on 2026-10-25 10:45 UTC. Coordinator remains Vedant.
-- Consumer integration is READY. Gita's producer implementation is locally verified and
-  she is PAUSED after delivery. This notice does not invent a coding claim or consumer ACK.
+- Consumer ACK completed under AUTH-C0-CONSUMER-001 (see above). Historical notice below
+  remains for provenance.
 - Read the current checkpoint in SETUP-GITA.md and packages/registry/README.md first.
-- Contract: C0-REP-1 / REP-CURVE-v0.2. Base 64d31b1 plus the producer commit containing
-  this record. Accept the exact delivered interfaces in the established claim channel.
+- Contract: C0-REP-1 / REP-CURVE-v0.2. Delivery base `08397b5`.
 
 ### Required next actions
 
@@ -112,7 +124,8 @@ authorization or registry checks. No synthetic native hash or inferred settlemen
   REP redemption before controlled LoanSet; no AMM/consensus.
 - Lane remains READY and unclaimed for coding.
 
-**Next action:** After Gita publishes C0 fixtures (including REP fields), publish the
-network/signing contract and accept the shared example in a GitHub PR comment. Begin
-only a separately claimed bounded slice. Stop at the first consumer-accepted checkpoint
-before expanding scope.
+**Next action (B-0002):** Inject `openFixtureCreditBackend` into API; implement
+`authorizeExactAction` (reserve once before ALLOW); controlled LoanSet path consuming
+reservation with stake proof; wire receipts/UI; keep `SIMULATED_LOAN` honest. Fill
+`network-signing-contract.json` only when selecting LIVE_DEVNET. Stop at first connected
+simulation checkpoint.
