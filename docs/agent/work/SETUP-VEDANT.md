@@ -56,6 +56,14 @@ patch/base identity, checks, remaining gaps and Gita's exact accounting action.
 Time-box the native spike. Use labeled simulation if blocked without weakening the
 authorization or registry checks. No synthetic native hash or inferred settlement.
 
-**Next action:** After Gita publishes C0 fixtures, publish the network/signing contract
-and accept the shared example in a GitHub PR comment. Begin only a separately claimed
-bounded slice. Stop at the first consumer-accepted checkpoint before expanding scope.
+## REP-CURVE engineering accept
+
+- Recorded: 2026-10-25 03:35 UTC under AUTH-REP-ENG-001.
+- Accepted REP-CURVE-v0.2 for C0 design: reserve facility+REP before ALLOW; validated
+  REP redemption before controlled LoanSet; no AMM/consensus.
+- Lane remains READY and unclaimed for coding.
+
+**Next action:** After Gita publishes C0 fixtures (including REP fields), publish the
+network/signing contract and accept the shared example in a GitHub PR comment. Begin
+only a separately claimed bounded slice. Stop at the first consumer-accepted checkpoint
+before expanding scope.

@@ -7,6 +7,7 @@ Maintainer: acknowledged coordinator **Vedant** (B-0001).
 | --- | --- | --- | --- |
 | AUTH-SETUP-001 | Gita, direct Codex request on 24 October 2026 New York time | APPROVED | Local two-party baton documentation setup only |
 | AUTH-ALIGN-001 | Vedant, PRD alignment + setup-r1 ACK on 25 October 2026 | APPROVED | Docs reconcile + coordinator ACK; no product code |
+| AUTH-REP-ENG-001 | Vedant, engineering accept of REP-CURVE-v0.2 | APPROVED | C0 design acceptance only; not implementation |
 | Product implementation | No implementation grant issued | NOT GRANTED | Future bounded coding request and acknowledged work claim |
 | Dependency installation | Ask Gita first | NOT GRANTED | No install from this alignment pass |
 | Commit/push/publication/deployment | No grant in this task | NOT GRANTED | Keep each action separate; push only if Vedant asks |
@@ -62,7 +63,22 @@ approvals or treat a proposal, preselected choice, silence or agent claim as con
   notice and approval entry. It does not transfer coordinator ownership.
 - Excludes product implementation, schema/fixture changes, installs, native transactions,
   database writes, commits, pushes and deployment.
-- Engineering acceptance: Vedant still accepts the C0 contracts and allocates claims.
-  Product math approval and engineering acceptance are separate facts.
+- Engineering acceptance: completed separately as AUTH-REP-ENG-001 (C0 design only).
+  Product math approval and engineering acceptance remain separate facts.
 - Nick attribution: approval reported by Gita. No direct Nick message or signature invented.
 - Stop: verified local files and durable baton notice. No remote delivery is implied.
+
+## AUTH-REP-ENG-001
+
+- Status: APPROVED for C0 engineering acceptance of REP-CURVE-v0.2.
+- Approver: Vedant (tech lead / coordinator), 2026-10-25 03:35 UTC.
+- Source: Vedant reviewed `mathematical-model.md` and `docs/decisions/REP-CURVE-v0.2.md`
+  after Gita's `cf601b4` pull; instructed Cursor to record acceptance.
+- Meaning: C0 contracts and future implementation **will follow** REP-CURVE-v0.2.
+  Reserve facility + REP before ALLOW; validated REP redemption before LoanSet signature;
+  no AMM or consensus work.
+- Allowed paths: `docs/agent/CURRENT-BATON.md`, `docs/agent/WORK-BOARD.md`,
+  `docs/agent/AUTHORIZATIONS.md`, `docs/decisions/REP-CURVE-v0.2.md`,
+  `docs/agent/work/SETUP-VEDANT.md`, and a GitHub PR for attributable claim-channel notice.
+- Excludes: product package/fixture implementation, dependency install, Devnet, deployment.
+- Stop: acceptance recorded; Gita still publishes C0 fixtures including REP fields.

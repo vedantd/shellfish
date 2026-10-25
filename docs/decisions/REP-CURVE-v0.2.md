@@ -6,7 +6,9 @@
 - Recorded: 2026-10-25 03:09 UTC, 2026-10-24 23:09 New York.
 - Canonical model: [mathematical-model.md](../../mathematical-model.md).
 - Related coordination: [B-0001](../agent/CURRENT-BATON.md).
-- Engineering acceptance: C0 contract acceptance and implementation claims remain with Vedant and the two named lane owners.
+- Engineering acceptance: **ACCEPTED for C0 design** by Vedant 2026-10-25 03:35 UTC
+  ([AUTH-REP-ENG-001](../agent/AUTHORIZATIONS.md#auth-rep-eng-001), [B-0001](../agent/CURRENT-BATON.md)).
+  Implementation claims and lane coding remain unclaimed until fixtures are accepted.
 - Implementation status: not implemented by this documentation change.
 
 ## Decision

@@ -10,7 +10,7 @@
 
 | Gate | Observable outcome | Status and evidence |
 | --- | --- | --- |
-| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | **IN PROGRESS** — coordinator ACK done; fixture AssetRef + observation period still open |
+| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | **IN PROGRESS** — REP-CURVE-v0.2 engineering-accepted; fixture AssetRef + REP fields still open |
 | C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | NOT STARTED, fixtures exist, handlers are TODO |
 | C2 | Authorization reserves once and only then permits a required signature | NOT STARTED, registry/auth core are stubs |
 | C3 | Verified execution changes accounting once, timeout retains reservation | NOT STARTED, no runtime evidence |
@@ -62,6 +62,9 @@ flowchart TD
   Origination **consumes** the existing reservation without reserving again.
 - Claim channel: GitHub PR comments. Clone mode: separate.
 - Schemas sole writer: Gita; Vedant accepts before freeze.
+- **REP-CURVE-v0.2** is the C0 reputation-bond policy (Nick/Gita product math; Vedant
+  engineering accept 2026-10-25). Stake = C(E+P)−C(E). Facility + REP reserved before ALLOW.
+  Validated REP redemption before controlled LoanSet. No AMM / consensus change.
 
 ### Still open — must land in the first accepted fixture/schema (Gita publishes)
 
@@ -70,6 +73,8 @@ flowchart TD
   string `"RLUSD"` — FAIL until unified.
 - **Observation period:** add evidence observation dates or history months so Lender B’s
   ≥12-month rule is computable. Today history is counts only — FAIL until fixed.
+- **REP fields:** `model_version`, principal REP spend consent, stake proof / redemption ref,
+  pending return credits, suspension / forfeit outcome states.
 - Exact retry returns the existing result. Changed payload under the same key fails.
   A new request with a consumed authorization nonce fails. One loan per demo mandate.
 - Bind firm principal, nominal annual rate, fees and the actual payment schedule.
