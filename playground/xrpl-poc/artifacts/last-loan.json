@@ -1,0 +1,23 @@
+{
+  "network": "wss://s.devnet.rippletest.net:51233",
+  "submittedAt": "2026-10-25T04:35:33.235Z",
+  "transactionResult": "tesSUCCESS",
+  "txHash": "7FD5B99815BBED7C2CE56D3049CC0A9D90BB00E0FC062F2A7E7608533730BBEF",
+  "ledgerIndex": 6396437,
+  "loanID": "A69A5FB167C0A5E41BC4ED0DB6943423217983532C0E244BC7C287A17F136C85",
+  "loanBrokerID": "81FB7569085294F0627F3DE7C6B8BED683CC7B2F5D77FDDBC0890BF13F65586A",
+  "vaultID": "9E138219241123ACEBB166C5493D48B3899AC1610B5F09694C13DE879BDEFCF4",
+  "mptID": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB",
+  "brokerAddress": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+  "borrowerAddress": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+  "terms": {
+    "principal": "1000",
+    "interestRateTenthsBps": 5500,
+    "paymentTotal": 1,
+    "paymentIntervalSec": 2592000,
+    "gracePeriodSec": 604800,
+    "loanOriginationFee": "100",
+    "loanServiceFee": "10"
+  },
+  "explorerHint": "https://devnet.xrpl.org/transactions/7FD5B99815BBED7C2CE56D3049CC0A9D90BB00E0FC062F2A7E7608533730BBEF"
+}
