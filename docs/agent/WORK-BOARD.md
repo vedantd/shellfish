@@ -1,27 +1,27 @@
 # Shellfish work board
 
 - Revision: setup-r1 adopted. Coordinator: **Vedant** (B-0001 accepted; **B-0002** ACTIVE).
-- Current objective: [B-0002](CURRENT-BATON.md) — PR #5 merged; AUTH-DEVNET-001 approved; next = LIVE smoke.
+- Current objective: [B-0002](CURRENT-BATON.md). UI starts on the durable joined API/OpenAPI contract. Complete native product integration in parallel.
 - Accepted claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
-- Gita producer PAUSED. Vedant consumer ACK 2026-10-25 11:07 UTC; LIVE wiring recorded 11:47 UTC.
-- Accepted C0 base: `08397b5449a6f2853e8d5da921ae29034353e4d2`.
+- Gita resumed and delivered `9fad690`. Her repair is REVIEW. Vedant retains coordination and API/execution/UI ownership.
+- Accepted C0 base: `08397b5449a6f2853e8d5da921ae29034353e4d2`. Current verified application: `9fad690`.
 
 ## Feature gates
 
 | Gate | Observable outcome | Status and evidence |
 | --- | --- | --- |
 | C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | **ACCEPTED** C0-REP-1. Fixture `native_ready` still false (schema) |
-| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | Producer + fixtures ACCEPTED. Connected UI: Screen C sim + LIVE branch on PR #5 |
-| C2 | Authorization reserves once and only then permits a required signature | **PASS** sim + LIVE product path (stake before LoanSet); PR #4/#5 |
-| C3 | Verified execution changes accounting once, timeout retains reservation | Registry + Gita native fixture PASS. Product LIVE applyEvent wired; Devnet smoke SKIP |
-| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | Producer checks PASS. Product denial/replay suite + live smoke still open |
+| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | Producer and HTTP checks PASS. Screen C connected. Screens A/B static TODOs, ready for API integration |
+| C2 | Authorization reserves once and only then permits a required signature | Simulation and exact bindings PASS at `9fad690`. Native signer/authentication acceptance remains open |
+| C3 | Verified execution changes accounting once, timeout retains reservation | Producer accounting PASS. Product execution persistence, authenticated verification and native smoke remain open |
+| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | 20 source conformance cases and HTTP smoke PASS. Six security TODOs, restart/recovery and full rehearsal remain open |
 
 ## Queued work and claims
 
 | Lane | Owner | First bounded outcome | Depends on | Record | State |
 | --- | --- | --- | --- | --- | --- |
-| Credit and registry | Gita | Shared fixtures, lender/match outputs and reserve/retry proof | C0 examples | [Gita work](work/SETUP-GITA.md) | PAUSED — producer delivered; C0 consumer ACK done |
+| Credit and registry | Gita | Delivered repair, SQLite UI state, joined request view and OpenAPI. Next: matching native source records | Current API contracts, selected native configuration | [Gita work](work/SETUP-GITA.md) | REVIEW for verified UI backend delivery. Native source preparation READY after selection |
 | Authorization and execution | Vedant | SIM then LIVE product path on Gita exports | C0-REP-1 accepted | [Vedant work](work/SETUP-VEDANT.md) | **ACTIVE B-0002** — SIM PASS; LIVE wiring PASS; Devnet grant APPROVED; smoke NOT RUN |
 | Policy examples | Nick | Two exact rules and expected results | Final PRD | Non-coding input to Gita | READY |
 | Adversarial examples | Shell | Six bounded negative cases | Final PRD and agreed signing route | Non-coding input to both | READY |
@@ -34,18 +34,62 @@ No timeout-based takeover exists.
 
 ```mermaid
 flowchart TD
-  C[Shared contract C0] --> G[Gita evidence and lender adapters]
-  G --> M[Gita offer matching]
-  C --> R[Gita atomic registry]
-  C --> V[Vedant network and transaction preparation]
-  M --> A[Vedant exact authorization]
-  V --> A
-  R --> A
-  A --> S[Reserve then ALLOW then controlled signing]
-  S --> X[Vedant persist submit and verify]
-  X --> E[Gita apply outcome once]
-  E --> U[Vedant receipt and UI]
+  A[Verified backend plus durable UI state and OpenAPI] --> U[UI A and B can start now]
+  A --> C[UI C status and denial integration]
+  A --> R[SQLite restart and refresh checks PASS]
+  A --> N[Vedant selects coherent native identifiers and terms]
+  N --> S[Gita native sources and additive configuration proposal]
+  S --> I[Vedant injects native evidence and approved offers]
+  A --> X[Vedant wires execution stores and authentic ledger verification]
+  X --> P[Vedant issuer-return worker]
+  I --> L[Connected native smoke and lifecycle checks]
+  X --> L
+  P --> L
+  U --> D[C4 connected demo and rehearsal]
+  C --> D
+  R --> D
+  L --> D
 ```
+
+## UI can start now
+
+Read the shared contract from `GET /openapi.json` or `services/api/src/openapi.json`. The 16 operations and 44 schemas cover every registered route. `docs/API.md` explains units, modes, request identity and the read flow. Devnet is the native integration target. Local HTTP fixtures validate API recovery without submitting ledger transactions.
+
+| Screen or control | Existing backend call | UI rule |
+| API contract | `GET /openapi.json` | Single served OpenAPI 3.1 document, generated from current shared schemas |
+| Joined credit view | `GET /v1/requests/:id` | Persisted lender decision, approved offer, loan, REP state, receipt, native recorded references and safe attempts |
+| --- | --- | --- |
+| Principal mandate | `POST /v1/mandates` | Demo mandate validation. No claim of native signature authentication |
+| Evidence | `GET /v1/evidence/business:harbor-supply-demo` | Display returned coverage, observation dates and exposure |
+| Lender decisions | `POST /v1/lenders/lender-A/evaluate`, then lender-B, with `{subject_id}` | Same evidence yields A approval and B decline |
+| Compatible offer | `POST /v1/offers/match` with `{mandate,offers,evidence?}` | Use the firm returned offer without editing its terms |
+| REP and facility state | `GET /v1/facilities/facility-A-001/credit-status` | Display actual REP buckets, asset and scale |
+| Curve preview | `POST /v1/facilities/facility-A-001/quote` with `{principal_minor,max_stake_u?}` | Quote is informational. It grants no authorization |
+| Borrow action | `POST /v1/authorizations`, then `/v1/loans/originate` | Keep request/reservation/proposal identity from the ALLOW receipt |
+| Loan and receipt | `GET /v1/loans/:id`, `GET /v1/receipts/:id` | Show pending, denied and simulated state. Native hashes stay null in simulation |
+| Mode | `GET /v1/network` | `live_ready` reports handles/configuration, not ledger proof |
+
+Screen B currently hard-codes exposure 3,000. Opening fixture exposure is 1,000.
+Read it from the API. Show the actual demo USD asset, not an implied RLUSD identity.
+The current UI should use the fixed approved example. Editable commercial terms need
+a newly issued firm offer and matching commitments through the existing backend path.
+
+## Backend closure order
+
+These are next-work targets, not completed claims or new baton IDs. Estimates are
+engineering budgets, not ledger timing promises.
+
+| Priority | Owner and scope | Bounded outcome and check | Budget |
+| --- | --- | --- | --- |
+| Now | Vedant UI scope, separate claimed UI slice | Wire A/B to existing APIs and C to status/denials. Read mode/asset/exposure from responses | 60 to 90 minutes |
+| Complete | Gita DB helper and user-authorized API context/routes | SQLite receipts and offers persist. Atomic reservation/offer/receipt storage. HTTP restart/origination/exact retry PASS | Delivered in this checkpoint |
+| P0 | Vedant native selection, Gita source/schema scope | Select coherent accounts/asset/scale/terms, produce matching native evidence and approved offer, inject nonempty services. Preflight rejects mismatches | 45 to 90 minutes after values are selected |
+| P0 | Vedant XRPL/worker scope | Consume existing execution store: fence worker, freeze finalized fields, persist signed attempt before submit, reconcile exact saved attempt. Timeout retains holds | 90 to 150 minutes |
+| P0 | Vedant verification scope | Replace structural-only checks with trusted ledger-backed portfolio/event/failure verification and required native mandate authentication. Reject altered or incomplete evidence | 60 to 120 minutes |
+| P0 | Vedant issuer worker, Gita existing return store | Consume owed credit through persisted exact issuer Payment. Unknown outcome stays owed. Validated return makes REP available once | 60 to 90 minutes |
+| Final | Both engineers, Shell QA and Nick policy review | Connected smoke, denials/replay/race/timeout, restart, honest mode and clean-start rehearsal. Record native default/return proof separately | 45 to 60 minutes plus native setup/timing |
+
+Receipt/offer Maps have been replaced with SQLite. The joined endpoint reads requests, loans and recorded event hashes from that same database. Native evidence/approved-offer inputs are still empty in `live-backend.ts`. They need matching source records, not invented approvals from hashes. Existing real Devnet fixture proof remains available in `fixtures/xrpl-poc-replay`.
 
 ## Four handoff contracts
 
@@ -90,9 +134,7 @@ flowchart TD
 - Literal `sig-demo-*` strings are fixtures, not cryptographic verification evidence.
 
 C0-REP-1 producer package was accepted by Vedant (AUTH-C0-CONSUMER-001) after reproduce.
-LIVE product wiring is on PR #5. Remaining: Devnet execution grant + smoke, fixture
-`native_ready` (needs schema allocation), execution/return fencing, C4 product checks —
-not a re-open of the accepted fixture/schema package.
+LIVE product wiring is on PR #5 and binding repairs are on `9fad690`. AUTH-DEVNET-001 is approved. Remaining gates are durable app state, native source/configuration acceptance, execution/return integration, authenticated verification, smoke and C4 checks. C0 remains accepted.
 
 ## Proposed 12 hour order
 
@@ -123,9 +165,13 @@ Deferred: full repayment UX, extra dashboards/lenders, policy language parser, r
 institution APIs, calibrated scores, production custody and secondary debt markets.
 Record unfinished gates here at each checkpoint. Deferred is not COMPLETE.
 
-## Producer handoff at Gita's request
+## Historical producer handoff at Gita's request
 
 Recorded 2026-10-25 10:45 UTC. 128 repository tests PASS / six existing TODOs, 37 separate fixtures PASS.
 Gita is paused after commit/push of her verified slice. Vedant's exact dependencies and
 checks are in SETUP-VEDANT.md. No consumer ACK or full C0-C4 completion is invented.
 Native default and fresh native execution of the shared return queue remain NOT RUN.
+
+## Current delivery evidence
+
+Updated 2026-10-25 08:30 America/New_York (12:30 UTC) at Gita's direct request. Code `9fad690` is pushed and clean. Build/typecheck PASS, 154 repository tests PASS with six existing TODOs, 20 conformance cases PASS, 26 checker/preflight tests PASS and 37 existing native fixture tests PASS. HTTP simulation smoke PASS. No new native execution is claimed. See CURRENT-BATON for exact next actions.

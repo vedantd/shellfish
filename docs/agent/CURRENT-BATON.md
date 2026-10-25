@@ -1,15 +1,15 @@
 # Current Shellfish baton
 
 - Label / ID: **B-0002** (Vedant consumer integration). Parent C0: **B-0001** ACCEPTED.
-- State: **ACTIVE** — SIMULATED_LOAN **PASS**; LIVE product wiring **PASS** (PR #5 merged); Devnet execution **APPROVED** (AUTH-DEVNET-001); LIVE smoke **not run yet**.
+- State: **ACTIVE**. Binding repair and durable UI backend PASS. UI reads the joined SQLite view and OpenAPI contract now. Devnet remains the native integration target. Connected product Devnet smoke remains NOT RUN.
 - Coordinator: **Vedant, acknowledged** 2026-10-25 00:41 UTC.
 - Objective owner: coordinator (Vedant). Sponsor: Gita.
-- Updated: 2026-10-25 11:54 UTC (AUTH-DEVNET-001: stateful Devnet execution APPROVED).
+- Updated: 2026-10-25 08:30 America/New_York (12:30 UTC), at Gita's direct central-baton update request.
 - Profile: setup-r1 adopted. Claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
-- Repository: Shellfish. Branch for this slice: `feat/b0002-live-devnet` → [PR #5](https://github.com/vedantd/shellfish/pull/5).
+- Repository: Shellfish. Current branch: `main`, previous binding delivery **`9fad69052124011b47f4f60aded67e99ae18cbda`**, plus the UI persistence/API delivery containing this record. PRs #4, #5 and #6 are merged.
 - Accepted C0 base: **`08397b5449a6f2853e8d5da921ae29034353e4d2`** (Gita producer handoff).
-- Delivery: Gita PAUSED (AUTH-GITA-HANDOFF-001). Vedant ACK: AUTH-C0-CONSUMER-001. LIVE wiring under B-0002 product claim.
+- Delivery: Gita resumed by direct request and delivered the binding repair at `9fad690`. Her lane is REVIEW for the next consumer handoff. Vedant remains coordinator and B-0002 execution/UI owner. Authority for this record sync: AUTH-GITA-CENTRAL-SYNC-002.
 
 ## Incoming approved model decision
 
@@ -55,9 +55,30 @@ Simulation: [rep-exposure-curve.html](../simulations/rep-exposure-curve.html).
 
 ## Next bounded outcome
 
-**B-0002 follow-up:** fill env from playground/Gita native artifacts, run LIVE smoke under
-AUTH-DEVNET-001, record PASS/FAIL; flip fixture `native_ready` only after schema allocation + smoke PASS.
-Deferred in parallel: execution-store fencing, return-store issuer Payment, six security TODOs.
+Backend UI state is implemented. The same SQLite database now stores checked offers,
+receipts and their audit history beside credit requests, loans and ledger event references.
+Authorization reservation, offer and receipt storage commit in one SQL transaction.
+Restart tests prove existing requests can originate and retry without reauthorization.
+
+The frontend contract is `services/api/src/openapi.json`, served by `GET /openapi.json`.
+It covers all 16 HTTP operations and 44 schemas. `GET /v1/requests/:id` joins the receipt,
+approved offer/lender decision, current loan/REP state, recorded transaction references
+and safe pending-attempt summaries. The API performs no ledger submission for this read.
+
+Devnet is the native integration target. Earlier isolated fixtures ran real Devnet
+issuance, REP redemption, LoanSet, LoanPay and restoration. These are existing proof.
+The latest HTTP/restart checks use local simulation to test app recovery without
+repeating those transactions. They do not replace native evidence.
+
+Next: UI owner wires A/B and completes C against this contract. Vedant supplies coherent
+native identifiers/terms, connects authenticated verification, durable execution and
+issuer returns, then runs the connected product smoke under AUTH-DEVNET-001.
+Native mode's credit services still need matching evidence/approved-offer input records.
+Do not infer a credit approval from a transaction hash or relabel a simulated passport.
+Gita prepares any selected native source/schema changes under her scope.
+
+The [work board](WORK-BOARD.md#ui-can-start-now) maps screens and endpoint contracts.
+Full repayment UI remains deferred. No new baton ID or coordinator takeover is recorded.
 
 ## Acceptance
 
@@ -72,15 +93,22 @@ Deferred in parallel: execution-store fencing, return-store issuer Payment, six 
 - [x] Consumer reproduced build/typecheck/128 tests + 37 fixture tests at `08397b5`.
 - [x] SIMULATED_LOAN connected authorize → reserve → originate → Screen C (PR #4).
 - [x] LIVE_DEVNET product wiring: dual-sign + stake-before-sign + API/UI (PR #5; mocked ledger tests).
-- [ ] LIVE_DEVNET identifiers committed in network-signing-contract (`native_ready: true`).
+- [x] Binding repair `9fad690`: all 20 conformance cases PASS, including 12 previously failing mutations.
+- [x] HTTP simulation: ALLOW, altered-term rejection, origination, receipt and exact retry PASS.
+- [x] SQLite receipt and approved-offer state survive API restart. Reservation/offer/receipt commit together.
+- [x] Joined request/credit/transaction endpoint and OpenAPI contract implemented.
+- [ ] Screens A/B consume the APIs and C consumes the joined state. UI ownership remains with Vedant.
+- [ ] Native evidence and approved-offer services are populated with matching source records.
+- [ ] LIVE_DEVNET identifiers and accepted native configuration recorded in the schema successor. Native proof controls readiness.
 - [ ] Stateful Devnet smoke PASS (execution grant + real hashes on Devnet).
 - [ ] Full connected demo polish (C4 denials/replay/race/timeout on product path).
 
 ## Scope
 
 Use the [profile's exact allocation](PROJECT-PROFILE.md#exclusive-file-scopes-after-acknowledged-claims).
-Lane records: [Gita](work/SETUP-GITA.md) PAUSED after delivery,
-[Vedant](work/SETUP-VEDANT.md) ACTIVE for B-0002 (SIM PASS; LIVE wiring on PR #5).
+Lane records: [Gita](work/SETUP-GITA.md) REVIEW after the verified repair, with SQLite persistence delivered
+and selected native source preparation queued in her existing scope. [Vedant](work/SETUP-VEDANT.md) remains ACTIVE on execution/API/UI. Future work uses acknowledged disjoint claims.
+
 
 ## Fixed product boundaries
 
@@ -116,9 +144,44 @@ the first 12-hour slice.
 | Stateful Devnet smoke | NOT RUN | Grant present; env + submit still pending |
 | Native default / return-queue native | NOT RUN | As recorded by Gita |
 
+### Current verified repair and UI baseline
+
+Application code: `9fad690`. The following commands ran against that checkout on Node 24.21.0.
+
+| Check | Result | Scope |
+| --- | --- | --- |
+| Workspace build and typecheck | PASS | Combined workspace |
+| Repository tests | PASS | 154 passed, six existing TODOs |
+| Source conformance | PASS | 20 cases, including the previous 12 binding failures |
+| Checker and native preflight tests | PASS | 26 passed, no TODOs |
+| Existing native fixture tests | PASS | 37 passed. No new ledger execution |
+| HTTP simulation smoke | PASS | ALLOW, altered 360-day rejection without state change, originate, receipt and exact retry |
+| Connected native lifecycle | NOT RUN | Product smoke, native default and fresh migrated return queue remain open |
+
+The earlier 128/140-test tables are historical checkpoint evidence. They do not replace
+the current result or establish native execution. No dependency versions changed.
+
+### Durable UI backend evidence
+
+- SQLite helper: 12 behavioral checks PASS. Request/transaction view: 10 checks PASS.
+- Actual HTTP process restart test: PASS across two restarts, including saved ALLOW,
+  origination without reauthorization, current balances, receipt and exact retry.
+- OpenAPI: 12 checks PASS, all 16 registered routes present, 44 schemas, examples and
+  current source-schema hashes checked. Generation reproduces the served JSON exactly.
+- Full workspace and existing regression checks run again on the combined delivery.
+  No native submission is part of this checkpoint.
+
 ## Exact next action
 
-Vedant: fill local env from playground / Gita native E2E public IDs + seeds (never commit),
-run `NETWORK_MODE=LIVE_DEVNET` smoke under AUTH-DEVNET-001, record PASS/FAIL/SKIP with
-revision. Gita stays paused unless schema allocation is needed to flip
-`network-signing-contract.json`. Do not invent live hashes.
+UI owner opens `GET /openapi.json` or `docs/API.md`, then uses `GET /v1/requests/:id`
+for the credit/loan/receipt/transaction screen. Wire borrower and lender views to the
+existing evidence/evaluate/match/status/quote endpoints. Backend SQLite/lookup code is ready.
+
+Vedant completes authenticated native verification, persisted execution and returns,
+selects coherent native configuration and runs the granted product smoke. Gita supplies
+matching native source/schema records after those values are selected. Native default
+and a fresh migrated return-queue native run remain separate unrun acceptance checks.
+
+AUTH-DEVNET-001 remains Vedant's bounded execution grant. A hash or public runtime
+`live_ready` value is not a lender approval or a newly authenticated ledger outcome.
+Preserve request identity for retries and the one-use mandate boundary.

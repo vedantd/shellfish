@@ -1,0 +1,4359 @@
+{
+  "openapi": "3.1.0",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "Shellfish Agentic Credit API",
+    "version": "0.2.0",
+    "description": "Frontend source of truth for the current hackathon HTTP API. Schemas mirror the shared C0-REP-1 / REP-CURVE-v0.2 models. Amounts use exact strings and explicit scales. Examples are synthetic C0 fixtures, not native ledger receipts. LIVE_DEVNET and SIMULATED_LOAN remain explicit. An ALLOW is not settlement, an informational quote is not permission, and a configured ledger handle is not native proof. No HTTP authentication scheme is declared by this demo contract."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:3001",
+      "description": "Local API. Configure VITE_API_BASE_URL for the frontend."
+    }
+  ],
+  "tags": [
+    {
+      "name": "runtime"
+    },
+    {
+      "name": "borrower"
+    },
+    {
+      "name": "credit"
+    },
+    {
+      "name": "execution"
+    },
+    {
+      "name": "demo"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Read API process health",
+        "description": "Process health and configured mode. This response does not establish ledger readiness.",
+        "responses": {
+          "200": {
+            "description": "API process responds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "getOpenApi",
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Read this OpenAPI contract",
+        "description": "The same checked-in document is served by the API. It describes the current frontend contract.",
+        "responses": {
+          "200": {
+            "description": "OpenAPI 3.1 document.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "openapi",
+                    "info",
+                    "paths"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/network": {
+      "get": {
+        "operationId": "getNetwork",
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Read execution mode and public signing identifiers",
+        "description": "Public fields only. live_ready indicates configured handles, not a validated loan. Never contains wallet seeds.",
+        "responses": {
+          "200": {
+            "description": "Configured execution mode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkInfo"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Credit backend is not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/mandates": {
+      "post": {
+        "operationId": "validateMandate",
+        "tags": [
+          "borrower"
+        ],
+        "summary": "Validate a borrower mandate",
+        "description": "Omitted mandate uses the current demo/default material. This route validates the current kernel input. It does not by itself reserve credit or issue a signature.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MandateRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "summary": "Synthetic C0 mandate",
+                  "value": {
+                    "mandate": {
+                      "mandate_id": "m-001",
+                      "principal_id": "business:harbor-supply-demo",
+                      "agent_id": "agent:procurement-01",
+                      "xrpl_borrower": "sim:borrower-harbor-supply",
+                      "asset": {
+                        "currency": "USD",
+                        "issuer": "sim:usd-issuer"
+                      },
+                      "max_principal": "2500.00",
+                      "max_apr_bps": 600,
+                      "max_total_fees": "30.00",
+                      "max_term_days": 90,
+                      "allowed_purposes": [
+                        "working_capital"
+                      ],
+                      "allowed_lenders": [
+                        "lender-A"
+                      ],
+                      "expires_at": "2026-10-24T23:00:00Z",
+                      "nonce": "unique-mandate-01",
+                      "policy_version": "borrower-v1",
+                      "principal_signature": "sig-simulated-principal",
+                      "contract_version": "C0-REP-1",
+                      "model_version": "REP-CURVE-v0.2",
+                      "network": "devnet",
+                      "mode": "SIMULATED_LOAN",
+                      "rep_consent": {
+                        "authorized": true,
+                        "model_version": "REP-CURVE-v0.2",
+                        "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+                        "rep_asset": {
+                          "mpt_issuance_id": "sim:rep-issuance",
+                          "issuer": "sim:rep-issuer",
+                          "asset_scale": 6
+                        },
+                        "max_stake_u": "760000000"
+                      },
+                      "mandate_hash": "sha256:b4544175829342a73b9bf669989aa374845b5857f128ee938af55fe6fa96e47f"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mandate input accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MandateResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid mandate or signature input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native or credit backend not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/evidence/{id}": {
+      "get": {
+        "operationId": "getEvidence",
+        "tags": [
+          "credit"
+        ],
+        "summary": "Read an evidence passport",
+        "description": "Evidence is a versioned source attestation. Registry balances are read separately. Native mode needs a loaded native-bound source.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Principal subject ID, for example business:harbor-supply-demo.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evidence passport.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidencePassport"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "subject_id": "business:harbor-supply-demo",
+                      "issuer_id": "demo-attestor",
+                      "issued_at": "2026-10-24T18:00:00Z",
+                      "expires_at": "2026-10-25T18:00:00Z",
+                      "evidence_version": "ev-c0-rep-1",
+                      "signature": "sig-simulated-attestor",
+                      "history": {
+                        "on_time": 8,
+                        "late": 1,
+                        "default": 0,
+                        "observation_start": "2026-04-24T18:00:00Z",
+                        "observation_end": "2026-10-24T18:00:00Z",
+                        "accepted_history_months": 6
+                      },
+                      "known_exposure": {
+                        "asset": {
+                          "currency": "USD",
+                          "issuer": "sim:usd-issuer"
+                        },
+                        "amount": "1000.00",
+                        "coverage": "participating_sources_only",
+                        "as_of": "2026-10-24T18:00:00Z"
+                      },
+                      "optional_tier": "A_DEMO",
+                      "evidence_hash": "sha256:c05926db4e1022e572dddb2d5096aa06268ca18e83471df02821f180b3e8dc60",
+                      "contract_version": "C0-REP-1",
+                      "model_version": "REP-CURVE-v0.2",
+                      "network": "devnet",
+                      "mode": "SIMULATED_LOAN"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Source mode or contract mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Subject or evidence not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Evidence source not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/lenders/{id}/evaluate": {
+      "post": {
+        "operationId": "evaluateLender",
+        "tags": [
+          "credit"
+        ],
+        "summary": "Evaluate one lender against evidence",
+        "description": "Supply either subject_id for a loaded passport or evidence. The lender retains underwriting authority. Same C0 evidence gives lender-A approval and lender-B decline.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Lender ID, for example lender-A or lender-B.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LenderEvaluationRequest"
+              },
+              "examples": {
+                "subject": {
+                  "value": {
+                    "subject_id": "business:harbor-supply-demo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lender approval or decline. A decline is a successful business response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LenderEvaluateResult"
+                },
+                "examples": {
+                  "approve": {
+                    "value": {
+                      "decision": "APPROVE",
+                      "offer": {
+                        "lender_id": "lender-A",
+                        "borrower_id": "business:harbor-supply-demo",
+                        "facility_id": "facility-A-001",
+                        "facility_limit": "5000.00",
+                        "active_commitments": "1000.00",
+                        "reserved": "0.00",
+                        "offer_id": "offer-A-777",
+                        "asset": {
+                          "currency": "USD",
+                          "issuer": "sim:usd-issuer"
+                        },
+                        "principal": "2000.00",
+                        "apr_bps": 550,
+                        "term_days": 90,
+                        "fees": "0.00",
+                        "purpose": "working_capital",
+                        "expires_at": "2026-10-24T22:00:00Z",
+                        "underwriting_policy": "lenderA-v2",
+                        "approval_ref": "uw-A-349",
+                        "lender_signature": "sig-simulated-lender",
+                        "contract_version": "C0-REP-1",
+                        "model_version": "REP-CURVE-v0.2",
+                        "network": "devnet",
+                        "mode": "SIMULATED_LOAN",
+                        "rate_kind": "NOMINAL_ANNUAL",
+                        "schedule": {
+                          "kind": "BULLET",
+                          "payment_total": 1,
+                          "payment_interval_seconds": 7776000,
+                          "native_acceptance": "PENDING_VEDANT"
+                        },
+                        "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+                        "offer_hash": "sha256:cb57516abfe39e46c7b8a265ff96dc88980ef87af2d0f7614ab07038258a81cb"
+                      }
+                    }
+                  },
+                  "decline": {
+                    "value": {
+                      "decision": "DECLINE",
+                      "lender_id": "lender-B",
+                      "reason_codes": [
+                        "UNDERWRITING_DECLINED"
+                      ],
+                      "human_explanation": "Requires 12 months of accepted history. The synthetic evidence covers 6 months.",
+                      "evidence_version": "ev-c0-rep-1",
+                      "underwriting_policy": "lenderB-history-12m-demo-v1"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing evidence or invalid contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Subject or lender not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Credit source not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/offers/match": {
+      "post": {
+        "operationId": "matchOffers",
+        "tags": [
+          "credit"
+        ],
+        "summary": "Match firm offers to mandate limits",
+        "description": "Matching grants no permission. Preserve the returned firm offer and its commitments for authorization.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "mandate": {
+                      "mandate_id": "m-001",
+                      "principal_id": "business:harbor-supply-demo",
+                      "agent_id": "agent:procurement-01",
+                      "xrpl_borrower": "sim:borrower-harbor-supply",
+                      "asset": {
+                        "currency": "USD",
+                        "issuer": "sim:usd-issuer"
+                      },
+                      "max_principal": "2500.00",
+                      "max_apr_bps": 600,
+                      "max_total_fees": "30.00",
+                      "max_term_days": 90,
+                      "allowed_purposes": [
+                        "working_capital"
+                      ],
+                      "allowed_lenders": [
+                        "lender-A"
+                      ],
+                      "expires_at": "2026-10-24T23:00:00Z",
+                      "nonce": "unique-mandate-01",
+                      "policy_version": "borrower-v1",
+                      "principal_signature": "sig-simulated-principal",
+                      "contract_version": "C0-REP-1",
+                      "model_version": "REP-CURVE-v0.2",
+                      "network": "devnet",
+                      "mode": "SIMULATED_LOAN",
+                      "rep_consent": {
+                        "authorized": true,
+                        "model_version": "REP-CURVE-v0.2",
+                        "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+                        "rep_asset": {
+                          "mpt_issuance_id": "sim:rep-issuance",
+                          "issuer": "sim:rep-issuer",
+                          "asset_scale": 6
+                        },
+                        "max_stake_u": "760000000"
+                      },
+                      "mandate_hash": "sha256:b4544175829342a73b9bf669989aa374845b5857f128ee938af55fe6fa96e47f"
+                    },
+                    "offers": [
+                      {
+                        "lender_id": "lender-A",
+                        "borrower_id": "business:harbor-supply-demo",
+                        "facility_id": "facility-A-001",
+                        "facility_limit": "5000.00",
+                        "active_commitments": "1000.00",
+                        "reserved": "0.00",
+                        "offer_id": "offer-A-777",
+                        "asset": {
+                          "currency": "USD",
+                          "issuer": "sim:usd-issuer"
+                        },
+                        "principal": "2000.00",
+                        "apr_bps": 550,
+                        "term_days": 90,
+                        "fees": "0.00",
+                        "purpose": "working_capital",
+                        "expires_at": "2026-10-24T22:00:00Z",
+                        "underwriting_policy": "lenderA-v2",
+                        "approval_ref": "uw-A-349",
+                        "lender_signature": "sig-simulated-lender",
+                        "contract_version": "C0-REP-1",
+                        "model_version": "REP-CURVE-v0.2",
+                        "network": "devnet",
+                        "mode": "SIMULATED_LOAN",
+                        "rate_kind": "NOMINAL_ANNUAL",
+                        "schedule": {
+                          "kind": "BULLET",
+                          "payment_total": 1,
+                          "payment_interval_seconds": 7776000,
+                          "native_acceptance": "PENDING_VEDANT"
+                        },
+                        "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+                        "offer_hash": "sha256:cb57516abfe39e46c7b8a265ff96dc88980ef87af2d0f7614ab07038258a81cb"
+                      }
+                    ],
+                    "evidence": {
+                      "subject_id": "business:harbor-supply-demo",
+                      "issuer_id": "demo-attestor",
+                      "issued_at": "2026-10-24T18:00:00Z",
+                      "expires_at": "2026-10-25T18:00:00Z",
+                      "evidence_version": "ev-c0-rep-1",
+                      "signature": "sig-simulated-attestor",
+                      "history": {
+                        "on_time": 8,
+                        "late": 1,
+                        "default": 0,
+                        "observation_start": "2026-04-24T18:00:00Z",
+                        "observation_end": "2026-10-24T18:00:00Z",
+                        "accepted_history_months": 6
+                      },
+                      "known_exposure": {
+                        "asset": {
+                          "currency": "USD",
+                          "issuer": "sim:usd-issuer"
+                        },
+                        "amount": "1000.00",
+                        "coverage": "participating_sources_only",
+                        "as_of": "2026-10-24T18:00:00Z"
+                      },
+                      "optional_tier": "A_DEMO",
+                      "evidence_hash": "sha256:c05926db4e1022e572dddb2d5096aa06268ca18e83471df02821f180b3e8dc60",
+                      "contract_version": "C0-REP-1",
+                      "model_version": "REP-CURVE-v0.2",
+                      "network": "devnet",
+                      "mode": "SIMULATED_LOAN"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Compatible envelope or no overlap.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferMatchResult"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "contract_version": "C0-REP-1",
+                      "model_version": "REP-CURVE-v0.2",
+                      "network": "devnet",
+                      "mode": "SIMULATED_LOAN",
+                      "compatible": true,
+                      "matched_offers": [
+                        {
+                          "lender_id": "lender-A",
+                          "borrower_id": "business:harbor-supply-demo",
+                          "facility_id": "facility-A-001",
+                          "facility_limit": "5000.00",
+                          "active_commitments": "1000.00",
+                          "reserved": "0.00",
+                          "offer_id": "offer-A-777",
+                          "asset": {
+                            "currency": "USD",
+                            "issuer": "sim:usd-issuer"
+                          },
+                          "principal": "2000.00",
+                          "apr_bps": 550,
+                          "term_days": 90,
+                          "fees": "0.00",
+                          "purpose": "working_capital",
+                          "expires_at": "2026-10-24T22:00:00Z",
+                          "underwriting_policy": "lenderA-v2",
+                          "approval_ref": "uw-A-349",
+                          "lender_signature": "sig-simulated-lender",
+                          "contract_version": "C0-REP-1",
+                          "model_version": "REP-CURVE-v0.2",
+                          "network": "devnet",
+                          "mode": "SIMULATED_LOAN",
+                          "rate_kind": "NOMINAL_ANNUAL",
+                          "schedule": {
+                            "kind": "BULLET",
+                            "payment_total": 1,
+                            "payment_interval_seconds": 7776000,
+                            "native_acceptance": "PENDING_VEDANT"
+                          },
+                          "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+                          "offer_hash": "sha256:cb57516abfe39e46c7b8a265ff96dc88980ef87af2d0f7614ab07038258a81cb"
+                        }
+                      ],
+                      "permitted_principal": "2000.00",
+                      "permitted_apr_bps": 550,
+                      "permitted_term_days": 90,
+                      "reason_codes": [],
+                      "envelope_hash": "sha256:63b08912e9bd2245ad0b2bd3a3ec8e2b592527fa77f67d74882d2f43998273a3"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid mandate/offer, missing offers or mode mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Subject not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Credit source not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/facilities/{id}": {
+      "get": {
+        "operationId": "getFacility",
+        "tags": [
+          "credit"
+        ],
+        "summary": "Read one facility snapshot",
+        "description": "Amounts are exact monetary minor-unit strings. The facility is one lender limit, separate from REP.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Facility ID, for example facility-A-001.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Facility capacity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FacilitySnapshot"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Mode or contract mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Facility not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Registry not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/facilities/{id}/credit-status": {
+      "get": {
+        "operationId": "getCreditStatus",
+        "tags": [
+          "credit"
+        ],
+        "summary": "Read current credit and REP state",
+        "description": "One SQLite read snapshot supplies facility headroom, participating exposure and all REP buckets. A pending return credit is not available REP.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Facility ID.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current registry state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Mode or contract mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Facility not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Registry not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/facilities/{id}/quote": {
+      "post": {
+        "operationId": "quoteCredit",
+        "tags": [
+          "credit"
+        ],
+        "summary": "Preview REP bond and remaining capacity",
+        "description": "Read-only. No reservation, nonce consumption, ALLOW or signature. Final authorization recomputes against its atomic snapshot.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Facility ID.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreditQuoteRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "principal_minor": "200000",
+                    "max_stake_u": "760000000"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Informational quote, including capacity denial reasons.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditQuote"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid positive principal or contract mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Facility not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Registry not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/authorizations": {
+      "post": {
+        "operationId": "authorizeExactAction",
+        "tags": [
+          "execution"
+        ],
+        "summary": "Authorize and reserve the exact action",
+        "description": "Successful ALLOW atomically reserves facility capacity and REP before any controlled signature. Reuse request/idempotency identity for exact retries. The demo unique option changes request IDs only, not the mandate nonce. Omitted sources use the configured demo/native material.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorizationRequest"
+              },
+              "examples": {
+                "exactFixture": {
+                  "value": {
+                    "unique": false,
+                    "evidence_fresh": true,
+                    "reservation_request": {
+                      "request_id": "req-003",
+                      "idempotency_key": "idem-harbor-003",
+                      "principal_id": "business:harbor-supply-demo",
+                      "contract_version": "C0-REP-1",
+                      "mode": "SIMULATED_LOAN",
+                      "mandate_hash": "sha256:b4544175829342a73b9bf669989aa374845b5857f128ee938af55fe6fa96e47f",
+                      "rep_asset": {
+                        "mpt_issuance_id": "sim:rep-issuance",
+                        "issuer": "sim:rep-issuer",
+                        "asset_scale": 6
+                      },
+                      "agent_id": "agent:procurement-01",
+                      "mandate_id": "m-001",
+                      "nonce": "unique-mandate-01",
+                      "offer_id": "offer-A-777",
+                      "facility_id": "facility-A-001",
+                      "network": "devnet",
+                      "asset": {
+                        "currency": "USD",
+                        "issuer": "sim:usd-issuer"
+                      },
+                      "evidence_hash": "sha256:c05926db4e1022e572dddb2d5096aa06268ca18e83471df02821f180b3e8dc60",
+                      "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+                      "model_version": "REP-CURVE-v0.2",
+                      "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+                      "principal_minor": "200000",
+                      "max_stake_u": "760000000",
+                      "expires_at": "2026-10-24T18:21:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ALLOW receipt with persisted reservation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorizationReceipt"
+                },
+                "examples": {
+                  "synthetic": {
+                    "value": {
+                      "request_id": "req-003",
+                      "compatible": true,
+                      "offer_id": "offer-A-777",
+                      "mandate_id": "m-001",
+                      "proposal_hash": "sha256:4be77a7d8b36fa52d473b06141587efbc5afd260a3a5505fd2b90b1b4a99a19b",
+                      "envelope_hash": "sha256:63b08912e9bd2245ad0b2bd3a3ec8e2b592527fa77f67d74882d2f43998273a3",
+                      "decision": "ALLOW",
+                      "reason_codes": [],
+                      "checks": {
+                        "identity": "PASS",
+                        "lender_offer": "PASS",
+                        "policy": "PASS",
+                        "exposure": "PASS",
+                        "nonce": "PASS"
+                      },
+                      "reservation_id": "res-A-999",
+                      "signature_state": "NOT_YET_SIGNED",
+                      "xrpl_state": "NOT_SUBMITTED",
+                      "tx_hash": null,
+                      "decision_time": "2026-10-24T18:11:00Z",
+                      "contract_version": "C0-REP-1",
+                      "model_version": "REP-CURVE-v0.2",
+                      "network": "devnet",
+                      "mode": "SIMULATED_LOAN",
+                      "quote_bond_u": "720000000",
+                      "stake_proof_id": "sim:stake-proof-003",
+                      "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+                      "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+                      "prepared_tx_commitment": null,
+                      "native_signing_permitted": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed or inconsistent commitments or reservation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Policy DENY receipt. No new signature is issued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorizationReceipt"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native or credit backend not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/loans/originate": {
+      "post": {
+        "operationId": "originateLoan",
+        "tags": [
+          "execution"
+        ],
+        "summary": "Consume an existing ALLOW reservation",
+        "description": "Use request_id, reservation_id and proposal_hash from the receipt. Supplied commercial terms must equal the saved approved offer. Native mode redeems REP before LoanSet. A pending/unknown submission must not be displayed as validated success.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OriginationRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "request_id": "req-003",
+                    "reservation_id": "res-A-999",
+                    "proposal_hash": "sha256:4be77a7d8b36fa52d473b06141587efbc5afd260a3a5505fd2b90b1b4a99a19b"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Loan result and updated receipt. Simulation keeps txHash null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OriginationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Terms, reservation or stake mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Prior ALLOW required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Live ledger or backend unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/loans/{id}": {
+      "get": {
+        "operationId": "getLoan",
+        "tags": [
+          "execution"
+        ],
+        "summary": "Read one persisted loan",
+        "description": "Read the registry loan state. Native validation is represented by recorded ledger evidence, not by merely having a loan ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Loan ID returned by origination.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Loan accounting record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoanResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loan not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Credit backend not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/receipts/{id}": {
+      "get": {
+        "operationId": "getReceipt",
+        "tags": [
+          "execution"
+        ],
+        "summary": "Read a durable decision/execution receipt",
+        "description": "Lookup by request ID or reservation ID. The response includes a Devnet explorer link only for a recorded native transaction hash.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Request ID or reservation ID.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Receipt snapshot.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Receipt not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Credit backend not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/requests/{id}": {
+      "get": {
+        "operationId": "getRequestView",
+        "tags": [
+          "execution"
+        ],
+        "summary": "Read the joined credit and transaction view",
+        "description": "The frontend polling/read endpoint joins persisted request state, receipt, approved offer, current credit status and recorded transaction references. Ledger hashes alone do not contain the off-chain approval or aggregate participating exposure. Registry-event flags are recorded evidence and are not a fresh ledger re-query. No signed blobs are exposed.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Request ID from an authorization receipt.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Joined UI state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestView"
+                },
+                "examples": {
+                  "syntheticPending": {
+                    "summary": "Synthetic C0 pending reservation with saved lender approval",
+                    "value": {
+                      "request_id": "req-003",
+                      "reservation_id": "res-A-999",
+                      "mode": "SIMULATED_LOAN",
+                      "network": "devnet",
+                      "request_state": "AWAITING_STAKE",
+                      "loan_id": null,
+                      "receipt": {
+                        "request_id": "req-003",
+                        "compatible": true,
+                        "offer_id": "offer-A-777",
+                        "mandate_id": "m-001",
+                        "proposal_hash": "sha256:4be77a7d8b36fa52d473b06141587efbc5afd260a3a5505fd2b90b1b4a99a19b",
+                        "envelope_hash": "sha256:63b08912e9bd2245ad0b2bd3a3ec8e2b592527fa77f67d74882d2f43998273a3",
+                        "decision": "ALLOW",
+                        "reason_codes": [],
+                        "checks": {
+                          "identity": "PASS",
+                          "lender_offer": "PASS",
+                          "policy": "PASS",
+                          "exposure": "PASS",
+                          "nonce": "PASS"
+                        },
+                        "reservation_id": "res-A-999",
+                        "signature_state": "NOT_YET_SIGNED",
+                        "xrpl_state": "NOT_SUBMITTED",
+                        "tx_hash": null,
+                        "decision_time": "2026-10-24T18:11:00Z",
+                        "contract_version": "C0-REP-1",
+                        "model_version": "REP-CURVE-v0.2",
+                        "network": "devnet",
+                        "mode": "SIMULATED_LOAN",
+                        "quote_bond_u": "720000000",
+                        "stake_proof_id": "sim:stake-proof-003",
+                        "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+                        "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+                        "prepared_tx_commitment": null,
+                        "native_signing_permitted": false
+                      },
+                      "approved_offer": {
+                        "lender_id": "lender-A",
+                        "borrower_id": "business:harbor-supply-demo",
+                        "facility_id": "facility-A-001",
+                        "facility_limit": "5000.00",
+                        "active_commitments": "1000.00",
+                        "reserved": "0.00",
+                        "offer_id": "offer-A-777",
+                        "asset": {
+                          "currency": "USD",
+                          "issuer": "sim:usd-issuer"
+                        },
+                        "principal": "2000.00",
+                        "apr_bps": 550,
+                        "term_days": 90,
+                        "fees": "0.00",
+                        "purpose": "working_capital",
+                        "expires_at": "2026-10-24T22:00:00Z",
+                        "underwriting_policy": "lenderA-v2",
+                        "approval_ref": "uw-A-349",
+                        "lender_signature": "sig-simulated-lender",
+                        "contract_version": "C0-REP-1",
+                        "model_version": "REP-CURVE-v0.2",
+                        "network": "devnet",
+                        "mode": "SIMULATED_LOAN",
+                        "rate_kind": "NOMINAL_ANNUAL",
+                        "schedule": {
+                          "kind": "BULLET",
+                          "payment_total": 1,
+                          "payment_interval_seconds": 7776000,
+                          "native_acceptance": "PENDING_VEDANT"
+                        },
+                        "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+                        "offer_hash": "sha256:cb57516abfe39e46c7b8a265ff96dc88980ef87af2d0f7614ab07038258a81cb"
+                      },
+                      "lender_decision": {
+                        "decision": "APPROVE",
+                        "lender_id": "lender-A",
+                        "offer_id": "offer-A-777",
+                        "approval_ref": "uw-A-349",
+                        "underwriting_policy": "lenderA-v2",
+                        "evidence_origin": "APPROVED_OFFER_SNAPSHOT"
+                      },
+                      "credit_status": {
+                        "contract_version": "C0-REP-1",
+                        "model_version": "REP-CURVE-v0.2",
+                        "network": "devnet",
+                        "mode": "SIMULATED_LOAN",
+                        "principal_id": "business:harbor-supply-demo",
+                        "asset": {
+                          "currency": "USD",
+                          "issuer": "sim:usd-issuer"
+                        },
+                        "rep_asset": {
+                          "mpt_issuance_id": "sim:rep-issuance",
+                          "issuer": "sim:rep-issuer",
+                          "asset_scale": 6
+                        },
+                        "money_scale": "100",
+                        "rep_scale": 1000000,
+                        "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+                        "observed_at": "2026-10-24T18:11:00Z",
+                        "coverage": "participating_sources_only",
+                        "facility": {
+                          "facility_id": "facility-A-001",
+                          "lender_id": "lender-A",
+                          "approved_limit_minor": "500000",
+                          "committed_minor": "100000",
+                          "reserved_minor": "200000",
+                          "headroom_minor": "200000",
+                          "version": 2
+                        },
+                        "portfolio": {
+                          "active_principal_minor": "100000",
+                          "reserved_principal_minor": "200000",
+                          "defaulted_principal_minor": "0",
+                          "facility_committed_minor": "100000",
+                          "facility_reserved_minor": "200000",
+                          "reputation": {
+                            "seed_u": "1000000000",
+                            "available_u": "40000000",
+                            "reserved_u": "720000000",
+                            "bonded_u": "240000000",
+                            "pending_return_u": "0",
+                            "growth_u": "0",
+                            "forfeited_u": "0",
+                            "suspended": false,
+                            "version": 2
+                          }
+                        },
+                        "exposure_for_curve_minor": "300000"
+                      },
+                      "loan": null,
+                      "transactions": [],
+                      "attempts": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Persisted receipt/offer context or mode does not match this request. Codes include UI_STATE_CONTEXT_MISMATCH and DENY_UNSUPPORTED_NETWORK.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Credit backend not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/demo/repay": {
+      "post": {
+        "operationId": "repayDemoLoan",
+        "tags": [
+          "demo"
+        ],
+        "summary": "Apply the bounded repayment demo",
+        "description": "Uses the current mode. This endpoint is a hackathon orchestration helper. REP restoration remains a separate verified issuer return. A principal reduction is not the LoanPay spending-cap Amount.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepaymentRequest"
+              },
+              "examples": {
+                "synthetic": {
+                  "value": {
+                    "loan_id": "loan:req-003",
+                    "request_id": "req-003",
+                    "amount": "2000.00",
+                    "principal_reduction_minor": "200000"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Repayment result and updated registry status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepaymentResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request/loan binding or repayment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Live ledger unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AtomicAmount": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]*)$",
+        "description": "Unsigned exact integer encoded as a decimal string. Monetary values use the supplied money_scale. REP uses 1,000,000 atomic units per REP. Never parse these for permission decisions with floating-point arithmetic."
+      },
+      "MoneyAmount": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]*)\\.[0-9]{2}$",
+        "description": "Display monetary units with exactly two decimal places. This is separate from atomic principal_minor."
+      },
+      "Commitment": {
+        "type": "string",
+        "pattern": "^sha256:[a-f0-9]{64}$",
+        "description": "Application SHA-256 commitment over SORTED_KEYS_JSON_UTF8_V1. This is not an XRPL transaction hash."
+      },
+      "NetworkMode": {
+        "type": "string",
+        "enum": [
+          "LIVE_DEVNET",
+          "SIMULATED_LOAN"
+        ]
+      },
+      "AssetRef": {
+        "description": "Exact asset identity. XRP has no issuer. Issued currencies include issuer. MPT uses its 48-hex issuance ID.",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "const": "XRP",
+                "type": "string"
+              }
+            },
+            "required": [
+              "currency"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "minLength": 1,
+                "not": {
+                  "const": "XRP"
+                }
+              },
+              "issuer": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "currency",
+              "issuer"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "mpt_issuance_id": {
+                "type": "string",
+                "pattern": "^[A-Fa-f0-9]{48}$"
+              }
+            },
+            "required": [
+              "mpt_issuance_id"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "RepAssetRef": {
+        "type": "object",
+        "properties": {
+          "mpt_issuance_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "issuer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "asset_scale": {
+            "type": "number",
+            "const": 6
+          }
+        },
+        "required": [
+          "mpt_issuance_id",
+          "issuer",
+          "asset_scale"
+        ],
+        "additionalProperties": false
+      },
+      "ReputationState": {
+        "type": "object",
+        "properties": {
+          "seed_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "available_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "reserved_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "bonded_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "pending_return_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "growth_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "forfeited_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "suspended": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "seed_u",
+          "available_u",
+          "reserved_u",
+          "bonded_u",
+          "pending_return_u",
+          "growth_u",
+          "forfeited_u",
+          "suspended",
+          "version"
+        ],
+        "additionalProperties": false,
+        "description": "seed_u + growth_u = available_u + reserved_u + bonded_u + pending_return_u + forfeited_u. Runtime Zod and registry enforce this cross-field invariant."
+      },
+      "CreditSnapshot": {
+        "type": "object",
+        "properties": {
+          "active_principal_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "reserved_principal_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "defaulted_principal_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "facility_committed_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "facility_reserved_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "reputation": {
+            "$ref": "#/components/schemas/ReputationState"
+          }
+        },
+        "required": [
+          "active_principal_minor",
+          "reserved_principal_minor",
+          "defaulted_principal_minor",
+          "facility_committed_minor",
+          "facility_reserved_minor",
+          "reputation"
+        ],
+        "additionalProperties": false
+      },
+      "PaymentSchedule": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "BULLET"
+          },
+          "payment_total": {
+            "type": "number",
+            "const": 1
+          },
+          "payment_interval_seconds": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "native_acceptance": {
+            "type": "string",
+            "const": "PENDING_VEDANT"
+          }
+        },
+        "required": [
+          "kind",
+          "payment_total",
+          "payment_interval_seconds",
+          "native_acceptance"
+        ],
+        "additionalProperties": false
+      },
+      "RepSpendConsent": {
+        "type": "object",
+        "properties": {
+          "authorized": {
+            "type": "boolean"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "policy_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "rep_asset": {
+            "$ref": "#/components/schemas/RepAssetRef"
+          },
+          "max_stake_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          }
+        },
+        "required": [
+          "authorized",
+          "model_version",
+          "policy_hash",
+          "rep_asset",
+          "max_stake_u"
+        ],
+        "additionalProperties": false
+      },
+      "BorrowingMandate": {
+        "type": "object",
+        "properties": {
+          "contract_version": {
+            "type": "string",
+            "const": "C0-REP-1"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "network": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "mandate_id": {
+            "type": "string"
+          },
+          "principal_id": {
+            "type": "string"
+          },
+          "agent_id": {
+            "type": "string"
+          },
+          "xrpl_borrower": {
+            "type": "string"
+          },
+          "asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "max_principal": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "max_apr_bps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_total_fees": {
+            "type": "string"
+          },
+          "max_term_days": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "allowed_purposes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowed_lenders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "policy_version": {
+            "type": "string"
+          },
+          "principal_signature": {
+            "type": "string"
+          },
+          "mandate_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "rep_consent": {
+            "$ref": "#/components/schemas/RepSpendConsent"
+          }
+        },
+        "required": [
+          "contract_version",
+          "model_version",
+          "network",
+          "mode",
+          "mandate_id",
+          "principal_id",
+          "agent_id",
+          "xrpl_borrower",
+          "asset",
+          "max_principal",
+          "max_apr_bps",
+          "max_total_fees",
+          "max_term_days",
+          "allowed_purposes",
+          "allowed_lenders",
+          "expires_at",
+          "nonce",
+          "policy_version",
+          "principal_signature",
+          "mandate_hash",
+          "rep_consent"
+        ],
+        "additionalProperties": false,
+        "examples": [
+          {
+            "mandate_id": "m-001",
+            "principal_id": "business:harbor-supply-demo",
+            "agent_id": "agent:procurement-01",
+            "xrpl_borrower": "sim:borrower-harbor-supply",
+            "asset": {
+              "currency": "USD",
+              "issuer": "sim:usd-issuer"
+            },
+            "max_principal": "2500.00",
+            "max_apr_bps": 600,
+            "max_total_fees": "30.00",
+            "max_term_days": 90,
+            "allowed_purposes": [
+              "working_capital"
+            ],
+            "allowed_lenders": [
+              "lender-A"
+            ],
+            "expires_at": "2026-10-24T23:00:00Z",
+            "nonce": "unique-mandate-01",
+            "policy_version": "borrower-v1",
+            "principal_signature": "sig-simulated-principal",
+            "contract_version": "C0-REP-1",
+            "model_version": "REP-CURVE-v0.2",
+            "network": "devnet",
+            "mode": "SIMULATED_LOAN",
+            "rep_consent": {
+              "authorized": true,
+              "model_version": "REP-CURVE-v0.2",
+              "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+              "rep_asset": {
+                "mpt_issuance_id": "sim:rep-issuance",
+                "issuer": "sim:rep-issuer",
+                "asset_scale": 6
+              },
+              "max_stake_u": "760000000"
+            },
+            "mandate_hash": "sha256:b4544175829342a73b9bf669989aa374845b5857f128ee938af55fe6fa96e47f"
+          }
+        ]
+      },
+      "EvidencePassport": {
+        "type": "object",
+        "properties": {
+          "contract_version": {
+            "type": "string",
+            "const": "C0-REP-1"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "network": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "subject_id": {
+            "type": "string"
+          },
+          "issuer_id": {
+            "type": "string"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evidence_version": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "history": {
+            "type": "object",
+            "properties": {
+              "observation_start": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "observation_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "accepted_history_months": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "on_time": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "late": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "default": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "observation_start",
+              "observation_end",
+              "accepted_history_months",
+              "on_time",
+              "late",
+              "default"
+            ],
+            "additionalProperties": true
+          },
+          "known_exposure": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "$ref": "#/components/schemas/AssetRef"
+              },
+              "amount": {
+                "$ref": "#/components/schemas/MoneyAmount"
+              },
+              "coverage": {
+                "type": "string",
+                "const": "participating_sources_only"
+              },
+              "as_of": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "asset",
+              "amount",
+              "coverage",
+              "as_of"
+            ],
+            "additionalProperties": true
+          },
+          "optional_tier": {
+            "type": "string"
+          },
+          "evidence_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          }
+        },
+        "required": [
+          "contract_version",
+          "model_version",
+          "network",
+          "mode",
+          "subject_id",
+          "issuer_id",
+          "issued_at",
+          "expires_at",
+          "evidence_version",
+          "signature",
+          "history",
+          "known_exposure",
+          "evidence_hash"
+        ],
+        "additionalProperties": false,
+        "examples": [
+          {
+            "subject_id": "business:harbor-supply-demo",
+            "issuer_id": "demo-attestor",
+            "issued_at": "2026-10-24T18:00:00Z",
+            "expires_at": "2026-10-25T18:00:00Z",
+            "evidence_version": "ev-c0-rep-1",
+            "signature": "sig-simulated-attestor",
+            "history": {
+              "on_time": 8,
+              "late": 1,
+              "default": 0,
+              "observation_start": "2026-04-24T18:00:00Z",
+              "observation_end": "2026-10-24T18:00:00Z",
+              "accepted_history_months": 6
+            },
+            "known_exposure": {
+              "asset": {
+                "currency": "USD",
+                "issuer": "sim:usd-issuer"
+              },
+              "amount": "1000.00",
+              "coverage": "participating_sources_only",
+              "as_of": "2026-10-24T18:00:00Z"
+            },
+            "optional_tier": "A_DEMO",
+            "evidence_hash": "sha256:c05926db4e1022e572dddb2d5096aa06268ca18e83471df02821f180b3e8dc60",
+            "contract_version": "C0-REP-1",
+            "model_version": "REP-CURVE-v0.2",
+            "network": "devnet",
+            "mode": "SIMULATED_LOAN"
+          }
+        ]
+      },
+      "LenderFacilityOffer": {
+        "type": "object",
+        "properties": {
+          "contract_version": {
+            "type": "string",
+            "const": "C0-REP-1"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "network": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "lender_id": {
+            "type": "string"
+          },
+          "borrower_id": {
+            "type": "string"
+          },
+          "facility_id": {
+            "type": "string"
+          },
+          "facility_limit": {
+            "type": "string"
+          },
+          "active_commitments": {
+            "type": "string"
+          },
+          "reserved": {
+            "type": "string"
+          },
+          "offer_id": {
+            "type": "string"
+          },
+          "asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "principal": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "apr_bps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rate_kind": {
+            "type": "string",
+            "const": "NOMINAL_ANNUAL"
+          },
+          "term_days": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "fees": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "underwriting_policy": {
+            "type": "string"
+          },
+          "approval_ref": {
+            "type": "string"
+          },
+          "lender_signature": {
+            "type": "string"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/PaymentSchedule"
+          },
+          "offer_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "commercial_terms_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          }
+        },
+        "required": [
+          "contract_version",
+          "model_version",
+          "network",
+          "mode",
+          "lender_id",
+          "borrower_id",
+          "facility_id",
+          "facility_limit",
+          "active_commitments",
+          "reserved",
+          "offer_id",
+          "asset",
+          "principal",
+          "apr_bps",
+          "rate_kind",
+          "term_days",
+          "fees",
+          "purpose",
+          "expires_at",
+          "underwriting_policy",
+          "approval_ref",
+          "lender_signature",
+          "schedule",
+          "offer_hash",
+          "commercial_terms_hash"
+        ],
+        "additionalProperties": false,
+        "examples": [
+          {
+            "lender_id": "lender-A",
+            "borrower_id": "business:harbor-supply-demo",
+            "facility_id": "facility-A-001",
+            "facility_limit": "5000.00",
+            "active_commitments": "1000.00",
+            "reserved": "0.00",
+            "offer_id": "offer-A-777",
+            "asset": {
+              "currency": "USD",
+              "issuer": "sim:usd-issuer"
+            },
+            "principal": "2000.00",
+            "apr_bps": 550,
+            "term_days": 90,
+            "fees": "0.00",
+            "purpose": "working_capital",
+            "expires_at": "2026-10-24T22:00:00Z",
+            "underwriting_policy": "lenderA-v2",
+            "approval_ref": "uw-A-349",
+            "lender_signature": "sig-simulated-lender",
+            "contract_version": "C0-REP-1",
+            "model_version": "REP-CURVE-v0.2",
+            "network": "devnet",
+            "mode": "SIMULATED_LOAN",
+            "rate_kind": "NOMINAL_ANNUAL",
+            "schedule": {
+              "kind": "BULLET",
+              "payment_total": 1,
+              "payment_interval_seconds": 7776000,
+              "native_acceptance": "PENDING_VEDANT"
+            },
+            "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+            "offer_hash": "sha256:cb57516abfe39e46c7b8a265ff96dc88980ef87af2d0f7614ab07038258a81cb"
+          }
+        ]
+      },
+      "AuthorizationReceipt": {
+        "type": "object",
+        "properties": {
+          "contract_version": {
+            "type": "string",
+            "const": "C0-REP-1"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "network": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "compatible": {
+            "type": "boolean"
+          },
+          "offer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mandate_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proposal_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "envelope_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "ALLOW",
+              "DENY"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DenialCode"
+            }
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "identity": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              },
+              "lender_offer": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              },
+              "policy": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              },
+              "exposure": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              },
+              "nonce": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              }
+            },
+            "required": [
+              "identity",
+              "lender_offer",
+              "policy",
+              "exposure",
+              "nonce"
+            ],
+            "additionalProperties": true
+          },
+          "reservation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "signature_state": {
+            "type": "string",
+            "enum": [
+              "NOT_YET_SIGNED",
+              "SIGNATURE_ISSUED",
+              "DENIED"
+            ]
+          },
+          "xrpl_state": {
+            "type": "string",
+            "enum": [
+              "NOT_SUBMITTED",
+              "SUBMITTED",
+              "VALIDATED_ACTIVE",
+              "FAILED",
+              "RECONCILING",
+              "SIMULATED"
+            ]
+          },
+          "tx_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decision_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quote_bond_u": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "stake_proof_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "policy_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "commercial_terms_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "prepared_tx_commitment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Commitment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "native_signing_permitted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "contract_version",
+          "model_version",
+          "network",
+          "mode",
+          "request_id",
+          "compatible",
+          "offer_id",
+          "mandate_id",
+          "proposal_hash",
+          "envelope_hash",
+          "decision",
+          "reason_codes",
+          "checks",
+          "reservation_id",
+          "signature_state",
+          "xrpl_state",
+          "tx_hash",
+          "decision_time",
+          "quote_bond_u",
+          "stake_proof_id",
+          "policy_hash",
+          "commercial_terms_hash",
+          "prepared_tx_commitment",
+          "native_signing_permitted"
+        ],
+        "additionalProperties": false,
+        "description": "Decision and execution snapshot. A transaction timeout is unresolved. SIMULATED_LOAN must have tx_hash null and native_signing_permitted false. Runtime also requires ALLOW, reservation, stake proof and prepared commitment before native signing permission.",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "mode": {
+                  "const": "SIMULATED_LOAN"
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            "then": {
+              "properties": {
+                "tx_hash": {
+                  "type": "null"
+                },
+                "native_signing_permitted": {
+                  "const": false
+                }
+              }
+            }
+          }
+        ],
+        "examples": [
+          {
+            "request_id": "req-003",
+            "compatible": true,
+            "offer_id": "offer-A-777",
+            "mandate_id": "m-001",
+            "proposal_hash": "sha256:4be77a7d8b36fa52d473b06141587efbc5afd260a3a5505fd2b90b1b4a99a19b",
+            "envelope_hash": "sha256:63b08912e9bd2245ad0b2bd3a3ec8e2b592527fa77f67d74882d2f43998273a3",
+            "decision": "ALLOW",
+            "reason_codes": [],
+            "checks": {
+              "identity": "PASS",
+              "lender_offer": "PASS",
+              "policy": "PASS",
+              "exposure": "PASS",
+              "nonce": "PASS"
+            },
+            "reservation_id": "res-A-999",
+            "signature_state": "NOT_YET_SIGNED",
+            "xrpl_state": "NOT_SUBMITTED",
+            "tx_hash": null,
+            "decision_time": "2026-10-24T18:11:00Z",
+            "contract_version": "C0-REP-1",
+            "model_version": "REP-CURVE-v0.2",
+            "network": "devnet",
+            "mode": "SIMULATED_LOAN",
+            "quote_bond_u": "720000000",
+            "stake_proof_id": "sim:stake-proof-003",
+            "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+            "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+            "prepared_tx_commitment": null,
+            "native_signing_permitted": false
+          }
+        ]
+      },
+      "LenderEvaluateResult": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "decision": {
+                "type": "string",
+                "const": "APPROVE"
+              },
+              "offer": {
+                "$ref": "#/components/schemas/LenderFacilityOffer"
+              }
+            },
+            "required": [
+              "decision",
+              "offer"
+            ],
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "properties": {
+              "decision": {
+                "type": "string",
+                "const": "DECLINE"
+              },
+              "lender_id": {
+                "type": "string"
+              },
+              "reason_codes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DenialCode"
+                }
+              },
+              "human_explanation": {
+                "type": "string"
+              },
+              "evidence_version": {
+                "type": "string"
+              },
+              "underwriting_policy": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "decision",
+              "lender_id",
+              "reason_codes",
+              "human_explanation",
+              "evidence_version",
+              "underwriting_policy"
+            ],
+            "additionalProperties": true
+          }
+        ]
+      },
+      "OfferMatchResult": {
+        "type": "object",
+        "properties": {
+          "contract_version": {
+            "type": "string",
+            "const": "C0-REP-1"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "network": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "compatible": {
+            "type": "boolean"
+          },
+          "matched_offers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LenderFacilityOffer"
+            }
+          },
+          "permitted_principal": {
+            "type": "string"
+          },
+          "permitted_apr_bps": {
+            "type": "integer"
+          },
+          "permitted_term_days": {
+            "type": "integer"
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DenialCode"
+            },
+            "default": []
+          },
+          "envelope_hash": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "contract_version",
+          "model_version",
+          "network",
+          "mode",
+          "compatible",
+          "matched_offers",
+          "reason_codes"
+        ],
+        "additionalProperties": false,
+        "examples": [
+          {
+            "contract_version": "C0-REP-1",
+            "model_version": "REP-CURVE-v0.2",
+            "network": "devnet",
+            "mode": "SIMULATED_LOAN",
+            "compatible": true,
+            "matched_offers": [
+              {
+                "lender_id": "lender-A",
+                "borrower_id": "business:harbor-supply-demo",
+                "facility_id": "facility-A-001",
+                "facility_limit": "5000.00",
+                "active_commitments": "1000.00",
+                "reserved": "0.00",
+                "offer_id": "offer-A-777",
+                "asset": {
+                  "currency": "USD",
+                  "issuer": "sim:usd-issuer"
+                },
+                "principal": "2000.00",
+                "apr_bps": 550,
+                "term_days": 90,
+                "fees": "0.00",
+                "purpose": "working_capital",
+                "expires_at": "2026-10-24T22:00:00Z",
+                "underwriting_policy": "lenderA-v2",
+                "approval_ref": "uw-A-349",
+                "lender_signature": "sig-simulated-lender",
+                "contract_version": "C0-REP-1",
+                "model_version": "REP-CURVE-v0.2",
+                "network": "devnet",
+                "mode": "SIMULATED_LOAN",
+                "rate_kind": "NOMINAL_ANNUAL",
+                "schedule": {
+                  "kind": "BULLET",
+                  "payment_total": 1,
+                  "payment_interval_seconds": 7776000,
+                  "native_acceptance": "PENDING_VEDANT"
+                },
+                "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+                "offer_hash": "sha256:cb57516abfe39e46c7b8a265ff96dc88980ef87af2d0f7614ab07038258a81cb"
+              }
+            ],
+            "permitted_principal": "2000.00",
+            "permitted_apr_bps": 550,
+            "permitted_term_days": 90,
+            "reason_codes": [],
+            "envelope_hash": "sha256:63b08912e9bd2245ad0b2bd3a3ec8e2b592527fa77f67d74882d2f43998273a3"
+          }
+        ]
+      },
+      "CreditStatus": {
+        "type": "object",
+        "properties": {
+          "contract_version": {
+            "type": "string",
+            "const": "C0-REP-1"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "network": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "principal_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "rep_asset": {
+            "$ref": "#/components/schemas/RepAssetRef"
+          },
+          "money_scale": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "rep_scale": {
+            "type": "number",
+            "const": 1000000
+          },
+          "policy_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "coverage": {
+            "type": "string",
+            "const": "participating_sources_only"
+          },
+          "facility": {
+            "type": "object",
+            "properties": {
+              "facility_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "lender_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "approved_limit_minor": {
+                "$ref": "#/components/schemas/AtomicAmount"
+              },
+              "committed_minor": {
+                "$ref": "#/components/schemas/AtomicAmount"
+              },
+              "reserved_minor": {
+                "$ref": "#/components/schemas/AtomicAmount"
+              },
+              "headroom_minor": {
+                "$ref": "#/components/schemas/AtomicAmount"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "facility_id",
+              "lender_id",
+              "approved_limit_minor",
+              "committed_minor",
+              "reserved_minor",
+              "headroom_minor",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "portfolio": {
+            "$ref": "#/components/schemas/CreditSnapshot"
+          },
+          "exposure_for_curve_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          }
+        },
+        "required": [
+          "contract_version",
+          "model_version",
+          "network",
+          "mode",
+          "principal_id",
+          "asset",
+          "rep_asset",
+          "money_scale",
+          "rep_scale",
+          "policy_hash",
+          "observed_at",
+          "coverage",
+          "facility",
+          "portfolio",
+          "exposure_for_curve_minor"
+        ],
+        "additionalProperties": false
+      },
+      "CreditQuoteRequest": {
+        "type": "object",
+        "properties": {
+          "principal_minor": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AtomicAmount"
+              },
+              {
+                "not": {
+                  "const": "0"
+                }
+              }
+            ]
+          },
+          "max_stake_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          }
+        },
+        "required": [
+          "principal_minor"
+        ],
+        "additionalProperties": false
+      },
+      "CreditQuote": {
+        "type": "object",
+        "properties": {
+          "contract_version": {
+            "type": "string",
+            "const": "C0-REP-1"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "network": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "principal_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "facility_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "policy_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "exposure_version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "facility_version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "exposure_before_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "principal_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "bond_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "available_rep_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "facility_headroom_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "max_stake_u": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AtomicAmount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maximum_additional_principal_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "fits_registry_limits": {
+            "type": "boolean"
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "DENY_SUSPENDED",
+                "DENY_CAPACITY",
+                "DENY_REP_CAPACITY",
+                "DENY_REP_CONSENT"
+              ]
+            }
+          },
+          "grants_permission": {
+            "type": "boolean",
+            "const": false
+          },
+          "reservation_required": {
+            "type": "boolean",
+            "const": true
+          },
+          "quote_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          }
+        },
+        "required": [
+          "contract_version",
+          "model_version",
+          "network",
+          "mode",
+          "principal_id",
+          "facility_id",
+          "asset",
+          "policy_hash",
+          "observed_at",
+          "exposure_version",
+          "facility_version",
+          "exposure_before_minor",
+          "principal_minor",
+          "bond_u",
+          "available_rep_u",
+          "facility_headroom_minor",
+          "max_stake_u",
+          "maximum_additional_principal_minor",
+          "fits_registry_limits",
+          "reason_codes",
+          "grants_permission",
+          "reservation_required",
+          "quote_hash"
+        ],
+        "additionalProperties": false,
+        "description": "Read-only preview. grants_permission is always false. Final authorization recomputes the bond and atomically reserves capacity and REP."
+      },
+      "DenialCode": {
+        "type": "string",
+        "enum": [
+          "DENY_IDENTITY",
+          "DENY_SIGNATURE",
+          "DENY_SCOPE",
+          "DENY_ASSET",
+          "DENY_AMOUNT",
+          "DENY_RATE",
+          "DENY_FEE",
+          "DENY_TERM",
+          "DENY_PURPOSE",
+          "DENY_COUNTERPARTY",
+          "DENY_OFFER_EXPIRED",
+          "DENY_EVIDENCE_STALE",
+          "DENY_CAPACITY",
+          "DENY_REPLAY",
+          "DENY_NO_OVERLAP",
+          "DENY_TRANSACTION_MISMATCH",
+          "DENY_UNSUPPORTED_NETWORK",
+          "DENY_REP_CONSENT",
+          "DENY_REP_CAPACITY",
+          "DENY_STAKE_PROOF",
+          "DENY_SUSPENDED",
+          "DENY_IDEMPOTENCY_CONFLICT",
+          "NO_OFFER",
+          "UNDERWRITING_DECLINED"
+        ]
+      },
+      "ReservationRequest": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "contract_version": {
+            "type": "string",
+            "const": "C0-REP-1"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "principal_id": {
+            "type": "string"
+          },
+          "agent_id": {
+            "type": "string"
+          },
+          "mandate_id": {
+            "type": "string"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "offer_id": {
+            "type": "string"
+          },
+          "facility_id": {
+            "type": "string"
+          },
+          "network": {
+            "type": "string"
+          },
+          "asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "mandate_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "rep_asset": {
+            "$ref": "#/components/schemas/RepAssetRef"
+          },
+          "evidence_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "commercial_terms_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "policy_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "principal_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "max_stake_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "request_id",
+          "idempotency_key",
+          "contract_version",
+          "mode",
+          "principal_id",
+          "agent_id",
+          "mandate_id",
+          "nonce",
+          "offer_id",
+          "facility_id",
+          "network",
+          "asset",
+          "mandate_hash",
+          "rep_asset",
+          "evidence_hash",
+          "commercial_terms_hash",
+          "model_version",
+          "policy_hash",
+          "principal_minor",
+          "max_stake_u",
+          "expires_at"
+        ],
+        "additionalProperties": false,
+        "examples": [
+          {
+            "request_id": "req-003",
+            "idempotency_key": "idem-harbor-003",
+            "principal_id": "business:harbor-supply-demo",
+            "contract_version": "C0-REP-1",
+            "mode": "SIMULATED_LOAN",
+            "mandate_hash": "sha256:b4544175829342a73b9bf669989aa374845b5857f128ee938af55fe6fa96e47f",
+            "rep_asset": {
+              "mpt_issuance_id": "sim:rep-issuance",
+              "issuer": "sim:rep-issuer",
+              "asset_scale": 6
+            },
+            "agent_id": "agent:procurement-01",
+            "mandate_id": "m-001",
+            "nonce": "unique-mandate-01",
+            "offer_id": "offer-A-777",
+            "facility_id": "facility-A-001",
+            "network": "devnet",
+            "asset": {
+              "currency": "USD",
+              "issuer": "sim:usd-issuer"
+            },
+            "evidence_hash": "sha256:c05926db4e1022e572dddb2d5096aa06268ca18e83471df02821f180b3e8dc60",
+            "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+            "model_version": "REP-CURVE-v0.2",
+            "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+            "principal_minor": "200000",
+            "max_stake_u": "760000000",
+            "expires_at": "2026-10-24T18:21:00Z"
+          }
+        ]
+      },
+      "RequestState": {
+        "type": "string",
+        "enum": [
+          "AWAITING_STAKE",
+          "STAKE_VALIDATED",
+          "RECONCILING",
+          "ACTIVE",
+          "CANCELLED",
+          "RETURN_PENDING",
+          "REPAID",
+          "DEFAULTED"
+        ]
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "ok": {
+            "const": false
+          }
+        },
+        "required": [
+          "code",
+          "mode"
+        ],
+        "additionalProperties": false
+      },
+      "FacilitySnapshot": {
+        "type": "object",
+        "properties": {
+          "facilityId": {
+            "type": "string"
+          },
+          "lenderId": {
+            "type": "string"
+          },
+          "principalId": {
+            "type": "string"
+          },
+          "network": {
+            "type": "string"
+          },
+          "asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "approvedLimitMinor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "committedMinor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "reservedMinor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "headroomMinor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "facilityId",
+          "lenderId",
+          "principalId",
+          "network",
+          "asset",
+          "approvedLimitMinor",
+          "committedMinor",
+          "reservedMinor",
+          "headroomMinor",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "LoanRecord": {
+        "type": "object",
+        "description": "Public persisted registry loan record. Principal and REP amounts remain decimal strings. Unix times are seconds. Fields reflect the current accounting snapshot.",
+        "additionalProperties": {
+          "type": [
+            "string",
+            "number",
+            "null"
+          ]
+        },
+        "properties": {
+          "loan_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "facility_id": {
+            "type": "string"
+          },
+          "principal_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "outstanding_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "original_bond_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "defaulted_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "state": {
+            "type": "string"
+          },
+          "origin_time": {
+            "type": "integer"
+          },
+          "maturity_time": {
+            "type": "integer"
+          },
+          "next_due_time": {
+            "type": "integer"
+          },
+          "grace_seconds": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "loan_id",
+          "facility_id",
+          "principal_minor",
+          "outstanding_minor",
+          "original_bond_u",
+          "state"
+        ]
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "service": {
+            "const": "shellfish-api"
+          },
+          "networkMode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "xrplNetwork": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "ok",
+          "service",
+          "networkMode",
+          "xrplNetwork"
+        ],
+        "additionalProperties": false
+      },
+      "PublicSigning": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "native_loan_asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "borrower_account": {
+            "type": "string"
+          },
+          "broker_account": {
+            "type": "string"
+          },
+          "broker_id": {
+            "type": "string"
+          },
+          "native_rep_asset": {
+            "$ref": "#/components/schemas/RepAssetRef"
+          },
+          "required_signer_route": {
+            "type": "string"
+          },
+          "native_schedule": {
+            "type": "object",
+            "properties": {
+              "payment_total": {
+                "type": "integer"
+              },
+              "payment_interval_sec": {
+                "type": "integer"
+              },
+              "grace_period_sec": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "payment_total",
+              "payment_interval_sec",
+              "grace_period_sec"
+            ],
+            "additionalProperties": false
+          },
+          "sdk_pin": {
+            "const": "5.3.0"
+          }
+        },
+        "required": [
+          "endpoint",
+          "native_loan_asset",
+          "borrower_account",
+          "broker_account",
+          "broker_id",
+          "native_rep_asset",
+          "required_signer_route",
+          "native_schedule",
+          "sdk_pin"
+        ],
+        "additionalProperties": false
+      },
+      "NetworkInfo": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "live_ready": {
+            "type": "boolean",
+            "description": "Application ledger/configuration handles exist. This does not establish ledger proof or completed native acceptance."
+          },
+          "public_signing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicSigning"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "explorer_base": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "mode",
+          "live_ready",
+          "public_signing",
+          "explorer_base"
+        ],
+        "additionalProperties": false
+      },
+      "MandateRequest": {
+        "type": "object",
+        "properties": {
+          "mandate": {
+            "$ref": "#/components/schemas/BorrowingMandate"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "MandateResult": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "mandate_id": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          }
+        },
+        "required": [
+          "ok",
+          "mandate_id",
+          "mode"
+        ],
+        "additionalProperties": false
+      },
+      "LenderEvaluationRequest": {
+        "type": "object",
+        "properties": {
+          "subject_id": {
+            "type": "string"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/EvidencePassport"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "MatchRequest": {
+        "type": "object",
+        "properties": {
+          "mandate": {
+            "$ref": "#/components/schemas/BorrowingMandate"
+          },
+          "offers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LenderFacilityOffer"
+            }
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/EvidencePassport"
+          }
+        },
+        "required": [
+          "mandate",
+          "offers"
+        ],
+        "additionalProperties": false
+      },
+      "AuthorizationRequest": {
+        "type": "object",
+        "properties": {
+          "mandate": {
+            "$ref": "#/components/schemas/BorrowingMandate"
+          },
+          "offer": {
+            "$ref": "#/components/schemas/LenderFacilityOffer"
+          },
+          "proposal_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "envelope_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "evidence_fresh": {
+            "type": "boolean",
+            "default": true,
+            "description": "Current demo evidence flag. It does not authenticate native evidence."
+          },
+          "reservation_request": {
+            "$ref": "#/components/schemas/ReservationRequest"
+          },
+          "unique": {
+            "type": "boolean",
+            "default": true,
+            "description": "Demo request ID generation only. It does not create a new signed mandate nonce. For exact retry, retain the original request."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "OriginationRequest": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string"
+          },
+          "reservation_id": {
+            "type": "string"
+          },
+          "proposal_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "principal": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "apr_bps": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "term_days": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "request_id",
+          "reservation_id"
+        ],
+        "additionalProperties": false
+      },
+      "OriginationResult": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "txHash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "loanId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "validated": {
+            "type": "boolean"
+          },
+          "simulated": {
+            "type": "boolean"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "reservationId": {
+            "type": "string"
+          },
+          "stakeProofId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preparedTxCommitment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Commitment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "explorer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "receipt": {
+            "$ref": "#/components/schemas/AuthorizationReceipt"
+          },
+          "loan": {
+            "$ref": "#/components/schemas/LoanRecord"
+          }
+        },
+        "required": [
+          "mode",
+          "txHash",
+          "loanId",
+          "validated",
+          "simulated",
+          "requestId",
+          "reservationId",
+          "explorer",
+          "receipt",
+          "loan"
+        ],
+        "additionalProperties": false
+      },
+      "LoanResponse": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "simulated": {
+            "type": "boolean"
+          },
+          "loan": {
+            "$ref": "#/components/schemas/LoanRecord"
+          }
+        },
+        "required": [
+          "mode",
+          "simulated",
+          "loan"
+        ],
+        "additionalProperties": false
+      },
+      "ReceiptResponse": {
+        "type": "object",
+        "properties": {
+          "contract_version": {
+            "type": "string",
+            "const": "C0-REP-1"
+          },
+          "model_version": {
+            "type": "string",
+            "const": "REP-CURVE-v0.2"
+          },
+          "network": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "compatible": {
+            "type": "boolean"
+          },
+          "offer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mandate_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proposal_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "envelope_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "ALLOW",
+              "DENY"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DenialCode"
+            }
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "identity": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              },
+              "lender_offer": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              },
+              "policy": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              },
+              "exposure": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              },
+              "nonce": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP"
+                ]
+              }
+            },
+            "required": [
+              "identity",
+              "lender_offer",
+              "policy",
+              "exposure",
+              "nonce"
+            ],
+            "additionalProperties": true
+          },
+          "reservation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "signature_state": {
+            "type": "string",
+            "enum": [
+              "NOT_YET_SIGNED",
+              "SIGNATURE_ISSUED",
+              "DENIED"
+            ]
+          },
+          "xrpl_state": {
+            "type": "string",
+            "enum": [
+              "NOT_SUBMITTED",
+              "SUBMITTED",
+              "VALIDATED_ACTIVE",
+              "FAILED",
+              "RECONCILING",
+              "SIMULATED"
+            ]
+          },
+          "tx_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decision_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quote_bond_u": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "stake_proof_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "policy_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "commercial_terms_hash": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "prepared_tx_commitment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Commitment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "native_signing_permitted": {
+            "type": "boolean"
+          },
+          "explorer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "contract_version",
+          "model_version",
+          "network",
+          "mode",
+          "request_id",
+          "compatible",
+          "offer_id",
+          "mandate_id",
+          "proposal_hash",
+          "envelope_hash",
+          "decision",
+          "reason_codes",
+          "checks",
+          "reservation_id",
+          "signature_state",
+          "xrpl_state",
+          "tx_hash",
+          "decision_time",
+          "quote_bond_u",
+          "stake_proof_id",
+          "policy_hash",
+          "commercial_terms_hash",
+          "prepared_tx_commitment",
+          "native_signing_permitted",
+          "explorer"
+        ],
+        "additionalProperties": false,
+        "description": "Decision and execution snapshot. A transaction timeout is unresolved. SIMULATED_LOAN must have tx_hash null and native_signing_permitted false. Runtime also requires ALLOW, reservation, stake proof and prepared commitment before native signing permission.",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "mode": {
+                  "const": "SIMULATED_LOAN"
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            "then": {
+              "properties": {
+                "tx_hash": {
+                  "type": "null"
+                },
+                "native_signing_permitted": {
+                  "const": false
+                }
+              }
+            }
+          }
+        ]
+      },
+      "RepaymentRequest": {
+        "type": "object",
+        "properties": {
+          "loan_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "principal_reduction_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Repayment amount passed to the configured adapter. Simulation uses display money. Native representation must match the selected loan asset precision. This amount is not proof of actual principal reduction."
+          }
+        },
+        "required": [
+          "loan_id",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "RepaymentResult": {
+        "type": "object",
+        "properties": {
+          "txHash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "simulated": {
+            "type": "boolean"
+          },
+          "loanId": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CreditStatus"
+          }
+        },
+        "required": [
+          "txHash",
+          "simulated",
+          "loanId",
+          "mode",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "TransactionReference": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "tx_hash": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ledger_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "transaction_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "occurred_at": {
+            "type": "integer"
+          },
+          "evidence_origin": {
+            "const": "REGISTRY_EVENT"
+          },
+          "recorded_validated": {
+            "type": "boolean",
+            "description": "The registry event records a native validated flag. This view does not re-query the ledger."
+          },
+          "ledger_requeried": {
+            "const": false
+          },
+          "explorer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "event_id",
+          "kind",
+          "tx_hash",
+          "ledger_index",
+          "transaction_index",
+          "occurred_at",
+          "evidence_origin",
+          "recorded_validated",
+          "ledger_requeried",
+          "explorer"
+        ],
+        "additionalProperties": false
+      },
+      "AttemptSummary": {
+        "type": "object",
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "STAKE",
+              "LOAN"
+            ]
+          },
+          "tx_hash": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PERSISTED",
+              "SUBMITTED",
+              "RECONCILING",
+              "VALIDATED",
+              "FAILED"
+            ]
+          },
+          "sequence": {
+            "type": "integer"
+          },
+          "last_ledger_sequence": {
+            "type": "integer"
+          },
+          "commitment": {
+            "$ref": "#/components/schemas/Commitment"
+          },
+          "evidence_origin": {
+            "const": "PERSISTED_ATTEMPT"
+          },
+          "recorded_validated": {
+            "const": false
+          },
+          "ledger_requeried": {
+            "const": false
+          },
+          "explorer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "phase",
+          "tx_hash",
+          "state",
+          "sequence",
+          "last_ledger_sequence",
+          "commitment",
+          "evidence_origin",
+          "recorded_validated",
+          "ledger_requeried",
+          "explorer"
+        ],
+        "additionalProperties": false
+      },
+      "LoanSummary": {
+        "type": "object",
+        "properties": {
+          "loan_id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "principal_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "outstanding_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "original_bond_u": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "defaulted_minor": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "origin_time": {
+            "type": "integer"
+          },
+          "maturity_time": {
+            "type": "integer"
+          },
+          "next_due_time": {
+            "type": "integer"
+          },
+          "grace_seconds": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "loan_id",
+          "state",
+          "principal_minor",
+          "outstanding_minor",
+          "original_bond_u",
+          "defaulted_minor",
+          "origin_time",
+          "maturity_time",
+          "next_due_time",
+          "grace_seconds"
+        ],
+        "additionalProperties": false
+      },
+      "LenderDecisionSnapshot": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "const": "APPROVE"
+          },
+          "lender_id": {
+            "type": "string"
+          },
+          "offer_id": {
+            "type": "string"
+          },
+          "approval_ref": {
+            "type": "string"
+          },
+          "underwriting_policy": {
+            "type": "string"
+          },
+          "evidence_origin": {
+            "const": "APPROVED_OFFER_SNAPSHOT"
+          }
+        },
+        "required": [
+          "decision",
+          "lender_id",
+          "offer_id",
+          "approval_ref",
+          "underwriting_policy",
+          "evidence_origin"
+        ],
+        "additionalProperties": false,
+        "description": "Projection from the saved lender-approved offer. It does not run new underwriting. Null means no saved approval, not a lender decline."
+      },
+      "RequestView": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string"
+          },
+          "reservation_id": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "network": {
+            "type": "string"
+          },
+          "request_state": {
+            "$ref": "#/components/schemas/RequestState"
+          },
+          "loan_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorizationReceipt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approved_offer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LenderFacilityOffer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lender_decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LenderDecisionSnapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "credit_status": {
+            "$ref": "#/components/schemas/CreditStatus"
+          },
+          "loan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LoanSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionReference"
+            }
+          },
+          "attempts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttemptSummary"
+            }
+          }
+        },
+        "required": [
+          "request_id",
+          "reservation_id",
+          "mode",
+          "network",
+          "request_state",
+          "loan_id",
+          "receipt",
+          "approved_offer",
+          "lender_decision",
+          "credit_status",
+          "loan",
+          "transactions",
+          "attempts"
+        ],
+        "additionalProperties": false,
+        "examples": [
+          {
+            "request_id": "req-003",
+            "reservation_id": "res-A-999",
+            "mode": "SIMULATED_LOAN",
+            "network": "devnet",
+            "request_state": "AWAITING_STAKE",
+            "loan_id": null,
+            "receipt": {
+              "request_id": "req-003",
+              "compatible": true,
+              "offer_id": "offer-A-777",
+              "mandate_id": "m-001",
+              "proposal_hash": "sha256:4be77a7d8b36fa52d473b06141587efbc5afd260a3a5505fd2b90b1b4a99a19b",
+              "envelope_hash": "sha256:63b08912e9bd2245ad0b2bd3a3ec8e2b592527fa77f67d74882d2f43998273a3",
+              "decision": "ALLOW",
+              "reason_codes": [],
+              "checks": {
+                "identity": "PASS",
+                "lender_offer": "PASS",
+                "policy": "PASS",
+                "exposure": "PASS",
+                "nonce": "PASS"
+              },
+              "reservation_id": "res-A-999",
+              "signature_state": "NOT_YET_SIGNED",
+              "xrpl_state": "NOT_SUBMITTED",
+              "tx_hash": null,
+              "decision_time": "2026-10-24T18:11:00Z",
+              "contract_version": "C0-REP-1",
+              "model_version": "REP-CURVE-v0.2",
+              "network": "devnet",
+              "mode": "SIMULATED_LOAN",
+              "quote_bond_u": "720000000",
+              "stake_proof_id": "sim:stake-proof-003",
+              "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+              "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+              "prepared_tx_commitment": null,
+              "native_signing_permitted": false
+            },
+            "approved_offer": {
+              "lender_id": "lender-A",
+              "borrower_id": "business:harbor-supply-demo",
+              "facility_id": "facility-A-001",
+              "facility_limit": "5000.00",
+              "active_commitments": "1000.00",
+              "reserved": "0.00",
+              "offer_id": "offer-A-777",
+              "asset": {
+                "currency": "USD",
+                "issuer": "sim:usd-issuer"
+              },
+              "principal": "2000.00",
+              "apr_bps": 550,
+              "term_days": 90,
+              "fees": "0.00",
+              "purpose": "working_capital",
+              "expires_at": "2026-10-24T22:00:00Z",
+              "underwriting_policy": "lenderA-v2",
+              "approval_ref": "uw-A-349",
+              "lender_signature": "sig-simulated-lender",
+              "contract_version": "C0-REP-1",
+              "model_version": "REP-CURVE-v0.2",
+              "network": "devnet",
+              "mode": "SIMULATED_LOAN",
+              "rate_kind": "NOMINAL_ANNUAL",
+              "schedule": {
+                "kind": "BULLET",
+                "payment_total": 1,
+                "payment_interval_seconds": 7776000,
+                "native_acceptance": "PENDING_VEDANT"
+              },
+              "commercial_terms_hash": "sha256:cb84a8ca77823d3d5ab4db39ea1011c94b22f6dd9ffa320d9bea9df729806e55",
+              "offer_hash": "sha256:cb57516abfe39e46c7b8a265ff96dc88980ef87af2d0f7614ab07038258a81cb"
+            },
+            "lender_decision": {
+              "decision": "APPROVE",
+              "lender_id": "lender-A",
+              "offer_id": "offer-A-777",
+              "approval_ref": "uw-A-349",
+              "underwriting_policy": "lenderA-v2",
+              "evidence_origin": "APPROVED_OFFER_SNAPSHOT"
+            },
+            "credit_status": {
+              "contract_version": "C0-REP-1",
+              "model_version": "REP-CURVE-v0.2",
+              "network": "devnet",
+              "mode": "SIMULATED_LOAN",
+              "principal_id": "business:harbor-supply-demo",
+              "asset": {
+                "currency": "USD",
+                "issuer": "sim:usd-issuer"
+              },
+              "rep_asset": {
+                "mpt_issuance_id": "sim:rep-issuance",
+                "issuer": "sim:rep-issuer",
+                "asset_scale": 6
+              },
+              "money_scale": "100",
+              "rep_scale": 1000000,
+              "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+              "observed_at": "2026-10-24T18:11:00Z",
+              "coverage": "participating_sources_only",
+              "facility": {
+                "facility_id": "facility-A-001",
+                "lender_id": "lender-A",
+                "approved_limit_minor": "500000",
+                "committed_minor": "100000",
+                "reserved_minor": "200000",
+                "headroom_minor": "200000",
+                "version": 2
+              },
+              "portfolio": {
+                "active_principal_minor": "100000",
+                "reserved_principal_minor": "200000",
+                "defaulted_principal_minor": "0",
+                "facility_committed_minor": "100000",
+                "facility_reserved_minor": "200000",
+                "reputation": {
+                  "seed_u": "1000000000",
+                  "available_u": "40000000",
+                  "reserved_u": "720000000",
+                  "bonded_u": "240000000",
+                  "pending_return_u": "0",
+                  "growth_u": "0",
+                  "forfeited_u": "0",
+                  "suspended": false,
+                  "version": 2
+                }
+              },
+              "exposure_for_curve_minor": "300000"
+            },
+            "loan": null,
+            "transactions": [],
+            "attempts": []
+          }
+        ]
+      }
+    }
+  },
+  "x-source-schema-hashes": {
+    "packages/schemas/src/index.ts": "f8c1af70b2f00d09757e4ce7173add066ee06fd4f68dbeeed2c772ee4852dd74",
+    "packages/schemas/src/c0.ts": "ab17f77d077285d3773b9ea1e16eb1d337a1773dfd5243a3e35fe76b0e994289",
+    "packages/schemas/src/credit.ts": "c977ec507e605871e746c3a24bd8035f7b99c641e06f5baab444756446ff7265",
+    "packages/schemas/src/commitments.ts": "8138c7f047b5a23b837af1bbb24801ff9eda3d3315f9fa8a4bfba135d8545c4a"
+  },
+  "x-source-models": {
+    "contract_version": "C0-REP-1",
+    "model_version": "REP-CURVE-v0.2",
+    "schema_source": "packages/schemas/src/index.ts",
+    "runtime_semantics": "Zod refinements and registry transactions enforce cross-field rules beyond JSON Schema."
+  }
+}

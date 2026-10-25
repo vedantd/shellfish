@@ -27,13 +27,13 @@ export function createFixtureCreditServices(registry?:CreditRegistry):FixtureCre
 }
 /** Explicit simulation bootstrap for Vedant's entrypoint. Importing this module writes nothing. */
 export function openFixtureCreditBackend(path:string):{
-  services:FixtureCreditServices;registry:CreditRegistry;execution:ReturnType<typeof openCreditRegistry>["execution"];returns:ReturnType<typeof openCreditRegistry>["returns"];close:()=>void;
+  services:FixtureCreditServices;registry:CreditRegistry;execution:ReturnType<typeof openCreditRegistry>["execution"];returns:ReturnType<typeof openCreditRegistry>["returns"];uiState:ReturnType<typeof openCreditRegistry>["uiState"];requestViews:ReturnType<typeof openCreditRegistry>["requestViews"];transaction:<T>(work:()=>T)=>T;close:()=>void;
 } {
   const {scenario,mandate}=fixtureInputs();
   if(scenario.mode!=="SIMULATED_LOAN")throw new Error("Synthetic bootstrap cannot initialize native accounts");
-  const backend=openCreditRegistry(path,{now:()=>new Date(scenario.clock)});
+  const backend=openCreditRegistry(path,{now:()=>new Date(scenario.clock),uiMode:"SIMULATED_LOAN",uiNetwork:scenario.network});
   try {
     backend.registry.seedScenario(scenario,mandate.xrpl_borrower);
-    return {services:createFixtureCreditServices(backend.registry),registry:backend.registry,execution:backend.execution,returns:backend.returns,close:backend.close};
+    return {services:createFixtureCreditServices(backend.registry),registry:backend.registry,execution:backend.execution,returns:backend.returns,uiState:backend.uiState,requestViews:backend.requestViews,transaction:<T>(work:()=>T):T=>backend.db.transaction(work).immediate(),close:backend.close};
   } catch(error){backend.close();throw error;}
 }

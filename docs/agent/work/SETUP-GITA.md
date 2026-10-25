@@ -1,5 +1,17 @@
 # Gita work record
 
+## Current checkpoint: durable UI state and API contract
+
+- State: REVIEW for implemented SQLite/API delivery. Parent B-0002, direct user authority AUTH-GITA-UI-PERSIST-003 and central sync AUTH-GITA-CENTRAL-SYNC-002.
+- Same existing SQLite DB now stores immutable approved offer snapshots, current receipts and append-only receipt history. Authorization reservation and UI records commit atomically.
+- API Maps removed. GET receipts and approved-term lookups survive restart. Original ALLOW and advanced execution receipt survive later denial or exact reauthorization.
+- GET `/v1/requests/:id` joins request state, loan, approved offer/lender decision, current REP/facility state, recorded transactions and safe attempts. It returns no signed blobs and does not invent approvals from hashes.
+- OpenAPI source: `services/api/src/openapi.json`, served at `/openapi.json`. 16 operations, 44 schemas, portable generation and contract checks. Frontend guide: `docs/API.md`.
+- Checks: SQLite12 PASS, read-view10 PASS, HTTP restart1 PASS, OpenAPI12 checks PASS. Combined workspace/regression results recorded at delivery.
+- Historical native fixtures used real Devnet transactions. These local API recovery tests submit none. Native recorded hashes retain their mode and provenance.
+- Remaining: native credit source/configuration records after selection, authenticated verification, execution fencing/persistence, issuer-return worker and connected product smoke. Existing stores and read APIs are ready for UI integration now.
+- Current application delivery is the commit containing this SQLite/API checkpoint. No dependencies or lockfile changed.
+
 ## Current checkpoint: B-0002 consumer binding repair
 
 - State: REVIEW after implementation and verification. Parent: B-0002. No new coordinator ID allocated.

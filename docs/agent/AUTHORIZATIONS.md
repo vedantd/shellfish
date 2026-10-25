@@ -14,6 +14,7 @@ Maintainer: acknowledged coordinator **Vedant** (B-0001).
 | B-0002 LIVE product wiring (PR #5) | Vedant, Cursor session 2026-10-25 | APPROVED (bounded) | LIVE adapter/API/UI + baton/board update; mocked tests only |
 | Dependency installation | Gita-locked pins already on main | SUPERSEDED for verify | Consumer used Node 24.21 / pnpm 9.15 against existing lockfile |
 | Commit/push of this ACK | Vedant request to record baton | APPROVED when Vedant pushes | Baton/board/ledger/SETUP-VEDANT only unless separately asked |
+| AUTH-GITA-CENTRAL-SYNC-002 | Gita, direct Codex request on 25 October 2026 | APPROVED (bounded) | Sync current baton, board, own work record and this grant to verified delivery and UI/backend dependencies |
 | AUTH-DEVNET-001 | Vedant, Cursor 2026-10-25 11:54 UTC | APPROVED (bounded) | Stateful XRPL Devnet submit for B-0002 LIVE smoke |
 
 The setup-pass absence of a grant below is historical. AUTH-GITA-HANDOFF-001
@@ -146,3 +147,22 @@ for this exact checkpoint. It does not create standing release or installation a
   `fixtures/network-signing-contract.json` `native_ready` without Gita schema allocation;
   editing Gita package sources; inventing synthetic live hashes.
 - Stop: smoke recorded; next is env fill + LIVE run, then optional Gita schema request.
+
+## AUTH-GITA-CENTRAL-SYNC-002
+
+- Status: APPROVED for the requested central status and dependency sync.
+- Approver/source: Gita's direct request, "update the central baton, and tell me what to do next to finish out the backend so that the UI can start".
+- Recorded: 2026-10-25 08:30 America/New_York (12:30 UTC).
+- Allowed: CURRENT-BATON, WORK-BOARD, Gita's own work record and this attributable grant. Record delivered code `9fad690`, actual checks and the next UI/backend dependency plan.
+- Narrow central-record exception only. Vedant remains coordinator. No new implementation baton ID, coding claim, native success or Vedant consumer ACK is invented.
+- Earlier direct instruction, "so just do that in the main codebase", authorized the tested eight-file consumer binding repair delivered in `9fad690`.
+- Excludes application changes, dependency installation, new stateful network execution and deployment in this documentation sync.
+- Delivery follows Gita's standing request to commit and push the finished handoff. Preserve unknown changes and verify the remote ref.
+
+## AUTH-GITA-UI-PERSIST-003
+
+- Source: Gita directly requested SQLite storage, API implementation, the joined credit view and an OpenAPI source of truth for the frontend.
+- Allowed: existing SQLite DB helpers/schema, API bootstrap/context/read routes and atomic authorization storage, focused regression fixtures, OpenAPI JSON/generator/checks and frontend API guide. Central record sync remains AUTH-GITA-CENTRAL-SYNC-002.
+- This extends the earlier direct application repair grant to the necessary persistence/API files. Vedant remains coordinator and owns remaining execution/UI integration.
+- Excludes dependency installation, secret ingestion, new stateful ledger submissions, deployment, invented underwriting or native verification claims.
+- Deliver the reviewed changes, validation and dependency handoff through the existing commit/push workflow.

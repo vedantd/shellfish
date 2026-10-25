@@ -1,4 +1,5 @@
 import cors from "@fastify/cors";
+import apiSpecification from "./openapi.json" with { type: "json" };
 import Fastify from "fastify";
 import { config } from "./config.js";
 import {
@@ -47,6 +48,7 @@ if (config.networkMode === "SIMULATED_LOAN") {
 
 await app.register(cors, { origin: true });
 await app.register(healthRoutes);
+app.get("/openapi.json", async () => apiSpecification);
 await app.register(youRoutes);
 await app.register(gitaRoutes, {
   services: backend?.services,

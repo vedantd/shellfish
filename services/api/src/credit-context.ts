@@ -15,8 +15,6 @@ export type CreditBackend = (SimBackend | LiveCreditBackend) & {
 };
 
 let backend: CreditBackend | null = null;
-const receiptsByRequestId = new Map<string, AuthorizationReceipt>();
-const receiptsById = new Map<string, AuthorizationReceipt>();
 
 export function getCreditBackend(): CreditBackend | null {
   return backend;
@@ -36,23 +34,17 @@ export function setCreditBackend(next: CreditBackend | null): void {
 }
 
 export function storeReceipt(receipt: AuthorizationReceipt): void {
-  receiptsByRequestId.set(receipt.request_id, receipt);
-  const id = receipt.reservation_id ?? receipt.request_id;
-  receiptsById.set(id, receipt);
-  receiptsById.set(receipt.request_id, receipt);
+  requireCreditBackend().uiState.storeReceipt(receipt);
 }
 
 export function getReceipt(id: string): AuthorizationReceipt | undefined {
-  return receiptsById.get(id) ?? receiptsByRequestId.get(id);
+  return requireCreditBackend().uiState.getReceipt(id);
 }
 
-
-// The receipt lane is currently in memory. Missing terms after restart fail closed.
-const approvedOffersByTerms = new Map<string, LenderFacilityOffer>();
 export function storeApprovedOffer(offer: LenderFacilityOffer): void {
-  approvedOffersByTerms.set(offer.commercial_terms_hash, JSON.parse(JSON.stringify(offer)) as LenderFacilityOffer);
+  requireCreditBackend().uiState.storeApprovedOffer(offer);
 }
+
 export function getApprovedOffer(commercialTermsHash: string): LenderFacilityOffer | undefined {
-  const offer = approvedOffersByTerms.get(commercialTermsHash);
-  return offer ? JSON.parse(JSON.stringify(offer)) as LenderFacilityOffer : undefined;
+  return requireCreditBackend().uiState.getApprovedOffer(commercialTermsHash);
 }

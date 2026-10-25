@@ -60,14 +60,32 @@ function explorerUrl(txHash: string | null | undefined): string | null {
  * Routes owned by You (Shellfish + XRPL + receipts).
  */
 export async function youRoutes(app: FastifyInstance) {
-  app.get("/v1/network", async () => {
-    const backend = requireCreditBackend();
+  app.get("/v1/network", async (_req, reply) => {
+    let backend;
+    try { backend = requireCreditBackend(); }
+    catch { reply.code(503); return { code: "CREDIT_SOURCE_NOT_CONFIGURED", mode: config.networkMode, live_ready: false }; }
     return {
       mode: config.networkMode,
       live_ready: Boolean(backend.live && backend.liveConfig),
       public_signing: backend.liveConfig?.publicSigning ?? null,
       explorer_base: "https://devnet.xrpl.org/transactions/",
     };
+  });
+
+  app.get<{ Params: { id: string } }>("/v1/requests/:id", async (req, reply) => {
+    let backend;
+    try { backend = requireCreditBackend(); }
+    catch { reply.code(503); return { code: "CREDIT_SOURCE_NOT_CONFIGURED", mode: config.networkMode }; }
+    try {
+      const view = backend.requestViews.getRequestView(req.params.id);
+      if (view.mode !== config.networkMode) throw new RegistryError("DENY_UNSUPPORTED_NETWORK");
+      return view;
+    }
+    catch (error) {
+      const code = error instanceof RegistryError ? error.code : "REQUEST_VIEW_FAILED";
+      reply.code(code === "NOT_FOUND" ? 404 : 409);
+      return { code, mode: config.networkMode };
+    }
   });
 
   app.post<{
@@ -158,6 +176,7 @@ export async function youRoutes(app: FastifyInstance) {
       const proposalHash =
         req.body?.proposal_hash ?? contentHash(reservationRequest);
 
+      const parsed = backend.transaction(() => {
       const receipt = authorizeExactAction({
         mandate,
         offer,
@@ -170,13 +189,15 @@ export async function youRoutes(app: FastifyInstance) {
         now,
       });
 
-      const parsed = AuthorizationReceipt.parse(receipt);
-      if (parsed.decision === "ALLOW") storeApprovedOffer(offer);
-      storeReceipt(parsed);
+      const value = AuthorizationReceipt.parse(receipt);
+      if (value.decision === "ALLOW") storeApprovedOffer(offer);
+      storeReceipt(value);
+      return value;
+      });
       if (parsed.decision === "DENY") {
         reply.code(403);
       }
-      return parsed;
+      return parsed.decision === "ALLOW" ? getReceipt(parsed.request_id) ?? parsed : parsed;
     } catch (err) {
       if (err instanceof RegistryError) {
         reply.code(400);
@@ -348,7 +369,9 @@ export async function youRoutes(app: FastifyInstance) {
   });
 
   app.get<{ Params: { id: string } }>("/v1/receipts/:id", async (req, reply) => {
-    const receipt = getReceipt(req.params.id);
+    let receipt;
+    try { receipt = getReceipt(req.params.id); }
+    catch { reply.code(503); return { code: "CREDIT_SOURCE_NOT_CONFIGURED", mode: config.networkMode }; }
     if (!receipt) {
       reply.code(404);
       return {

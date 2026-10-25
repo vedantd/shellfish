@@ -19,6 +19,9 @@ export type LiveCreditBackend = {
   registry: ReturnType<typeof openCreditRegistry>["registry"];
   execution: ReturnType<typeof openCreditRegistry>["execution"];
   returns: ReturnType<typeof openCreditRegistry>["returns"];
+  uiState: ReturnType<typeof openCreditRegistry>["uiState"];
+  requestViews: ReturnType<typeof openCreditRegistry>["requestViews"];
+  transaction: <T>(work: () => T) => T;
   close: () => void;
   live: LiveLedger;
   liveConfig: LiveRuntimeConfig;
@@ -51,6 +54,8 @@ export async function openLiveCreditBackend(
   const verifiers = createStructuralNativeVerifiers();
   const backend = openCreditRegistry(databasePath, {
     now,
+    uiMode: "LIVE_DEVNET",
+    uiNetwork: "devnet",
     verifyNativeEvent: verifiers.verifyNativeEvent,
     verifyNativePortfolio: verifiers.verifyNativePortfolio,
   });
@@ -93,6 +98,9 @@ export async function openLiveCreditBackend(
       registry: backend.registry,
       execution: backend.execution,
       returns: backend.returns,
+      uiState: backend.uiState,
+      requestViews: backend.requestViews,
+      transaction: <T>(work: () => T): T => backend.db.transaction(work).immediate(),
       live,
       liveConfig,
       mode: "LIVE_DEVNET",
