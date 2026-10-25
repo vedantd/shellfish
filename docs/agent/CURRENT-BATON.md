@@ -95,13 +95,13 @@ use the served contract. The backend is not yet fully accepted.
 - [x] HTTP simulation: ALLOW, altered-term rejection, origination, receipt and exact retry PASS.
 - [x] SQLite receipt and approved-offer state survive API restart. Reservation/offer/receipt commit together.
 - [x] Joined request/credit/transaction endpoint and OpenAPI contract implemented.
-- [ ] Screens A/B consume the APIs and C consumes the joined state. UI ownership remains with Vedant.
+- [x] Screens A/B consume the APIs and C consumes the joined state (UI Slice 3; LIVE path verified).
 - [x] Rough native intent/evidence/approved-offer storage and service wiring implemented. Integration acceptance remains open.
 - [x] Vedant selected the native public configuration, 90-day/zero-fee terms and MPT scale six in `4237c87`.
 - [ ] Selected configuration, stored state and ledger state pass the complete restart/unknown-debt audit.
 - [x] Rough mandate authentication, authenticated verification, durable origination, lifecycle and return workers implemented.
 - [ ] Existing mock ports updated and full new regression/lifecycle suite passes.
-- [ ] Stateful Devnet smoke PASS (execution grant + real hashes on Devnet).
+- [x] Stateful Devnet smoke PASS (AUTH-DEVNET-001): UI A→B→C LoanSet `75B10AF4…` / loan `0B8DED85…` (public hashes; seeds local-only).
 - [ ] Full connected demo polish (C4 denials/replay/race/timeout on product path).
 
 ## Scope

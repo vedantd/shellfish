@@ -12,17 +12,17 @@
 | Gate | Observable outcome | Status and evidence |
 | --- | --- | --- |
 | C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | **ACCEPTED** C0-REP-1. Fixture `native_ready` still false (schema) |
-| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | Producer and HTTP checks PASS. Screen C connected. Screens A/B static TODOs, ready for API integration |
-| C2 | Authorization reserves once and only then permits a required signature | Rough detached native authentication, signer lanes and durable signing coded. Individual tests passed. Full consumer acceptance open |
-| C3 | Verified execution changes accounting once, timeout retains reservation | Rough persistence/reconciliation, ledger verification, lifecycle and returns coded. Full regression, hardening and native smoke NOT RUN |
-| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | 20 source conformance cases and HTTP smoke PASS. Six security TODOs, restart/recovery and full rehearsal remain open |
+| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | Producer + HTTP PASS. Screens A/B/C wired to APIs (UI Slice 3). LIVE UI path PASS |
+| C2 | Authorization reserves once and only then permits a required signature | LIVE UI smoke: ALLOW → stake → LoanSet on Devnet (AUTH-DEVNET-001). Full consumer acceptance still open |
+| C3 | Verified execution changes accounting once, timeout retains reservation | Durable paths coded; connected LoanSet smoke PASS. Return/default/restart audit still open |
+| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | Happy-path LIVE demo PASS. Denial buttons exist; full C4 rehearsal + six security TODOs remain open |
 
 ## Queued work and claims
 
 | Lane | Owner | First bounded outcome | Depends on | Record | State |
 | --- | --- | --- | --- | --- | --- |
 | Credit and registry | Gita | Rough native backend and source/API integration delivered for review | Base `4237c87`, selected scale-six product asset | [Gita work](work/SETUP-GITA.md) | PAUSED after commit/push, direct user request |
-| Authorization and execution | Vedant | Test and harden incoming rough backend, then UI integration | Actual delivery commit and selected configuration | [Vedant work](work/SETUP-VEDANT.md) | REVIEW incoming. No new consumer ACK |
+| Authorization and execution | Vedant | UI Slice 3 + LIVE Devnet A→B→C smoke PASS; hardening/return/default remain | Actual delivery commit and selected configuration | [Vedant work](work/SETUP-VEDANT.md) | REVIEW — Gita can resume producer/schema lanes (`native_ready` still false) |
 | Policy examples | Nick | Two exact rules and expected results | Final PRD | Non-coding input to Gita | READY |
 | Adversarial examples | Shell | Six bounded negative cases | Final PRD and agreed signing route | Non-coding input to both | READY |
 

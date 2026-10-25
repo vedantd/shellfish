@@ -8,7 +8,16 @@ export async function openLiveCreditBackend(databasePath: string, options: {
 } = {}) {
   const liveConfig = loadLiveRuntimeConfig(options.env ?? process.env);
   if (!liveConfig) throw new Error("LIVE_CONFIG_REQUIRED");
-  const now = options.now ?? (() => new Date());
+  // Devnet ledger close_time often lags wall clock. Reservation created_at uses
+  // registry.now(); stake occurredAt uses ledger unix. Keep reserve clock behind
+  // wall, then pin applyEvent clock to the ledger instant so both bounds pass.
+  let applyUnix: number | null = null;
+  const now =
+    options.now ??
+    (() =>
+      applyUnix !== null
+        ? new Date(applyUnix * 1000)
+        : new Date(Date.now() - 120_000));
   const handle = !options.live && options.connectLedger !== false ? await createXrplLiveLedger(liveConfig) : null;
   const live = options.live ?? handle?.ledger;
   if (!live?.transport) { await handle?.close(); throw new Error("DURABLE_NATIVE_TRANSPORT_REQUIRED"); }
@@ -40,14 +49,40 @@ export async function openLiveCreditBackend(databasePath: string, options: {
     try { backend.registry.getPortfolio(binding); enrolled = true; } catch (error) {
       if (!(error && typeof error === "object" && "code" in error && error.code === "NOT_FOUND")) throw error;
     }
-    if (!enrolled) await backend.registry.initializeNativePortfolio(livePortfolioSeed(liveConfig, now().toISOString()), liveConfig.borrowerAddress, { source: "queried-devnet" });
-    else await verifiers.verifyAssetConfiguration({ lenderId: liveConfig.brokerAddress });
+    if (!enrolled) {
+      // Opening REP must match the live holder balance (post-growth micro-units included).
+      const configuration = await verifiers.verifyAssetConfiguration({
+        lenderId: liveConfig.brokerAddress,
+      });
+      const seed = livePortfolioSeed(liveConfig, now().toISOString());
+      seed.opening.reputation.seed_u = configuration.borrowerRepBalanceU;
+      seed.opening.reputation.available_u = configuration.borrowerRepBalanceU;
+      await backend.registry.initializeNativePortfolio(
+        seed,
+        liveConfig.borrowerAddress,
+        { source: "queried-devnet" },
+      );
+    } else await verifiers.verifyAssetConfiguration({ lenderId: liveConfig.brokerAddress });
     const sources = createNativeCreditSources(backend.db, backend.registry, backend.uiState, liveConfig, now);
-    const lifecycle = createLifecycleWorker({ registry: backend.registry, store: backend.lifecycleStore,
+    const registry = backend.registry;
+    const applyEvent = registry.applyEvent.bind(registry);
+    registry.applyEvent = (async (event: Parameters<typeof applyEvent>[0]) => {
+      const occurred =
+        event && typeof event === "object" && "occurredAt" in event
+          ? Number((event as { occurredAt: number }).occurredAt)
+          : NaN;
+      if (Number.isSafeInteger(occurred) && occurred >= 0) applyUnix = occurred;
+      try {
+        return await applyEvent(event);
+      } finally {
+        applyUnix = null;
+      }
+    }) as typeof registry.applyEvent;
+    const lifecycle = createLifecycleWorker({ registry, store: backend.lifecycleStore,
       transport, signerLanes: backend.signerLanes, moneyScale: 100n, nativeAssetScale: liveConfig.loanAssetScale ?? 6,
       loanAsset: { mpt_issuance_id: liveConfig.loanMptIssuanceId } });
-    const repReturns = createRepReturnWorker({ registry: backend.registry, returns: backend.returns, transport, signerLanes: backend.signerLanes });
-    return { ...backend, services: sources.services, verifyNativeMandate: sources.verifyNativeMandate,
+    const repReturns = createRepReturnWorker({ registry, returns: backend.returns, transport, signerLanes: backend.signerLanes });
+    return { ...backend, registry, services: sources.services, verifyNativeMandate: sources.verifyNativeMandate,
       nativeIntent: sources.intent, lifecycle, repReturns, live, liveConfig, mode: "LIVE_DEVNET" as const,
       transaction: <T>(work: () => T): T => backend!.db.transaction(work).immediate(),
       close: () => { void handle?.close().catch(() => {}); backend?.close(); } };
