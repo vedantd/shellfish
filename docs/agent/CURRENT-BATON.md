@@ -1,10 +1,10 @@
 # Current Shellfish baton
 
 - Label / ID: **B-0002** (Vedant consumer integration). Parent C0: **B-0001** ACCEPTED.
-- State: **ACTIVE** — SIMULATED_LOAN connected checkpoint **PASS**; LIVE_DEVNET **product wiring PASS** (mocked ledger); stateful Devnet smoke **SKIP**.
+- State: **ACTIVE** — SIMULATED_LOAN **PASS**; LIVE product wiring **PASS** (PR #5 merged); Devnet execution **APPROVED** (AUTH-DEVNET-001); LIVE smoke **not run yet**.
 - Coordinator: **Vedant, acknowledged** 2026-10-25 00:41 UTC.
 - Objective owner: coordinator (Vedant). Sponsor: Gita.
-- Updated: 2026-10-25 11:47 UTC (LIVE product-wiring checkpoint on PR #5).
+- Updated: 2026-10-25 11:54 UTC (AUTH-DEVNET-001: stateful Devnet execution APPROVED).
 - Profile: setup-r1 adopted. Claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
 - Repository: Shellfish. Branch for this slice: `feat/b0002-live-devnet` → [PR #5](https://github.com/vedantd/shellfish/pull/5).
@@ -55,8 +55,8 @@ Simulation: [rep-exposure-curve.html](../simulations/rep-exposure-curve.html).
 
 ## Next bounded outcome
 
-**B-0002 follow-up:** grant stateful Devnet execution, fill env from playground/Gita native artifacts,
-run LIVE smoke, then record PASS/FAIL; flip fixture `native_ready` only after schema allocation + smoke PASS.
+**B-0002 follow-up:** fill env from playground/Gita native artifacts, run LIVE smoke under
+AUTH-DEVNET-001, record PASS/FAIL; flip fixture `native_ready` only after schema allocation + smoke PASS.
 Deferred in parallel: execution-store fencing, return-store issuer Payment, six security TODOs.
 
 ## Acceptance
@@ -112,12 +112,13 @@ the first 12-hour slice.
 | `pnpm build` / `typecheck` / `test` | PASS | **140 PASS / 6 todo** |
 | SIMULATED_LOAN regression | PASS | Prior PR #4 path kept |
 | Fixture `native_ready` | false | Schema-locked; env publishes public IDs at runtime |
-| Stateful Devnet smoke | SKIP | No execution grant in AUTHORIZATIONS |
+| Stateful Devnet execution grant | APPROVED | AUTH-DEVNET-001 (2026-10-25 11:54 UTC) |
+| Stateful Devnet smoke | NOT RUN | Grant present; env + submit still pending |
 | Native default / return-queue native | NOT RUN | As recorded by Gita |
 
 ## Exact next action
 
-Vedant (or coordinator): obtain **stateful Devnet execution** grant, fill
-`services/api/.env.live.example` from playground / Gita native E2E public IDs + local seeds,
-run LIVE smoke, record PASS/FAIL/SKIP with revision. Gita stays paused unless schema
-allocation is needed to flip `network-signing-contract.json`. Do not invent live hashes.
+Vedant: fill local env from playground / Gita native E2E public IDs + seeds (never commit),
+run `NETWORK_MODE=LIVE_DEVNET` smoke under AUTH-DEVNET-001, record PASS/FAIL/SKIP with
+revision. Gita stays paused unless schema allocation is needed to flip
+`network-signing-contract.json`. Do not invent live hashes.

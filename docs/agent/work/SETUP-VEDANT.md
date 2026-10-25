@@ -25,8 +25,8 @@
 
 ## B-0002 LIVE_DEVNET product slice — 2026-10-25
 
-- State: **PASS** for product wiring (mocked ledger unit tests). Stateful Devnet smoke: **SKIP**
-  (AUTHORIZATIONS: Stateful Devnet execution NOT GRANTED).
+- State: **PASS** for product wiring (mocked ledger unit tests). Stateful Devnet smoke: **NOT RUN**.
+  Execution grant: **AUTH-DEVNET-001 APPROVED** 2026-10-25 11:54 UTC.
 - Checks: `pnpm build` PASS, `pnpm typecheck` PASS, `pnpm test` **140 PASS / 6 todo**.
 - Implemented (Vedant paths only):
   - `@shellfish/xrpl` LIVE dual-sign LoanSet / LoanPay / REP redeem; `originateLoan` LIVE path
@@ -152,7 +152,7 @@ authorization or registry checks. No synthetic native hash or inferred settlemen
   REP redemption before controlled LoanSet; no AMM/consensus.
 - Lane remains READY and unclaimed for coding.
 
-**Next action (B-0002 follow-up):** Obtain Devnet execution grant; fill `.env.live.example`;
-run LIVE smoke; record PASS/FAIL. Then execution/return fencing, client-backed verifiers,
-security TODOs; fixture `native_ready` only after schema allocation + smoke PASS.
-SIM + LIVE product wiring checkpoints are done (PR #4 / #5).
+**Next action (B-0002 follow-up):** Fill local `.env.live` (from `.env.live.example`);
+run LIVE smoke under AUTH-DEVNET-001; record PASS/FAIL. Then execution/return fencing,
+client-backed verifiers, security TODOs; fixture `native_ready` only after schema
+allocation + smoke PASS. SIM + LIVE wiring + Devnet grant are done (PR #4 / #5 / AUTH-DEVNET-001).
