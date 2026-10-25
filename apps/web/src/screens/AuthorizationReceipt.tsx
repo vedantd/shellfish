@@ -199,10 +199,14 @@ export function AuthorizationReceiptScreen() {
       </p>
 
       <div className="actions" style={{ marginTop: 0 }}>
-        <button type="button" disabled={busy} onClick={() => void runHappyPath()}>
-          {busy ? "Processing loan…" : isLive ? "Authorize & originate loan" : "Preview loan authorization"}
+        <button type="button" disabled={busy || Boolean(originate?.loanId)} onClick={() => void runHappyPath()}>
+          {busy ? "Processing loan…" : originate?.loanId ? "Loan preview complete" : isLive ? "Authorize & originate loan" : "Preview loan authorization"}
         </button>
       </div>
+
+      {busy ? <p className="note" role="status">Checking permission and preparing your loan record…</p> : null}
+      {error ? <p className="error" role="alert">{error === "DENY_REPLAY" ? "This demo permission has already been used. A fresh demo is needed before borrowing again." : error}</p> : null}
+      {!busy && originate?.loanId ? <div className="band" role="status" style={{ marginTop: "1rem" }}><h3>{originate.simulated ? "Loan preview ready" : originate.validated ? "Loan validated on Devnet" : "Loan submitted"}</h3><p>{originate.simulated ? "Your borrowing permission was approved and the simulated loan was created. Your receipt is below." : "Your loan record and explorer links are below."}</p></div> : null}
 
       <details className="guardrails">
         <summary>Check borrowing guardrails</summary>
@@ -214,7 +218,6 @@ export function AuthorizationReceiptScreen() {
         </div>
       </details>
 
-      {error ? <p className="error" role="alert">{error}</p> : null}
 
       {signing ? (
         <div className="doc-strip">
