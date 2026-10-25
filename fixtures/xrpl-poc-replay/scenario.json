@@ -1,0 +1,51 @@
+{
+  "contract_version": "C0-REP-1",
+  "model_version": "REP-CURVE-v0.2",
+  "network": "devnet",
+  "mode": "SIMULATED_LOAN",
+  "scenario_id": "xrpl-poc-replay-v1",
+  "clock": "2026-10-25T06:40:35Z",
+  "provenance": "SYNTHETIC",
+  "native_signing_permitted": false,
+  "money_scale": 100,
+  "rep_scale": 1000000,
+  "principal_id": "sim:principal:xrpl-poc-replay-001",
+  "loan_asset": {
+    "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB"
+  },
+  "rep_asset": {
+    "mpt_issuance_id": "sim:rep-issuance:xrpl-poc-replay-001",
+    "issuer": "sim:rep-issuer:xrpl-poc-replay-001",
+    "asset_scale": 6
+  },
+  "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+  "evidence_version": "sim:evidence:xrpl-poc-replay-v1",
+  "facility": {
+    "facility_id": "sim:facility:xrpl-poc-replay-001",
+    "lender_id": "sim:lender:xrpl-poc-replay-001",
+    "asset": {
+      "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB"
+    },
+    "limit_minor": "500000",
+    "version": 1
+  },
+  "opening": {
+    "active_principal_minor": "0",
+    "reserved_principal_minor": "0",
+    "defaulted_principal_minor": "0",
+    "facility_committed_minor": "0",
+    "facility_reserved_minor": "0",
+    "reputation": {
+      "seed_u": "1000000000",
+      "available_u": "1000000000",
+      "reserved_u": "0",
+      "bonded_u": "0",
+      "pending_return_u": "0",
+      "growth_u": "0",
+      "forfeited_u": "0",
+      "suspended": false,
+      "version": 1
+    }
+  },
+  "opening_loans": []
+}

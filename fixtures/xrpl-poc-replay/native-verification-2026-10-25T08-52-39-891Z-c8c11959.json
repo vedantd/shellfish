@@ -1,0 +1,102 @@
+{
+  "result": "PASS",
+  "verification": "INDEPENDENT_PUBLIC_LEDGER_RECHECK",
+  "verified_at_utc": "2026-10-25T08:57:03.312Z",
+  "run_id": "2026-10-25T08-52-39-891Z-c8c11959",
+  "network": "devnet",
+  "accounts_separate_from_original_poc": true,
+  "transactions": [
+    {
+      "label": "rep-seed",
+      "txHash": "AF3E57FBEF12B8BEE432A20F903069F6F2050829A16F050549646958BE69127D",
+      "ledgerIndex": 6401320,
+      "transactionIndex": 5,
+      "validated": true,
+      "result": "tesSUCCESS",
+      "transactionType": "Payment",
+      "explorer": "https://devnet.xrpl.org/transactions/AF3E57FBEF12B8BEE432A20F903069F6F2050829A16F050549646958BE69127D"
+    },
+    {
+      "label": "rep-redeem",
+      "txHash": "61E3ED040E470F7B50C1A41FE463397A2FC1E2C8BFD905AC15936C146937D98C",
+      "ledgerIndex": 6401349,
+      "transactionIndex": 5,
+      "validated": true,
+      "result": "tesSUCCESS",
+      "transactionType": "Payment",
+      "explorer": "https://devnet.xrpl.org/transactions/61E3ED040E470F7B50C1A41FE463397A2FC1E2C8BFD905AC15936C146937D98C"
+    },
+    {
+      "label": "loan-originate",
+      "txHash": "2846EC91AA071877923B29178CA1F020C3D73403130785AAB854B1B771A9DCC9",
+      "ledgerIndex": 6401351,
+      "transactionIndex": 15,
+      "validated": true,
+      "result": "tesSUCCESS",
+      "transactionType": "LoanSet",
+      "explorer": "https://devnet.xrpl.org/transactions/2846EC91AA071877923B29178CA1F020C3D73403130785AAB854B1B771A9DCC9"
+    },
+    {
+      "label": "loan-repay",
+      "txHash": "C23DA7980AEAFD52E77567EED0203140CD853CD6CFDDC3CC5172C83C8F7F53ED",
+      "ledgerIndex": 6401355,
+      "transactionIndex": 9,
+      "validated": true,
+      "result": "tesSUCCESS",
+      "transactionType": "LoanPay",
+      "explorer": "https://devnet.xrpl.org/transactions/C23DA7980AEAFD52E77567EED0203140CD853CD6CFDDC3CC5172C83C8F7F53ED"
+    },
+    {
+      "label": "rep-restore",
+      "txHash": "362D204C63433DC4D35390A4B11BEA8CC21F7096379D82BB077CFF6F70A14A9A",
+      "ledgerIndex": 6401357,
+      "transactionIndex": 5,
+      "validated": true,
+      "result": "tesSUCCESS",
+      "transactionType": "Payment",
+      "explorer": "https://devnet.xrpl.org/transactions/362D204C63433DC4D35390A4B11BEA8CC21F7096379D82BB077CFF6F70A14A9A"
+    }
+  ],
+  "principal_native_units": "1000",
+  "submitted_maximum_native_units": "2000",
+  "actual_debit_native_units": "1015",
+  "principal_reduction_native_units": "1000",
+  "elapsed_ledger_seconds": 11,
+  "original_bond_u": "240000000",
+  "growth_u": "8",
+  "returned_u": "240000008",
+  "final_holder_rep_u": "1000000008",
+  "current_holder_rep_u": "1000000008",
+  "history_coverage": {
+    "complete": true,
+    "fromLedger": 6401351,
+    "toLedger": 6401355,
+    "ledgersChecked": 5,
+    "ledgerHashes": [
+      {
+        "ledgerIndex": 6401351,
+        "ledgerHash": "9BE04A6C8E441AFC295C7A865D6639172FB54BDDC3FF7353BB612E3DF522AE25"
+      },
+      {
+        "ledgerIndex": 6401352,
+        "ledgerHash": "EEFFABB595565709EE653FB901AB398AF8D95B1B83D9B6DD1A1C9E8D8F67384B"
+      },
+      {
+        "ledgerIndex": 6401353,
+        "ledgerHash": "F51A7A3DE446159C19A66B7D2B9458CFA374F643F028B48B91C3261B314112DB"
+      },
+      {
+        "ledgerIndex": 6401354,
+        "ledgerHash": "5C70FE033F88ABCC4757566390895C834E3729EDC7F841620A348897E982CDCF"
+      },
+      {
+        "ledgerIndex": 6401355,
+        "ledgerHash": "11F9C7E7EAE82789E322792BD1F4146F75B349D28E97108E613AB96680B74146"
+      }
+    ]
+  },
+  "balance_agrees_with_registry": true,
+  "private_keys_loaded": false,
+  "transactions_submitted": 0,
+  "reward_clock": "VALIDATED_LEDGER_CLOSE_TIMES_PER_REP_CURVE_V0_2"
+}

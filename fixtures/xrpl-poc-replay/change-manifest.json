@@ -1,0 +1,79 @@
+{
+  "scope": "ADDITIONS_ONLY_IN_FIXTURES_XRPL_POC_REPLAY",
+  "base_commit": "f2323cb0c5e8d8470b9e757deca1df3745439555",
+  "mode": "LIVE_DEVNET_AND_SEPARATE_SIMULATED_REPLAY",
+  "node_version": "v24.21.0",
+  "tests": {
+    "fixture_pass": 37,
+    "fixture_todo": 0,
+    "repository_pass": 96,
+    "repository_existing_todo": 6
+  },
+  "native_runs": [
+    {
+      "run_id": "2026-10-25T08-41-34-002Z-a7f02f58",
+      "result": "PASS",
+      "elapsed_seconds": 19,
+      "growth_u": "14"
+    },
+    {
+      "run_id": "2026-10-25T08-52-39-891Z-c8c11959",
+      "result": "PASS",
+      "elapsed_seconds": 11,
+      "growth_u": "8"
+    }
+  ],
+  "files": {
+    "fixtures/xrpl-poc-replay/COMMIT-NOTES.md": "107be1d17d1e8aa731a46f7bcde5bab107d7284d2683b57f37762cc72ac1cade",
+    "fixtures/xrpl-poc-replay/README.md": "3cf0ff923dfbe7940d2fb1bc0eb332cbf59e622083d12a16d51e49b95555f253",
+    "fixtures/xrpl-poc-replay/RUN-REPORT.md": "bd5da074f4b9a6d5352dcef54c58e5886cd7b609d7e9c4555cacb838cc57b454",
+    "fixtures/xrpl-poc-replay/events.json": "57e1309467cab576cec1e7690308c4e9fdaaf67de282f81b970cafac43fc6eae",
+    "fixtures/xrpl-poc-replay/expected.json": "eadca9c3671c29cc1e47da1d168dc24589f236da5437b37a1c3f0995944ea7e8",
+    "fixtures/xrpl-poc-replay/native-e2e.mjs": "9326e1d533accc74b769c36fef933c5d3e31f444bf8fb14f003b3bafbe034931",
+    "fixtures/xrpl-poc-replay/native-evidence.json": "f5e5a1403016b00f05086a1fd986138da2255d694314d956a9f6fcdee56fcd96",
+    "fixtures/xrpl-poc-replay/native-helpers.test.mjs": "0fc10182313514e4f302c691d304078e6a396230882b554734c3d76bf689822a",
+    "fixtures/xrpl-poc-replay/native-ledger.mjs": "248a9f0bb6de3c2cfef634455723b5d13bfb0503ace820def694de6eecd7dcf8",
+    "fixtures/xrpl-poc-replay/native-rep.mjs": "eefb24930d0f897d318bf266450bbd87a7c8f8de544deca71cadc453e751d3de",
+    "fixtures/xrpl-poc-replay/native-result-2026-10-25T08-41-34-002Z-a7f02f58.json": "817d10957e1506983cf0fd2343931ce61dbaa7ae7bf4f35f9cc42d851ed878db",
+    "fixtures/xrpl-poc-replay/native-result-2026-10-25T08-52-39-891Z-c8c11959.json": "71b212fd34034140f9e1de4d791ca0355ada40682c322d78b3ba6f78b18a2e05",
+    "fixtures/xrpl-poc-replay/native-verification-2026-10-25T08-52-39-891Z-c8c11959.json": "3612af092750159f1d361e9a086e053735a77f8cac12839b1e9ba952b48a9e95",
+    "fixtures/xrpl-poc-replay/replay.mjs": "dfcec4602099b3712283d261530c774b53d4f291776bd3c34bccc80dae735fdb",
+    "fixtures/xrpl-poc-replay/replay.test.mjs": "0cbf3666951db6eeccbc27e7b844dc98f3651b2fae8176ef41cc5eadf960c1e2",
+    "fixtures/xrpl-poc-replay/scenario.json": "e53bce39b1e8b73a60b90a48d7dcf2103b7cca9fa896beb1e0eaf2b5323673b7",
+    "fixtures/xrpl-poc-replay/verify-native-result.mjs": "ff13cf0c5da098909c0c9237907b851c30a4e9fa5dd2e1d16f5fb4433a1e2e02"
+  },
+  "private_state_excluded": true,
+  "committed": false,
+  "pushed": false,
+  "deployed": false,
+  "dependency_source_hashes_at_recorded_native_runs": {
+    "packages/registry/src/registry.ts": "51040c63a128c6e42818fd196995a2ad18a0222abb5bc14379aaba0472146a73",
+    "packages/registry/src/curve.ts": "e1c64c50add613b21e3b594b072fa1638bab3caef1460b5fe2b89685e7bceb8b",
+    "packages/registry/src/types.ts": "3020319cea6bec9970561f2127a7109400a58a6f6f7b0e9095bf82fc649ddfd1",
+    "packages/registry/src/attempts.ts": "1d6af1bbbd63bc9bd222dc5318dcfeb30e3494e5cddcb6da0b0d51d38d4b31f4",
+    "packages/schemas/src/c0.ts": "ab17f77d077285d3773b9ea1e16eb1d337a1773dfd5243a3e35fe76b0e994289"
+  },
+  "dependency_source_hashes": {
+    "packages/registry/src/registry.ts": "51040c63a128c6e42818fd196995a2ad18a0222abb5bc14379aaba0472146a73",
+    "packages/registry/src/curve.ts": "e1c64c50add613b21e3b594b072fa1638bab3caef1460b5fe2b89685e7bceb8b",
+    "packages/registry/src/types.ts": "3020319cea6bec9970561f2127a7109400a58a6f6f7b0e9095bf82fc649ddfd1",
+    "packages/registry/src/attempts.ts": "1d6af1bbbd63bc9bd222dc5318dcfeb30e3494e5cddcb6da0b0d51d38d4b31f4",
+    "packages/registry/src/returns.ts": "bc10a1037545bde7679b7bc33aa617a28e7ee319531c8a1e37f2b36c6111eda6",
+    "packages/registry/src/ledger-projection.ts": "c79ede80561a8374efeb95218424c63d14cdb766dbbed97a8bbf07005ac1d7df",
+    "packages/schemas/src/c0.ts": "ab17f77d077285d3773b9ea1e16eb1d337a1773dfd5243a3e35fe76b0e994289"
+  },
+  "commit_preparation": {
+    "at_utc": "2026-10-25T10:02:57.830351+00:00",
+    "parent_commit": "f2323cb0c5e8d8470b9e757deca1df3745439555",
+    "scope": "fixtures/xrpl-poc-replay public files only",
+    "fixture_tests_pass": 37,
+    "fixture_tests_skipped": 0,
+    "fixture_tests_todo": 0,
+    "native_harness_syntax": "PASS",
+    "native_harness_plan_only": "PASS",
+    "new_native_execution": "NOT_RUN",
+    "current_return_queue_native_execution": "NOT_RUN",
+    "draft_registry_dependencies_included": false,
+    "historical_release_flags": "committed/pushed/deployed describe the original saved native session, before this commit request"
+  }
+}

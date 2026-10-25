@@ -1,0 +1,197 @@
+{
+  "fixture_version": "XRPL-POC-REPLAY-1",
+  "mode": "SIMULATED_LOAN",
+  "provenance": "SYNTHETIC",
+  "native_signing_permitted": false,
+  "native_ready": false,
+  "source_evidence_sha256": "f5e5a1403016b00f05086a1fd986138da2255d694314d956a9f6fcdee56fcd96",
+  "history_provenance": "SCRIPTED_SIMULATION_ONLY",
+  "native_reward_status": "NOT_EVALUATED",
+  "quote": {
+    "exposure_minor": "0",
+    "principal_minor": "100000",
+    "bond_u": "240000000",
+    "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+    "exposure_version": 1
+  },
+  "simulated_elapsed_principal_seconds": 0,
+  "simulated_growth_u": "0",
+  "original_bond_u": "240000000",
+  "snapshots": {
+    "seed": {
+      "active_principal_minor": "0",
+      "reserved_principal_minor": "0",
+      "defaulted_principal_minor": "0",
+      "facility_committed_minor": "0",
+      "facility_reserved_minor": "0",
+      "reputation": {
+        "seed_u": "1000000000",
+        "available_u": "1000000000",
+        "reserved_u": "0",
+        "bonded_u": "0",
+        "pending_return_u": "0",
+        "growth_u": "0",
+        "forfeited_u": "0",
+        "suspended": false,
+        "version": 1
+      }
+    },
+    "reserve": {
+      "active_principal_minor": "0",
+      "reserved_principal_minor": "100000",
+      "defaulted_principal_minor": "0",
+      "facility_committed_minor": "0",
+      "facility_reserved_minor": "100000",
+      "reputation": {
+        "seed_u": "1000000000",
+        "available_u": "760000000",
+        "reserved_u": "240000000",
+        "bonded_u": "0",
+        "pending_return_u": "0",
+        "growth_u": "0",
+        "forfeited_u": "0",
+        "suspended": false,
+        "version": 2
+      }
+    },
+    "stake": {
+      "active_principal_minor": "0",
+      "reserved_principal_minor": "100000",
+      "defaulted_principal_minor": "0",
+      "facility_committed_minor": "0",
+      "facility_reserved_minor": "100000",
+      "reputation": {
+        "seed_u": "1000000000",
+        "available_u": "760000000",
+        "reserved_u": "240000000",
+        "bonded_u": "0",
+        "pending_return_u": "0",
+        "growth_u": "0",
+        "forfeited_u": "0",
+        "suspended": false,
+        "version": 2
+      }
+    },
+    "unknown": {
+      "active_principal_minor": "0",
+      "reserved_principal_minor": "100000",
+      "defaulted_principal_minor": "0",
+      "facility_committed_minor": "0",
+      "facility_reserved_minor": "100000",
+      "reputation": {
+        "seed_u": "1000000000",
+        "available_u": "760000000",
+        "reserved_u": "240000000",
+        "bonded_u": "0",
+        "pending_return_u": "0",
+        "growth_u": "0",
+        "forfeited_u": "0",
+        "suspended": false,
+        "version": 2
+      }
+    },
+    "origin": {
+      "active_principal_minor": "100000",
+      "reserved_principal_minor": "0",
+      "defaulted_principal_minor": "0",
+      "facility_committed_minor": "100000",
+      "facility_reserved_minor": "0",
+      "reputation": {
+        "seed_u": "1000000000",
+        "available_u": "760000000",
+        "reserved_u": "0",
+        "bonded_u": "240000000",
+        "pending_return_u": "0",
+        "growth_u": "0",
+        "forfeited_u": "0",
+        "suspended": false,
+        "version": 3
+      }
+    },
+    "repay": {
+      "active_principal_minor": "0",
+      "reserved_principal_minor": "0",
+      "defaulted_principal_minor": "0",
+      "facility_committed_minor": "0",
+      "facility_reserved_minor": "0",
+      "reputation": {
+        "seed_u": "1000000000",
+        "available_u": "760000000",
+        "reserved_u": "0",
+        "bonded_u": "0",
+        "pending_return_u": "240000000",
+        "growth_u": "0",
+        "forfeited_u": "0",
+        "suspended": false,
+        "version": 4
+      }
+    },
+    "return": {
+      "active_principal_minor": "0",
+      "reserved_principal_minor": "0",
+      "defaulted_principal_minor": "0",
+      "facility_committed_minor": "0",
+      "facility_reserved_minor": "0",
+      "reputation": {
+        "seed_u": "1000000000",
+        "available_u": "1000000000",
+        "reserved_u": "0",
+        "bonded_u": "0",
+        "pending_return_u": "0",
+        "growth_u": "0",
+        "forfeited_u": "0",
+        "suspended": false,
+        "version": 5
+      }
+    }
+  },
+  "request_states": {
+    "seed": null,
+    "reserve": "AWAITING_STAKE",
+    "stake": "STAKE_VALIDATED",
+    "unknown": "RECONCILING",
+    "origin": "ACTIVE",
+    "repay": "RETURN_PENDING",
+    "return": "REPAID"
+  },
+  "facility_versions": {
+    "seed": 1,
+    "reserve": 2,
+    "stake": 2,
+    "unknown": 2,
+    "origin": 3,
+    "repay": 4,
+    "return": 4
+  },
+  "return_credit": {
+    "creditId": "credit:sha256:804ec2357af0dbf91746c0e9ef6540153841eff2d9dddbd022e26f47d5c6fdf8",
+    "requestId": "sim:request:xrpl-poc-replay-001",
+    "loanId": "sim:loan:xrpl-poc-replay-001",
+    "amountU": "240000000",
+    "growthU": "0",
+    "reason": "REPAYMENT"
+  },
+  "return_credit_states": {
+    "seed": null,
+    "reserve": null,
+    "stake": null,
+    "unknown": null,
+    "origin": null,
+    "repay": "OWED",
+    "return": "PAID"
+  },
+  "simulated_return_hash": "sim:sim:event:xrpl-poc-replay:return",
+  "required_checks": [
+    "Saved native evidence bytes match source_evidence_sha256.",
+    "Every RegistryEvent uses synthetic identifiers and omits native evidence.",
+    "Native source transaction hashes occur only as source references outside RegistryEvents.",
+    "Policy, mandate, evidence, commercial terms and request commitments reproduce from the retained inputs.",
+    "Exact request retry creates no second reservation.",
+    "UNKNOWN retains both principal and REP reservations.",
+    "Exact duplicate event delivery creates no second accounting mutation or issuer credit.",
+    "Principal reduction follows gross principal, not the submitted maximum or actual total debit.",
+    "Full repayment creates one 240 REP restoration credit with zero simulated growth.",
+    "Pending restoration remains unavailable until the separate simulated return event.",
+    "Native signing remains disabled and no Shellfish-gated native flow is claimed."
+  ]
+}

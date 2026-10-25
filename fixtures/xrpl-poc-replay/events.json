@@ -1,0 +1,341 @@
+{
+  "fixture_version": "XRPL-POC-REPLAY-1",
+  "mode": "SIMULATED_LOAN",
+  "provenance": "SYNTHETIC",
+  "native_signing_permitted": false,
+  "native_ready": false,
+  "borrower_account": "sim:borrower:xrpl-poc-replay-001",
+  "source_evidence_file": "native-evidence.json",
+  "source_evidence_sha256": "f5e5a1403016b00f05086a1fd986138da2255d694314d956a9f6fcdee56fcd96",
+  "source_reference_only": true,
+  "scope": "Offline model replay with saved native Devnet evidence references. No historical transaction was gated by this simulated reservation or REP state. No native REP operations are established.",
+  "source_facts": {
+    "network": "devnet",
+    "provenance": "SAVED_NATIVE_DEVNET_EVIDENCE",
+    "borrower_account": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+    "loan_asset": {
+      "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB"
+    },
+    "loan_asset_issuer": "rGAwtYSn78GSJyKwMTUYsDcqxdnjkMTY88",
+    "loan_set_hash": "7FD5B99815BBED7C2CE56D3049CC0A9D90BB00E0FC062F2A7E7608533730BBEF",
+    "loan_pay_hash": "5FD957CC15A425EC77FB11CC91984FE67064CF3C2FA4308327970BD85AB4A64F",
+    "loan_id": "A69A5FB167C0A5E41BC4ED0DB6943423217983532C0E244BC7C287A17F136C85",
+    "loan_set_ledger_index": 6396437,
+    "loan_pay_ledger_index": 6396439,
+    "loan_set_close_time_iso": "2026-10-25T04:35:40Z",
+    "loan_pay_close_time_iso": "2026-10-25T04:35:42Z",
+    "loan_start_date_ripple_seconds": 846218143,
+    "next_payment_due_date_ripple_seconds": 848810143,
+    "gross_principal_native_units": "1000",
+    "borrower_received_native_units": "900",
+    "submitted_loan_pay_max_native_units": "2000",
+    "actual_borrower_debit_native_units": "1015",
+    "principal_reduction_native_units": "1000",
+    "origination_fee_native_units": "100",
+    "service_fee_native_units": "10",
+    "interest_rate_native": 5500,
+    "nominal_annual_rate_bps": 550,
+    "payment_interval_seconds": 2592000,
+    "payment_total": 1,
+    "grace_period_seconds": 604800,
+    "native_reward_status": "NOT_EVALUATED",
+    "native_repayment_history_status": "NOT_ESTABLISHED_BY_THIS_REPLAY",
+    "rep_operations_demonstrated": false,
+    "shellfish_signer_gate_demonstrated": false
+  },
+  "unit_mapping": {
+    "native_asset_scale": 0,
+    "registry_money_scale": 100,
+    "native_units_to_registry_minor_multiplier": "100",
+    "gross_principal_minor": "100000",
+    "borrower_received_minor": "90000",
+    "submitted_loan_pay_max_minor": "200000",
+    "actual_borrower_debit_minor": "101500",
+    "principal_reduction_minor": "100000",
+    "origination_fee_minor": "10000",
+    "service_fee_minor": "1000",
+    "rep_asset_scale": 6,
+    "rep_scale": 1000000,
+    "rule": "One indivisible native Test USD MPT unit maps to 100 registry minor units. REP uses a separate synthetic issuance with six decimal places. Loan principal is gross principal, not net proceeds, payment maximum or total debit."
+  },
+  "clock_policy": {
+    "kind": "ZERO_ELAPSED_SYNTHETIC_LOAN",
+    "origin_unix_seconds": 1792910435,
+    "repayment_unix_seconds": 1792910435,
+    "return_unix_seconds": 1792910436,
+    "elapsed_principal_seconds": 0,
+    "native_timestamps_unchanged": true,
+    "native_reward_status": "NOT_EVALUATED",
+    "explanation": "Synthetic origination and repayment share the fixed scenario clock. This tests restoration of the original 240 REP bond with zero simulated growth. Raw POC timestamps are evidence only. The replay does not derive native reward, accelerate native maturity or establish complete native repayment history."
+  },
+  "history_provenance": "SCRIPTED_SIMULATION_ONLY",
+  "history_note": "RegistryEvent.history.complete describes only the deliberately complete synthetic event script. It is not a claim about scanned Devnet history.",
+  "commitment_canonicalization": "SORTED_KEYS_JSON_UTF8_V1",
+  "commitment_inputs": {
+    "policy": {
+      "model_version": "REP-CURVE-v0.2",
+      "rep_scale": 1000000,
+      "money_scale": 100,
+      "seed_u": "1000000000",
+      "max_surviving_u": "1200000000",
+      "rolling_reward_cap_u": "20000000",
+      "rolling_window_seconds": 2592000,
+      "curve": {
+        "linear_numerator": 1,
+        "linear_denominator": 5,
+        "quadratic_numerator": 1,
+        "quadratic_denominator": 25000
+      },
+      "reward": {
+        "rate_numerator": 1,
+        "rate_denominator": 100,
+        "base_numerator": 1,
+        "base_denominator": 5,
+        "period_seconds": 2592000
+      },
+      "fixed_original_bond_until_full_repayment": true,
+      "default_suspends_principal": true
+    },
+    "consent": {
+      "authorized": true,
+      "model_version": "REP-CURVE-v0.2",
+      "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+      "rep_asset": {
+        "mpt_issuance_id": "sim:rep-issuance:xrpl-poc-replay-001",
+        "issuer": "sim:rep-issuer:xrpl-poc-replay-001",
+        "asset_scale": 6
+      },
+      "max_stake_u": "240000000"
+    },
+    "mandate": {
+      "contract_version": "C0-REP-1",
+      "model_version": "REP-CURVE-v0.2",
+      "network": "devnet",
+      "mode": "SIMULATED_LOAN",
+      "mandate_id": "sim:mandate:xrpl-poc-replay-001",
+      "principal_id": "sim:principal:xrpl-poc-replay-001",
+      "agent_id": "sim:agent:xrpl-poc-replay-001",
+      "xrpl_borrower": "sim:borrower:xrpl-poc-replay-001",
+      "asset": {
+        "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB"
+      },
+      "max_principal": "1000.00",
+      "max_apr_bps": 550,
+      "max_total_fees": "110.00",
+      "max_term_days": 30,
+      "allowed_purposes": [
+        "working_capital"
+      ],
+      "allowed_lenders": [
+        "sim:lender:xrpl-poc-replay-001"
+      ],
+      "expires_at": "2026-10-25T06:50:35Z",
+      "nonce": "sim:nonce:xrpl-poc-replay-001",
+      "policy_version": "sim:borrower-policy:xrpl-poc-replay-v1",
+      "rep_consent": {
+        "authorized": true,
+        "model_version": "REP-CURVE-v0.2",
+        "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+        "rep_asset": {
+          "mpt_issuance_id": "sim:rep-issuance:xrpl-poc-replay-001",
+          "issuer": "sim:rep-issuer:xrpl-poc-replay-001",
+          "asset_scale": 6
+        },
+        "max_stake_u": "240000000"
+      }
+    },
+    "evidence": {
+      "contract_version": "C0-REP-1",
+      "model_version": "REP-CURVE-v0.2",
+      "network": "devnet",
+      "mode": "SIMULATED_LOAN",
+      "subject_id": "sim:principal:xrpl-poc-replay-001",
+      "issuer_id": "sim:attestor:xrpl-poc-replay-001",
+      "issued_at": "2026-10-25T06:40:35Z",
+      "expires_at": "2026-10-25T06:50:35Z",
+      "evidence_version": "sim:evidence:xrpl-poc-replay-v1",
+      "known_exposure": {
+        "asset": {
+          "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB"
+        },
+        "amount": "0.00",
+        "coverage": "SCRIPTED_SIMULATION_ONLY",
+        "as_of": "2026-10-25T06:40:35Z"
+      },
+      "provenance": "SYNTHETIC",
+      "native_signing_permitted": false,
+      "scope": "Empty model portfolio for replay. This does not attest to the real POC borrower or its other liabilities."
+    },
+    "commercial_terms": {
+      "contract_version": "C0-REP-1",
+      "model_version": "REP-CURVE-v0.2",
+      "network": "devnet",
+      "mode": "SIMULATED_LOAN",
+      "offer_id": "sim:offer:xrpl-poc-replay-001",
+      "facility_id": "sim:facility:xrpl-poc-replay-001",
+      "lender_id": "sim:lender:xrpl-poc-replay-001",
+      "principal_id": "sim:principal:xrpl-poc-replay-001",
+      "borrower_account": "sim:borrower:xrpl-poc-replay-001",
+      "asset": {
+        "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB"
+      },
+      "principal_minor": "100000",
+      "money_scale": 100,
+      "rate_kind": "NOMINAL_ANNUAL",
+      "apr_bps": 550,
+      "origination_fee_minor": "10000",
+      "service_fee_minor": "1000",
+      "schedule": {
+        "kind": "BULLET",
+        "payment_total": 1,
+        "payment_interval_seconds": 2592000,
+        "native_acceptance": "PENDING_VEDANT"
+      },
+      "grace_seconds": 604800,
+      "expires_at": "2026-10-25T06:50:35Z",
+      "provenance": "SYNTHETIC",
+      "native_signing_permitted": false,
+      "scope": "Simulation terms mirror selected POC quantities. No lender offer, borrower mandate signature or native signing authority is established."
+    }
+  },
+  "request": {
+    "request_id": "sim:request:xrpl-poc-replay-001",
+    "idempotency_key": "sim:idem:xrpl-poc-replay-001",
+    "contract_version": "C0-REP-1",
+    "mode": "SIMULATED_LOAN",
+    "principal_id": "sim:principal:xrpl-poc-replay-001",
+    "agent_id": "sim:agent:xrpl-poc-replay-001",
+    "mandate_id": "sim:mandate:xrpl-poc-replay-001",
+    "nonce": "sim:nonce:xrpl-poc-replay-001",
+    "offer_id": "sim:offer:xrpl-poc-replay-001",
+    "facility_id": "sim:facility:xrpl-poc-replay-001",
+    "network": "devnet",
+    "asset": {
+      "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB"
+    },
+    "mandate_hash": "sha256:077106d15cc7e99492ffc210e57d9e188b56b5ef98ae04a5abc7a6069d589c35",
+    "rep_asset": {
+      "mpt_issuance_id": "sim:rep-issuance:xrpl-poc-replay-001",
+      "issuer": "sim:rep-issuer:xrpl-poc-replay-001",
+      "asset_scale": 6
+    },
+    "evidence_hash": "sha256:e2ab822da8d35145d9ad33bd6b2381c98d1ad6b3902971e4f5dd29f5d1f80c43",
+    "commercial_terms_hash": "sha256:69822c2a8577d5a97ece39af999db9c4bb23620ff5630611d028f79948d7e8cb",
+    "model_version": "REP-CURVE-v0.2",
+    "policy_hash": "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+    "principal_minor": "100000",
+    "max_stake_u": "240000000",
+    "expires_at": "2026-10-25T06:50:35Z"
+  },
+  "request_payload_hash": "sha256:a630d78c49ee370d0336509406f5bffd70a68a7a31c203b93c6663b1dc443a39",
+  "return_credit_id": "credit:sha256:804ec2357af0dbf91746c0e9ef6540153841eff2d9dddbd022e26f47d5c6fdf8",
+  "steps": [
+    {
+      "step_id": "stake",
+      "provenance": "SYNTHETIC",
+      "native_signing_permitted": false,
+      "source_transaction_hash": null,
+      "source_reference_only": true,
+      "event": {
+        "eventId": "sim:event:xrpl-poc-replay:stake",
+        "kind": "STAKE_VALIDATED",
+        "occurredAt": 1792910435,
+        "requestId": "sim:request:xrpl-poc-replay-001",
+        "stake": {
+          "amountU": "240000000",
+          "repAsset": {
+            "mpt_issuance_id": "sim:rep-issuance:xrpl-poc-replay-001",
+            "issuer": "sim:rep-issuer:xrpl-poc-replay-001",
+            "asset_scale": 6
+          },
+          "sender": "sim:borrower:xrpl-poc-replay-001",
+          "destination": "sim:rep-issuer:xrpl-poc-replay-001",
+          "requestHash": "sha256:a630d78c49ee370d0336509406f5bffd70a68a7a31c203b93c6663b1dc443a39",
+          "partialPayment": false
+        }
+      }
+    },
+    {
+      "step_id": "unknown",
+      "provenance": "SYNTHETIC",
+      "native_signing_permitted": false,
+      "source_transaction_hash": null,
+      "source_reference_only": true,
+      "event": {
+        "eventId": "sim:event:xrpl-poc-replay:unknown",
+        "kind": "UNKNOWN",
+        "occurredAt": 1792910435,
+        "requestId": "sim:request:xrpl-poc-replay-001"
+      }
+    },
+    {
+      "step_id": "origin",
+      "provenance": "SYNTHETIC",
+      "native_signing_permitted": false,
+      "source_transaction_hash": "7FD5B99815BBED7C2CE56D3049CC0A9D90BB00E0FC062F2A7E7608533730BBEF",
+      "source_reference_only": true,
+      "event": {
+        "eventId": "sim:event:xrpl-poc-replay:origin",
+        "kind": "ORIGINATION_VALIDATED",
+        "occurredAt": 1792910435,
+        "requestId": "sim:request:xrpl-poc-replay-001",
+        "loan": {
+          "loanId": "sim:loan:xrpl-poc-replay-001",
+          "maturityAt": 1795502435,
+          "graceSeconds": 604800,
+          "nextPaymentDueAt": 1795502435
+        }
+      }
+    },
+    {
+      "step_id": "repay",
+      "provenance": "SYNTHETIC",
+      "native_signing_permitted": false,
+      "source_transaction_hash": "5FD957CC15A425EC77FB11CC91984FE67064CF3C2FA4308327970BD85AB4A64F",
+      "source_reference_only": true,
+      "event": {
+        "eventId": "sim:event:xrpl-poc-replay:repay",
+        "kind": "REPAYMENT",
+        "occurredAt": 1792910435,
+        "requestId": "sim:request:xrpl-poc-replay-001",
+        "loanId": "sim:loan:xrpl-poc-replay-001",
+        "repayment": {
+          "principalReductionMinor": "100000",
+          "fullContractualRepayment": true,
+          "onTime": true
+        },
+        "history": {
+          "complete": true,
+          "originHash": "sim:sim:event:xrpl-poc-replay:origin",
+          "previousEventId": "sim:event:xrpl-poc-replay:origin"
+        }
+      }
+    },
+    {
+      "step_id": "return",
+      "provenance": "SYNTHETIC",
+      "native_signing_permitted": false,
+      "source_transaction_hash": null,
+      "source_reference_only": true,
+      "event": {
+        "eventId": "sim:event:xrpl-poc-replay:return",
+        "kind": "RETURN_VALIDATED",
+        "occurredAt": 1792910436,
+        "requestId": "sim:request:xrpl-poc-replay-001",
+        "loanId": "sim:loan:xrpl-poc-replay-001",
+        "creditId": "credit:sha256:804ec2357af0dbf91746c0e9ef6540153841eff2d9dddbd022e26f47d5c6fdf8",
+        "returned": {
+          "amountU": "240000000",
+          "repAsset": {
+            "mpt_issuance_id": "sim:rep-issuance:xrpl-poc-replay-001",
+            "issuer": "sim:rep-issuer:xrpl-poc-replay-001",
+            "asset_scale": 6
+          },
+          "sender": "sim:rep-issuer:xrpl-poc-replay-001",
+          "destination": "sim:borrower:xrpl-poc-replay-001",
+          "partialPayment": false
+        }
+      }
+    }
+  ]
+}

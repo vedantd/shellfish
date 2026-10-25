@@ -1,0 +1,275 @@
+{
+  "fetched_at_utc": "2026-10-25T06:40:35.279815+00:00",
+  "endpoint": "https://s.devnet.rippletest.net:51234/",
+  "network": "devnet",
+  "transactions": [
+    {
+      "hash": "7FD5B99815BBED7C2CE56D3049CC0A9D90BB00E0FC062F2A7E7608533730BBEF",
+      "explorer_url": "https://devnet.xrpl.org/transactions/7FD5B99815BBED7C2CE56D3049CC0A9D90BB00E0FC062F2A7E7608533730BBEF",
+      "validated": true,
+      "result": "tesSUCCESS",
+      "ledger_index": 6396437,
+      "ledger_hash": "4A37FF0A72CB85CFD7CF63ACDD5B435EFEB45F03276A3C4748D77A5F7BB8F378",
+      "close_time_iso": "2026-10-25T04:35:40Z",
+      "transaction": {
+        "Account": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+        "Counterparty": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+        "Fee": "2",
+        "Flags": 0,
+        "GracePeriod": 604800,
+        "InterestRate": 5500,
+        "LastLedgerSequence": 6396456,
+        "LoanBrokerID": "81FB7569085294F0627F3DE7C6B8BED683CC7B2F5D77FDDBC0890BF13F65586A",
+        "LoanOriginationFee": "100",
+        "LoanServiceFee": "10",
+        "PaymentInterval": 2592000,
+        "PaymentTotal": 1,
+        "PrincipalRequested": "1000",
+        "Sequence": 6396426,
+        "SigningPubKey": "ED18C26952930E96914A3C71E9366708163E378E34D7F0189E0323327656DB6357",
+        "TransactionType": "LoanSet"
+      },
+      "counterparty_public_key": "EDBA0AB8BBB2952FCF89C15A0339822C3CDCF3AE7A08FED0E44A73EFBE06C9D1B6",
+      "ledger_changes": [
+        {
+          "entry_type": "LoanBroker",
+          "change": "ModifiedNode",
+          "entry_id": "81FB7569085294F0627F3DE7C6B8BED683CC7B2F5D77FDDBC0890BF13F65586A",
+          "previous_fields": {
+            "LoanSequence": 1
+          },
+          "final_or_created_fields": {
+            "Account": "rP7HPWJCDDZ2ucxML3btYSfvZ31PR1GDAe",
+            "DebtTotal": "1000",
+            "Flags": 0,
+            "LoanSequence": 2,
+            "Owner": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+            "VaultID": "9E138219241123ACEBB166C5493D48B3899AC1610B5F09694C13DE879BDEFCF4"
+          }
+        },
+        {
+          "entry_type": "Vault",
+          "change": "ModifiedNode",
+          "entry_id": "9E138219241123ACEBB166C5493D48B3899AC1610B5F09694C13DE879BDEFCF4",
+          "previous_fields": {
+            "AssetsAvailable": "50000000"
+          },
+          "final_or_created_fields": {
+            "Account": "rwCerVVPPX3Pbz6phxijzBnKTEGZnwM75m",
+            "Asset": {
+              "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB"
+            },
+            "AssetsAvailable": "49999000",
+            "AssetsTotal": "50000000",
+            "Flags": 65536,
+            "Owner": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+            "RedemptionDate": 1161578113,
+            "SubscriptionDate": 846218113,
+            "VaultKind": 1
+          }
+        },
+        {
+          "entry_type": "Loan",
+          "change": "CreatedNode",
+          "entry_id": "A69A5FB167C0A5E41BC4ED0DB6943423217983532C0E244BC7C287A17F136C85",
+          "previous_fields": {},
+          "final_or_created_fields": {
+            "Borrower": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+            "GracePeriod": 604800,
+            "InterestRate": 5500,
+            "LoanBrokerID": "81FB7569085294F0627F3DE7C6B8BED683CC7B2F5D77FDDBC0890BF13F65586A",
+            "LoanOriginationFee": "100",
+            "LoanSequence": 1,
+            "LoanServiceFee": "10",
+            "NextPaymentDueDate": 848810143,
+            "PaymentInterval": 2592000,
+            "PaymentRemaining": 1,
+            "PeriodicPayment": "1004.520547945205579",
+            "PrincipalOutstanding": "1000",
+            "StartDate": 846218143,
+            "TotalValueOutstanding": "1005"
+          }
+        },
+        {
+          "entry_type": "MPToken",
+          "account": "rwCerVVPPX3Pbz6phxijzBnKTEGZnwM75m",
+          "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB",
+          "before": "50000000",
+          "after": "49999000",
+          "delta": "-1000"
+        },
+        {
+          "entry_type": "MPToken",
+          "account": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+          "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB",
+          "before": "5000",
+          "after": "5100",
+          "delta": "100"
+        },
+        {
+          "entry_type": "MPToken",
+          "account": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+          "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB",
+          "before": "2500",
+          "after": "3400",
+          "delta": "900"
+        }
+      ]
+    },
+    {
+      "hash": "5FD957CC15A425EC77FB11CC91984FE67064CF3C2FA4308327970BD85AB4A64F",
+      "explorer_url": "https://devnet.xrpl.org/transactions/5FD957CC15A425EC77FB11CC91984FE67064CF3C2FA4308327970BD85AB4A64F",
+      "validated": true,
+      "result": "tesSUCCESS",
+      "ledger_index": 6396439,
+      "ledger_hash": "72D3F65C262E5F68382E01293742EE14EF8FA3EEA70C5B11AB01A17C569B6871",
+      "close_time_iso": "2026-10-25T04:35:42Z",
+      "transaction": {
+        "Account": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+        "Amount": {
+          "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB",
+          "value": "2000"
+        },
+        "Fee": "1",
+        "Flags": 0,
+        "LastLedgerSequence": 6396457,
+        "LoanID": "A69A5FB167C0A5E41BC4ED0DB6943423217983532C0E244BC7C287A17F136C85",
+        "Sequence": 6396424,
+        "SigningPubKey": "EDBA0AB8BBB2952FCF89C15A0339822C3CDCF3AE7A08FED0E44A73EFBE06C9D1B6",
+        "TransactionType": "LoanPay"
+      },
+      "counterparty_public_key": null,
+      "ledger_changes": [
+        {
+          "entry_type": "LoanBroker",
+          "change": "ModifiedNode",
+          "entry_id": "81FB7569085294F0627F3DE7C6B8BED683CC7B2F5D77FDDBC0890BF13F65586A",
+          "previous_fields": {
+            "DebtTotal": "1000"
+          },
+          "final_or_created_fields": {
+            "Account": "rP7HPWJCDDZ2ucxML3btYSfvZ31PR1GDAe",
+            "Flags": 0,
+            "LoanSequence": 2,
+            "Owner": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+            "VaultID": "9E138219241123ACEBB166C5493D48B3899AC1610B5F09694C13DE879BDEFCF4"
+          }
+        },
+        {
+          "entry_type": "Vault",
+          "change": "ModifiedNode",
+          "entry_id": "9E138219241123ACEBB166C5493D48B3899AC1610B5F09694C13DE879BDEFCF4",
+          "previous_fields": {
+            "AssetsAvailable": "49999000",
+            "AssetsTotal": "50000000"
+          },
+          "final_or_created_fields": {
+            "Account": "rwCerVVPPX3Pbz6phxijzBnKTEGZnwM75m",
+            "Asset": {
+              "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB"
+            },
+            "AssetsAvailable": "50000005",
+            "AssetsTotal": "50000005",
+            "Flags": 65536,
+            "Owner": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+            "RedemptionDate": 1161578113,
+            "SubscriptionDate": 846218113,
+            "VaultKind": 1
+          }
+        },
+        {
+          "entry_type": "Loan",
+          "change": "ModifiedNode",
+          "entry_id": "A69A5FB167C0A5E41BC4ED0DB6943423217983532C0E244BC7C287A17F136C85",
+          "previous_fields": {
+            "NextPaymentDueDate": 848810143,
+            "PaymentRemaining": 1,
+            "PrincipalOutstanding": "1000",
+            "TotalValueOutstanding": "1005"
+          },
+          "final_or_created_fields": {
+            "Borrower": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+            "Flags": 0,
+            "GracePeriod": 604800,
+            "InterestRate": 5500,
+            "LoanBrokerID": "81FB7569085294F0627F3DE7C6B8BED683CC7B2F5D77FDDBC0890BF13F65586A",
+            "LoanOriginationFee": "100",
+            "LoanSequence": 1,
+            "LoanServiceFee": "10",
+            "PaymentInterval": 2592000,
+            "PeriodicPayment": "1004.520547945205579",
+            "PreviousPaymentDueDate": 848810143,
+            "StartDate": 846218143
+          }
+        },
+        {
+          "entry_type": "MPToken",
+          "account": "rwCerVVPPX3Pbz6phxijzBnKTEGZnwM75m",
+          "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB",
+          "before": "49999000",
+          "after": "50000005",
+          "delta": "1005"
+        },
+        {
+          "entry_type": "MPToken",
+          "account": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+          "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB",
+          "before": "5100",
+          "after": "5110",
+          "delta": "10"
+        },
+        {
+          "entry_type": "MPToken",
+          "account": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+          "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB",
+          "before": "3400",
+          "after": "2385",
+          "delta": "-1015"
+        }
+      ]
+    }
+  ],
+  "public_identifiers": {
+    "borrower": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+    "broker_owner": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+    "broker_account": "rP7HPWJCDDZ2ucxML3btYSfvZ31PR1GDAe",
+    "vault_account": "rwCerVVPPX3Pbz6phxijzBnKTEGZnwM75m",
+    "broker_id": "81FB7569085294F0627F3DE7C6B8BED683CC7B2F5D77FDDBC0890BF13F65586A",
+    "vault_id": "9E138219241123ACEBB166C5493D48B3899AC1610B5F09694C13DE879BDEFCF4",
+    "loan_id": "A69A5FB167C0A5E41BC4ED0DB6943423217983532C0E244BC7C287A17F136C85"
+  },
+  "loan_asset": {
+    "mpt_issuance_id": "00619A08AEC89A7392F7140E381BB17563A6653F7FB221AB",
+    "issuer": "rGAwtYSn78GSJyKwMTUYsDcqxdnjkMTY88",
+    "asset_scale": 0,
+    "asset_scale_defaulted": true,
+    "flags": 112,
+    "metadata": {
+      "ac": "rwa",
+      "ai": {
+        "pegged_currency": "USD",
+        "purpose": "local-playground-only"
+      },
+      "as": "stablecoin",
+      "d": "Shellfish playground non-yield MPT for Devnet loan POC.",
+      "i": "https://example.org/tstusd-icon.png",
+      "in": "Shellfish Playground",
+      "n": "Test USD MPT",
+      "t": "TSTUSD",
+      "us": [
+        {
+          "c": "website",
+          "t": "Product Page",
+          "u": "https://exampletreasury.com/tstusd"
+        }
+      ]
+    }
+  },
+  "signing_observation": {
+    "public_key_address_derivation_verified": true,
+    "origin_first_signer": "r9BVXcu168nzf9sVuuQixBGf6nn2MWrJ8n",
+    "origin_counterparty_signer": "rHSFcMCZh8xrir6DB9sk7JYcj9zkThEMyA",
+    "signer_roles": "Broker owner master key and borrower master key. Shellfish policy-gated key custody not established."
+  },
+  "scope": "Public read-only Devnet evidence. Native origination and full repayment demonstrated. REP stake, application authorization, idempotency, reservations and controlled signer gate not established."
+}
