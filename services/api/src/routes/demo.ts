@@ -45,6 +45,16 @@ export async function demoRoutes(app: FastifyInstance) {
       const originEventId = `origin:${requestId}`;
       const clock = Math.floor(Date.parse(scenario.clock) / 1000) + 90 * 86400;
 
+      const isLive = config.networkMode === "LIVE_DEVNET";
+      if (isLive && !backend.live) {
+        reply.code(503);
+        return {
+          code: "LIVE_LEDGER_UNAVAILABLE",
+          message: "LIVE ledger not connected",
+          mode: config.networkMode,
+        };
+      }
+
       const result = await repayLoan({
         loanId,
         amount: req.body?.amount ?? "2000.00",
@@ -57,11 +67,20 @@ export async function demoRoutes(app: FastifyInstance) {
           getRequest: (id) => backend.registry.getRequest(id),
           applyEvent: (event) => backend.registry.applyEvent(event as never),
           hashRequest: contentHash,
-          clockSeconds: () => clock,
-          borrowerAccount: "sim:borrower-harbor-supply",
-          repAsset: scenario.rep_asset,
-          originHash: `sim:${originEventId}`,
+          clockSeconds: () =>
+            isLive ? Math.floor(Date.now() / 1000) : clock,
+          borrowerAccount: isLive
+            ? (backend.liveConfig?.borrowerAddress ?? "live:borrower")
+            : "sim:borrower-harbor-supply",
+          repAsset: isLive
+            ? backend.liveConfig!.publicSigning.native_rep_asset
+            : scenario.rep_asset,
+          originHash: isLive
+            ? (backend.registry.getRequest(requestId) as { stakeHash?: string })
+                .stakeHash
+            : `sim:${originEventId}`,
           previousEventId: originEventId,
+          live: backend.live,
         },
       });
 

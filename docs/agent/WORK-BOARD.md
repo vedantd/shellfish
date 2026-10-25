@@ -1,33 +1,33 @@
 # Shellfish work board
 
-- Revision: setup-r1 adopted. Coordinator: **Vedant** (B-0001 accepted; **B-0002** allocated).
-- Current objective: [B-0002 Vedant consumer integration](CURRENT-BATON.md) on accepted C0-REP-1.
+- Revision: setup-r1 adopted. Coordinator: **Vedant** (B-0001 accepted; **B-0002** ACTIVE).
+- Current objective: [B-0002](CURRENT-BATON.md) — LIVE product wiring on [PR #5](https://github.com/vedantd/shellfish/pull/5); Devnet smoke pending grant.
 - Accepted claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
-- Gita producer PAUSED. Vedant consumer ACK recorded 2026-10-25 11:07 UTC (AUTH-C0-CONSUMER-001).
-- Accepted base: `08397b5449a6f2853e8d5da921ae29034353e4d2`.
+- Gita producer PAUSED. Vedant consumer ACK 2026-10-25 11:07 UTC; LIVE wiring recorded 11:47 UTC.
+- Accepted C0 base: `08397b5449a6f2853e8d5da921ae29034353e4d2`.
 
 ## Feature gates
 
 | Gate | Observable outcome | Status and evidence |
 | --- | --- | --- |
-| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | **ACCEPTED** C0-REP-1 for `SIMULATED_LOAN` first integration. LIVE_DEVNET IDs still open |
-| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | Producer + fixtures ACCEPTED with C0. Connected UI still B-0002 |
-| C2 | Authorization reserves once and only then permits a required signature | Registry PASS. Vedant authorization wiring = **B-0002 ACTIVE** |
-| C3 | Verified execution changes accounting once, timeout retains reservation | Registry + native fixture happy path recorded. App integration = B-0002 |
-| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | Producer checks PASS. Connected demo pending B-0002 |
+| C0 | Accepted contracts, scopes, keys/signature format and native/simulation plan | **ACCEPTED** C0-REP-1. Fixture `native_ready` still false (schema) |
+| C1 | One evidence bundle gives lender A approve, B decline and a compatible offer | Producer + fixtures ACCEPTED. Connected UI: Screen C sim + LIVE branch on PR #5 |
+| C2 | Authorization reserves once and only then permits a required signature | **PASS** sim + LIVE product path (stake before LoanSet); PR #4/#5 |
+| C3 | Verified execution changes accounting once, timeout retains reservation | Registry + Gita native fixture PASS. Product LIVE applyEvent wired; Devnet smoke SKIP |
+| C4 | Clean-start demo, three denials, replay/race/timeout checks and honest mode | Producer checks PASS. Product denial/replay suite + live smoke still open |
 
 ## Queued work and claims
 
 | Lane | Owner | First bounded outcome | Depends on | Record | State |
 | --- | --- | --- | --- | --- | --- |
 | Credit and registry | Gita | Shared fixtures, lender/match outputs and reserve/retry proof | C0 examples | [Gita work](work/SETUP-GITA.md) | PAUSED — producer delivered; C0 consumer ACK done |
-| Authorization and execution | Vedant | Wire auth + XRPL + API/UI to Gita exports (`SIMULATED_LOAN` first) | C0-REP-1 accepted | [Vedant work](work/SETUP-VEDANT.md) | **ACTIVE B-0002** |
+| Authorization and execution | Vedant | SIM then LIVE product path on Gita exports | C0-REP-1 accepted | [Vedant work](work/SETUP-VEDANT.md) | **ACTIVE B-0002** — SIM PASS; LIVE wiring PASS (PR #5); smoke SKIP |
 | Policy examples | Nick | Two exact rules and expected results | Final PRD | Non-coding input to Gita | READY |
 | Adversarial examples | Shell | Six bounded negative cases | Final PRD and agreed signing route | Non-coding input to both | READY |
 
 Coordinator ACK of setup-r1: 2026-10-25 00:41 UTC. C0 consumer ACK: 2026-10-25 11:07 UTC.
-No timeout-based takeover exists.
+LIVE product-wiring baton update: 2026-10-25 11:47 UTC. No timeout-based takeover exists.
 
 ## Dependency graph
 
@@ -89,7 +89,8 @@ flowchart TD
 - Literal `sig-demo-*` strings are fixtures, not cryptographic verification evidence.
 
 C0-REP-1 producer package was accepted by Vedant (AUTH-C0-CONSUMER-001) after reproduce.
-Remaining open items are LIVE_DEVNET field fill-in and connected B-0002 integration —
+LIVE product wiring is on PR #5. Remaining: Devnet execution grant + smoke, fixture
+`native_ready` (needs schema allocation), execution/return fencing, C4 product checks —
 not a re-open of the accepted fixture/schema package.
 
 ## Proposed 12 hour order

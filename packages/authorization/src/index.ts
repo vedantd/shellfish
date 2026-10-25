@@ -258,4 +258,41 @@ export function authorizeExactAction(
   }
 }
 
+/**
+ * After LIVE REP stake + prepared LoanSet commitment, permit controlled signing.
+ * SIMULATED_LOAN receipts must not call this (schema forbids native_signing_permitted).
+ */
+export function attachLiveStakeProof(
+  receipt: AuthorizationReceipt,
+  args: { stakeProofId: string; preparedTxCommitment: string },
+): AuthorizationReceipt {
+  if (receipt.mode !== "LIVE_DEVNET") {
+    throw new Error(
+      "[authorization] attachLiveStakeProof only valid for LIVE_DEVNET",
+    );
+  }
+  if (receipt.decision !== "ALLOW" || !receipt.reservation_id) {
+    throw new Error(
+      "[authorization] attachLiveStakeProof requires ALLOW with reservation",
+    );
+  }
+  if (!args.stakeProofId || !args.preparedTxCommitment) {
+    throw new Error(
+      "[authorization] stakeProofId and preparedTxCommitment required",
+    );
+  }
+  if (!/^sha256:[a-f0-9]{64}$/.test(args.preparedTxCommitment)) {
+    throw new Error(
+      "[authorization] preparedTxCommitment must be sha256:<64 hex>",
+    );
+  }
+  return {
+    ...receipt,
+    stake_proof_id: args.stakeProofId,
+    prepared_tx_commitment: args.preparedTxCommitment,
+    native_signing_permitted: true,
+    signature_state: "NOT_YET_SIGNED",
+  };
+}
+
 export const packageOwner = "You" as const;

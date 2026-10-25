@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { FastifyInstance } from "fastify";
 import {
+  attachLiveStakeProof,
   authorizeExactAction,
   verifyMandate,
 } from "@shellfish/authorization";
@@ -21,6 +22,7 @@ import {
   requireCreditBackend,
   storeReceipt,
 } from "../credit-context.js";
+import { buildLiveAuthMaterials } from "../live-materials.js";
 
 const fixturesDir = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -49,16 +51,40 @@ function uniqueReservationRequest(
   };
 }
 
+function explorerUrl(txHash: string | null | undefined): string | null {
+  if (!txHash) return null;
+  return `https://devnet.xrpl.org/transactions/${txHash}`;
+}
+
 /**
  * Routes owned by You (Shellfish + XRPL + receipts).
  */
 export async function youRoutes(app: FastifyInstance) {
+  app.get("/v1/network", async () => {
+    const backend = requireCreditBackend();
+    return {
+      mode: config.networkMode,
+      live_ready: Boolean(backend.live && backend.liveConfig),
+      public_signing: backend.liveConfig?.publicSigning ?? null,
+      explorer_base: "https://devnet.xrpl.org/transactions/",
+    };
+  });
+
   app.post<{
     Body: { mandate?: unknown };
   }>("/v1/mandates", async (req, reply) => {
     try {
+      const backend = requireCreditBackend();
+      let mandateRaw = req.body?.mandate;
+      if (!mandateRaw && config.networkMode === "LIVE_DEVNET") {
+        if (!backend.liveConfig) {
+          reply.code(503);
+          return { ok: false, code: "LIVE_NOT_CONFIGURED", mode: config.networkMode };
+        }
+        mandateRaw = buildLiveAuthMaterials(backend.liveConfig, new Date()).mandate;
+      }
       const mandate = BorrowingMandate.parse(
-        req.body?.mandate ?? loadFixture("mandate.json"),
+        mandateRaw ?? loadFixture("mandate.json"),
       );
       const ok = verifyMandate(mandate);
       if (!ok) {
@@ -90,25 +116,47 @@ export async function youRoutes(app: FastifyInstance) {
   }>("/v1/authorizations", async (req, reply) => {
     try {
       const backend = requireCreditBackend();
-      const mandate = BorrowingMandate.parse(
-        req.body?.mandate ?? loadFixture("mandate.json"),
-      );
-      const offer = LenderFacilityOffer.parse(
-        req.body?.offer ?? loadFixture("offer-lender-a.json"),
-      );
-      const reservationFixture = ReservationFixture.parse(
-        loadFixture("reservation.json"),
-      );
-      const match = loadFixture<{ envelope_hash?: string }>("offer-match.json");
-      const useUnique = req.body?.unique !== false;
-      const reservationRequest =
-        req.body?.reservation_request ??
-        (useUnique
-          ? uniqueReservationRequest(reservationFixture.request)
-          : reservationFixture.request);
+      let mandate;
+      let offer;
+      let reservationRequest;
+      let now: Date;
+
+      if (config.networkMode === "LIVE_DEVNET") {
+        if (!backend.liveConfig) {
+          reply.code(503);
+          return { code: "LIVE_NOT_CONFIGURED", mode: config.networkMode };
+        }
+        now = new Date();
+        const materials = buildLiveAuthMaterials(backend.liveConfig, now);
+        mandate = BorrowingMandate.parse(req.body?.mandate ?? materials.mandate);
+        offer = LenderFacilityOffer.parse(req.body?.offer ?? materials.offer);
+        reservationRequest =
+          req.body?.reservation_request ?? materials.reservationRequest;
+      } else {
+        now = fixtureClock();
+        mandate = BorrowingMandate.parse(
+          req.body?.mandate ?? loadFixture("mandate.json"),
+        );
+        offer = LenderFacilityOffer.parse(
+          req.body?.offer ?? loadFixture("offer-lender-a.json"),
+        );
+        const reservationFixture = ReservationFixture.parse(
+          loadFixture("reservation.json"),
+        );
+        const useUnique = req.body?.unique !== false;
+        reservationRequest =
+          req.body?.reservation_request ??
+          (useUnique
+            ? uniqueReservationRequest(reservationFixture.request)
+            : reservationFixture.request);
+      }
+
+      const match =
+        config.networkMode === "SIMULATED_LOAN"
+          ? loadFixture<{ envelope_hash?: string }>("offer-match.json")
+          : { envelope_hash: null };
       const proposalHash =
-        req.body?.proposal_hash ??
-        contentHash(reservationRequest);
+        req.body?.proposal_hash ?? contentHash(reservationRequest);
 
       const receipt = authorizeExactAction({
         mandate,
@@ -118,7 +166,7 @@ export async function youRoutes(app: FastifyInstance) {
         reservationRequest,
         envelopeHash: req.body?.envelope_hash ?? match.envelope_hash ?? null,
         reserveRequest: (raw) => backend.registry.reserveRequest(raw),
-        now: fixtureClock(),
+        now,
       });
 
       const parsed = AuthorizationReceipt.parse(receipt);
@@ -153,8 +201,6 @@ export async function youRoutes(app: FastifyInstance) {
   }>("/v1/loans/originate", async (req, reply) => {
     try {
       const backend = requireCreditBackend();
-      const scenario = ScenarioFixture.parse(loadFixture("scenario.json"));
-      const offer = LenderFacilityOffer.parse(loadFixture("offer-lender-a.json"));
       const requestId = req.body?.request_id;
       const reservationId = req.body?.reservation_id;
       if (!requestId || !reservationId) {
@@ -184,14 +230,55 @@ export async function youRoutes(app: FastifyInstance) {
         };
       }
 
-      const clock = fixtureClock();
+      const isLive = config.networkMode === "LIVE_DEVNET";
+      if (isLive && !backend.live) {
+        reply.code(503);
+        return {
+          code: "LIVE_LEDGER_UNAVAILABLE",
+          message: "LIVE ledger not connected",
+          mode: config.networkMode,
+        };
+      }
+
+      let principal = req.body?.principal;
+      let aprBps = req.body?.apr_bps;
+      let termDays = req.body?.term_days;
+      let borrowerAccount: string;
+      let repAsset;
+      let clockSeconds: () => number;
+
+      if (isLive && backend.liveConfig) {
+        const materials = buildLiveAuthMaterials(backend.liveConfig, new Date());
+        const offer = LenderFacilityOffer.parse(materials.offer);
+        principal = principal ?? offer.principal;
+        aprBps = aprBps ?? offer.apr_bps;
+        termDays = termDays ?? offer.term_days;
+        borrowerAccount = backend.liveConfig.borrowerAddress;
+        repAsset = backend.liveConfig.publicSigning.native_rep_asset;
+        clockSeconds = () => Math.floor(Date.now() / 1000);
+      } else {
+        const scenario = ScenarioFixture.parse(loadFixture("scenario.json"));
+        const offer = LenderFacilityOffer.parse(loadFixture("offer-lender-a.json"));
+        principal = principal ?? offer.principal;
+        aprBps = aprBps ?? offer.apr_bps;
+        termDays = termDays ?? offer.term_days;
+        borrowerAccount = "sim:borrower-harbor-supply";
+        repAsset = scenario.rep_asset;
+        const clock = fixtureClock();
+        clockSeconds = () => Math.floor(clock.getTime() / 1000);
+      }
+
       const result = await originateLoan(
         {
           proposalHash: req.body?.proposal_hash ?? prior.proposal_hash ?? "",
-          principal: req.body?.principal ?? offer.principal,
-          aprBps: req.body?.apr_bps ?? offer.apr_bps,
-          termDays: req.body?.term_days ?? offer.term_days,
-          asset: JSON.stringify(offer.asset),
+          principal: principal!,
+          aprBps: aprBps!,
+          termDays: termDays!,
+          asset: JSON.stringify(
+            isLive
+              ? backend.liveConfig!.publicSigning.native_loan_asset
+              : LenderFacilityOffer.parse(loadFixture("offer-lender-a.json")).asset,
+          ),
           networkMode: config.networkMode,
           requestId,
           reservationId,
@@ -200,23 +287,42 @@ export async function youRoutes(app: FastifyInstance) {
           getRequest: (id) => backend.registry.getRequest(id),
           applyEvent: (event) => backend.registry.applyEvent(event as never),
           hashRequest: contentHash,
-          clockSeconds: () => Math.floor(clock.getTime() / 1000),
-          borrowerAccount: "sim:borrower-harbor-supply",
-          repAsset: scenario.rep_asset,
+          clockSeconds,
+          borrowerAccount,
+          repAsset,
+          live: backend.live,
         },
       );
 
-      const updated = {
-        ...prior,
-        signature_state: "SIGNATURE_ISSUED" as const,
-        xrpl_state: "SIMULATED" as const,
-        tx_hash: null,
-        stake_proof_id: prior.stake_proof_id,
-      };
+      let updated;
+      if (isLive) {
+        if (!result.stakeProofId || !result.preparedTxCommitment || !result.txHash) {
+          throw new Error("LIVE originate missing stake proof, commitment, or txHash");
+        }
+        const permitted = attachLiveStakeProof(prior, {
+          stakeProofId: result.stakeProofId,
+          preparedTxCommitment: result.preparedTxCommitment,
+        });
+        updated = {
+          ...permitted,
+          signature_state: "SIGNATURE_ISSUED" as const,
+          xrpl_state: "VALIDATED_ACTIVE" as const,
+          tx_hash: result.txHash,
+        };
+      } else {
+        updated = {
+          ...prior,
+          signature_state: "SIGNATURE_ISSUED" as const,
+          xrpl_state: "SIMULATED" as const,
+          tx_hash: null,
+          stake_proof_id: prior.stake_proof_id,
+        };
+      }
       storeReceipt(AuthorizationReceipt.parse(updated));
 
       return {
         ...result,
+        explorer: explorerUrl(result.txHash),
         receipt: updated,
         loan: backend.registry.getLoan(result.loanId!),
       };
@@ -234,7 +340,11 @@ export async function youRoutes(app: FastifyInstance) {
     try {
       const backend = requireCreditBackend();
       const loan = backend.registry.getLoan(req.params.id);
-      return { mode: config.networkMode, simulated: true, loan };
+      return {
+        mode: config.networkMode,
+        simulated: config.networkMode === "SIMULATED_LOAN",
+        loan,
+      };
     } catch (err) {
       reply.code(404);
       return {
@@ -255,6 +365,9 @@ export async function youRoutes(app: FastifyInstance) {
         mode: config.networkMode,
       };
     }
-    return receipt;
+    return {
+      ...receipt,
+      explorer: explorerUrl(receipt.tx_hash),
+    };
   });
 }

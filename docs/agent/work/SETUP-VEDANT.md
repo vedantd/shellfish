@@ -22,9 +22,24 @@
 - Checks: `pnpm build` PASS, `pnpm typecheck` PASS, `pnpm test` **137 PASS / 6 todo**
   (new `tests/authorization.test.ts`, `tests/xrpl.test.ts`). API smoke: credit-status 200,
   ALLOW with `reservation_id`, originate `simulated:true` / `txHash:null`.
-- Gaps (follow-up, not this checkpoint): LIVE_DEVNET / playground LoanSet in `@shellfish/xrpl`,
-  execution-store fencing, native verifiers, return-store issuer Payment, six security TODOs,
-  borrower/credit screen wiring.
+
+## B-0002 LIVE_DEVNET product slice — 2026-10-25
+
+- State: **PASS** for product wiring (mocked ledger unit tests). Stateful Devnet smoke: **SKIP**
+  (AUTHORIZATIONS: Stateful Devnet execution NOT GRANTED).
+- Checks: `pnpm build` PASS, `pnpm typecheck` PASS, `pnpm test` **140 PASS / 6 todo**.
+- Implemented (Vedant paths only):
+  - `@shellfish/xrpl` LIVE dual-sign LoanSet / LoanPay / REP redeem; `originateLoan` LIVE path
+    stakes before sign, applies native evidence hashes; structural verifiers for registry.
+  - `attachLiveStakeProof` for real `stake_proof_id` + prepared commitment (no sim invent on LIVE).
+  - API `live-backend.ts` / `live-config.ts` / `live-materials.ts`; `NETWORK_MODE=LIVE_DEVNET`
+    bootstrap; you routes + Screen C branch for real `txHash` / explorer; sim path unchanged.
+  - Public signing fields from env via `GET /v1/network` and `services/api/.env.live.example`.
+- Signing contract fixture: `fixtures/network-signing-contract.json` left
+  `native_ready: false` / `AWAITING_VEDANT` — Gita schema locks nulls; do not edit without
+  allocation. Runtime publishes public IDs from env when LIVE is configured.
+- Gaps (later): execution-store fencing, return-store issuer Payment, client-backed native
+  re-verify, six security TODOs, Devnet smoke when execution grant exists.
 
 ## Incoming Gita producer handoff
 
@@ -137,6 +152,7 @@ authorization or registry checks. No synthetic native hash or inferred settlemen
   REP redemption before controlled LoanSet; no AMM/consensus.
 - Lane remains READY and unclaimed for coding.
 
-**Next action (B-0002 follow-up):** LIVE_DEVNET adapter from playground; execution/return
-stores; native verifiers; security TODOs; fill `network-signing-contract.json` when going live.
-First SIM checkpoint is done.
+**Next action (B-0002 follow-up):** Obtain Devnet execution grant; fill `.env.live.example`;
+run LIVE smoke; record PASS/FAIL. Then execution/return fencing, client-backed verifiers,
+security TODOs; fixture `native_ready` only after schema allocation + smoke PASS.
+SIM + LIVE product wiring checkpoints are done (PR #4 / #5).

@@ -11,9 +11,10 @@ Maintainer: acknowledged coordinator **Vedant** (B-0001).
 | AUTH-GITA-HANDOFF-001 | Gita, producer delivery 2026-10-25 | APPROVED | Producer implementation + handoff records |
 | AUTH-C0-CONSUMER-001 | Vedant, C0-REP-1 consumer ACK 2026-10-25 | APPROVED | Accept C0 package; allocate B-0002; baton docs only |
 | Product implementation (B-0002 code) | Claimed for Vedant on B-0002 | APPROVED (bounded) | Auth/XRPL/API/UI wiring to accepted C0; no Gita path edits |
+| B-0002 LIVE product wiring (PR #5) | Vedant, Cursor session 2026-10-25 | APPROVED (bounded) | LIVE adapter/API/UI + baton/board update; mocked tests only |
 | Dependency installation | Gita-locked pins already on main | SUPERSEDED for verify | Consumer used Node 24.21 / pnpm 9.15 against existing lockfile |
 | Commit/push of this ACK | Vedant request to record baton | APPROVED when Vedant pushes | Baton/board/ledger/SETUP-VEDANT only unless separately asked |
-| Stateful Devnet execution | No new grant in this ACK | NOT GRANTED | LIVE_DEVNET still requires explicit execution grant |
+| Stateful Devnet execution | No new grant | NOT GRANTED | LIVE smoke / real Devnet submit still blocked until explicit grant |
 
 The setup-pass absence of a grant below is historical. AUTH-GITA-HANDOFF-001
 records Gita's later direct implementation and delivery authority for this checkpoint.

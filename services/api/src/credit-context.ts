@@ -1,7 +1,18 @@
 import type { AuthorizationReceipt } from "@shellfish/schemas";
-import { openFixtureCreditBackend } from "./db/fixtures.js";
+import type { CreditRegistry } from "@shellfish/registry";
+import type { LiveLedger } from "@shellfish/xrpl";
+import type { openFixtureCreditBackend } from "./db/fixtures.js";
+import type { LiveCreditBackend } from "./live-backend.js";
+import type { LiveRuntimeConfig } from "./live-config.js";
 
-export type CreditBackend = ReturnType<typeof openFixtureCreditBackend>;
+type SimBackend = ReturnType<typeof openFixtureCreditBackend>;
+
+export type CreditBackend = (SimBackend | LiveCreditBackend) & {
+  registry: CreditRegistry;
+  live?: LiveLedger;
+  liveConfig?: LiveRuntimeConfig;
+  mode?: "LIVE_DEVNET" | "SIMULATED_LOAN";
+};
 
 let backend: CreditBackend | null = null;
 const receiptsByRequestId = new Map<string, AuthorizationReceipt>();
@@ -13,7 +24,9 @@ export function getCreditBackend(): CreditBackend | null {
 
 export function requireCreditBackend(): CreditBackend {
   if (!backend) {
-    throw new Error("Credit backend not initialized (SIMULATED_LOAN bootstrap required)");
+    throw new Error(
+      "Credit backend not initialized (set NETWORK_MODE and complete bootstrap)",
+    );
   }
   return backend;
 }
