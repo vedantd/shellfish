@@ -4,12 +4,12 @@
 - State: **ACTIVE**. Binding repair and durable UI backend PASS. UI reads the joined SQLite view and OpenAPI contract now. Devnet remains the native integration target. Connected product Devnet smoke remains NOT RUN.
 - Coordinator: **Vedant, acknowledged** 2026-10-25 00:41 UTC.
 - Objective owner: coordinator (Vedant). Sponsor: Gita.
-- Updated: 2026-10-25 08:30 America/New_York (12:30 UTC), at Gita's direct central-baton update request.
+- Updated: 2026-10-25 09:38 America/New_York. Central and both individual records reflect the SQLite/API delivery.
 - Profile: setup-r1 adopted. Claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
-- Repository: Shellfish. Current branch: `main`, previous binding delivery **`9fad69052124011b47f4f60aded67e99ae18cbda`**, plus the UI persistence/API delivery containing this record. PRs #4, #5 and #6 are merged.
+- Repository: Shellfish. Branch: `main`. Current application delivery: **`fbc8de90e46e68213894221a4cfb61b3b6407303`**. Binding repair: `9fad690`. PRs #4, #5 and #6 are merged.
 - Accepted C0 base: **`08397b5449a6f2853e8d5da921ae29034353e4d2`** (Gita producer handoff).
-- Delivery: Gita resumed by direct request and delivered the binding repair at `9fad690`. Her lane is REVIEW for the next consumer handoff. Vedant remains coordinator and B-0002 execution/UI owner. Authority for this record sync: AUTH-GITA-CENTRAL-SYNC-002.
+- Delivery: Gita resumed by direct request, pushed the binding repair and SQLite/API/OpenAPI delivery, and is REVIEW for the handoff. Vedant remains coordinator and ACTIVE on remaining native execution/UI. Current handoff is in both individual work records.
 
 ## Incoming approved model decision
 

@@ -1,9 +1,31 @@
 # Vedant work record
 
+## Current incoming Gita handoff: SQLite and frontend contract
+
+- Recorded: 2026-10-25 09:38 America/New_York, at Gita's request to sync central and individual batons.
+- Application delivery: `fbc8de90e46e68213894221a4cfb61b3b6407303`, committed and pushed after `9fad690` binding repair.
+- This records the delivered handoff, not a new Vedant ACK. Vedant remains ACTIVE on B-0002.
+- Delivered: durable SQLite offer/receipt state with atomic authorization storage, public joined request/loan/credit/transaction view, and served OpenAPI contract.
+- Frontend entry points: `GET /openapi.json` and `GET /v1/requests/:id`. Source contract: `services/api/src/openapi.json`. Guide: `docs/API.md`.
+- Verified on the actual checkout: build/typecheck PASS, 154 repository tests PASS with six existing TODOs, 23 UI backend tests PASS, 12 OpenAPI checks PASS, 20 conformance cases PASS and 63 prior fixture tests PASS.
+- HTTP test restarts the API twice, then fetches the same receipt, originates the existing reservation without reauthorization and retries without duplicate events.
+- Earlier isolated native fixtures used real Devnet transactions. No new ledger submission occurred in this UI backend delivery.
+
+### Remaining backend work in dependency order
+
+1. Select coherent native accounts, loan asset/scale, schedule and fees. The current native defaults conflict with the advertised 90-day, zero-fee offer and are rejected before authorization.
+2. Supply matching native evidence/approved-offer inputs to `live-backend.ts`. Gita prepares source/schema records against the selection. Transaction hashes alone do not create underwriting or a passport.
+3. Connect execution-store fencing, finalized-field commitments and signed-attempt persistence before submission. Reconcile the saved attempt after timeout or restart, including completed native outcomes.
+4. Replace structural-only portfolio/event checks with authenticated ledger-backed verification and the required native mandate/signing validation.
+5. Connect the issuer-return worker to the existing durable return store. Verified repayment creates owed REP, then a validated issuer Payment makes it available once.
+6. Run the granted connected Devnet smoke and C4 checks. Record native default and the fresh migrated return-queue proof separately. Close the six security TODOs with the actual application path.
+
+UI integration can proceed now against the documented routes. Borrower and lender screens still need wiring, and the receipt screen should consume the joined read view. Existing helpers, APIs and SQLite persistence are delivered. The historical entries below retain their original checkpoint evidence.
+
 ## C0-REP-1 consumer ACK and B-0002 claim
 
 - Recorded: 2026-10-25 11:07 UTC. Ledger: AUTH-C0-CONSUMER-001. Parent: B-0001 → **B-0002**.
-- State: **ACTIVE** on B-0002. Gita remains PAUSED on producer lane.
+- Original C0 claim: ACTIVE on B-0002. Gita later resumed and delivered the current handoff above.
 - Accepted base: `08397b5449a6f2853e8d5da921ae29034353e4d2`.
 - Contract: C0-REP-1 / REP-CURVE-v0.2. First mode: **SIMULATED_LOAN**.
 - Checks reproduced locally (Node 24.21.0): build PASS, typecheck PASS, 128 tests PASS /
@@ -152,7 +174,4 @@ authorization or registry checks. No synthetic native hash or inferred settlemen
   REP redemption before controlled LoanSet; no AMM/consensus.
 - Lane remains READY and unclaimed for coding.
 
-**Next action (B-0002 follow-up):** Fill local `.env.live` (from `.env.live.example`);
-run LIVE smoke under AUTH-DEVNET-001; record PASS/FAIL. Then execution/return fencing,
-client-backed verifiers, security TODOs; fixture `native_ready` only after schema
-allocation + smoke PASS. SIM + LIVE wiring + Devnet grant are done (PR #4 / #5 / AUTH-DEVNET-001).
+**Next action (B-0002 follow-up):** Pull `fbc8de9`, use the served OpenAPI and joined request view for UI integration, and complete the six native backend items in the current handoff above. SQLite UI persistence is complete. AUTH-DEVNET-001 remains the bounded native smoke grant. No full native lifecycle acceptance is recorded yet.

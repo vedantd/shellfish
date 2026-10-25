@@ -10,7 +10,7 @@
 - Checks: SQLite12 PASS, read-view10 PASS, HTTP restart1 PASS, OpenAPI12 checks PASS. Combined workspace/regression results recorded at delivery.
 - Historical native fixtures used real Devnet transactions. These local API recovery tests submit none. Native recorded hashes retain their mode and provenance.
 - Remaining: native credit source/configuration records after selection, authenticated verification, execution fencing/persistence, issuer-return worker and connected product smoke. Existing stores and read APIs are ready for UI integration now.
-- Current application delivery is the commit containing this SQLite/API checkpoint. No dependencies or lockfile changed.
+- Current application delivery: `fbc8de90e46e68213894221a4cfb61b3b6407303`, committed and pushed. No dependencies or lockfile changed. Central and Vedant incoming handoff records now reflect this delivery.
 
 ## Current checkpoint: B-0002 consumer binding repair
 
