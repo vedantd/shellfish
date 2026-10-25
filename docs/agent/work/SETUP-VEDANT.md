@@ -13,6 +13,19 @@
 - Stop for B-0002 first checkpoint: simulated authorize → reserve → originate consume →
   receipt/status path without inventing native hashes.
 
+## B-0002 first checkpoint (SIMULATED_LOAN) — 2026-10-25
+
+- State: **PASS** for first connected simulation checkpoint.
+- Implemented: API `openFixtureCreditBackend` inject + shutdown close; `authorizeExactAction`
+  reserves once before ALLOW; `originateLoan` SIM path consumes reservation via `applyEvent`;
+  You routes authorize/originate/loan/receipt; demo repay simulated; Screen C happy-path button.
+- Checks: `pnpm build` PASS, `pnpm typecheck` PASS, `pnpm test` **137 PASS / 6 todo**
+  (new `tests/authorization.test.ts`, `tests/xrpl.test.ts`). API smoke: credit-status 200,
+  ALLOW with `reservation_id`, originate `simulated:true` / `txHash:null`.
+- Gaps (follow-up, not this checkpoint): LIVE_DEVNET / playground LoanSet in `@shellfish/xrpl`,
+  execution-store fencing, native verifiers, return-store issuer Payment, six security TODOs,
+  borrower/credit screen wiring.
+
 ## Incoming Gita producer handoff
 
 - Updated at Gita's explicit request on 2026-10-25 10:45 UTC. Coordinator remains Vedant.
@@ -124,8 +137,6 @@ authorization or registry checks. No synthetic native hash or inferred settlemen
   REP redemption before controlled LoanSet; no AMM/consensus.
 - Lane remains READY and unclaimed for coding.
 
-**Next action (B-0002):** Inject `openFixtureCreditBackend` into API; implement
-`authorizeExactAction` (reserve once before ALLOW); controlled LoanSet path consuming
-reservation with stake proof; wire receipts/UI; keep `SIMULATED_LOAN` honest. Fill
-`network-signing-contract.json` only when selecting LIVE_DEVNET. Stop at first connected
-simulation checkpoint.
+**Next action (B-0002 follow-up):** LIVE_DEVNET adapter from playground; execution/return
+stores; native verifiers; security TODOs; fill `network-signing-contract.json` when going live.
+First SIM checkpoint is done.
