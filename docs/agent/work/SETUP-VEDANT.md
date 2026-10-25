@@ -3,16 +3,29 @@
 ## Current incoming rough backend handoff
 
 - Recorded: 2026-10-25 10:26 America/New_York, by Gita's agent under her direct handoff instruction.
-- State: **REVIEW** incoming. This does not assert a new Vedant ACK. Vedant remains coordinator for B-0002.
-- Integration base: `4237c87`. Your native selection additions below are preserved: 90 days, zero fees, interval 7776000, 550 bps, principal_minor 200000 and loan MPT scale six.
-- Gita pauses after the authorized commit/push. Pull the actual delivery commit reported by root. No delivery SHA is invented in this record.
-- Code now includes native SQLite credit sources/intents, detached principal mandate authentication, ledger-backed verifiers, signer lanes, durable origination/reconciliation and repayment/default/REP-return workers.
-- Frontend contract: `GET /openapi.json`, 24 operations / 56 schemas. Eight new native API operations include credit intent, repayment, default, operation reads/reconciliation, REP return reads/process and acknowledged operator recovery.
+- State: **REVIEW** — regression restored + Slice 2 hardening PASS locally; **not** full backend acceptance. Vedant remains coordinator for B-0002.
+- Delivery SHA pulled: `1a0ddcd` (on `main` after selection merge `4237c87`). Selection preserved: 90 days, zero fees, interval 7776000, 550 bps, principal_minor 200000 and loan MPT scale six.
+- Code includes native SQLite credit sources/intents, detached principal mandate authentication, ledger-backed verifiers, signer lanes, durable origination/reconciliation and repayment/default/REP-return workers.
+- Frontend contract: `GET /openapi.json`, 24 operations / 56 schemas. Eight new native API operations.
 - Existing joined request/loan/credit/transaction reads and SQLite receipt/approved-offer storage remain available.
-- Individual slice checks: mandate17 PASS, execution7 PASS, verification15 PASS, signer-lanes11 PASS, OpenAPI12 PASS. Final workspace build and typecheck PASS after the scale-six correction. The four focused runtime files PASS with 50 tests.
-- Lifecycle runtime tests and the full new suite are NOT RUN. Old native tests still need the durable transport mock ports. The old 154-test record is historical.
-- Native credit source SQLite smoke: PASS with generated wallets and an explicit portfolio verifier test double. Stable intent/signature/evaluation returns APPROVE. No RPC or ledger transaction. OpenAPI checks include public loan_asset_scale six.
-- Connected native smoke, fresh return worker execution and native default are NOT RUN. Earlier fixture proof does not substitute for these checks.
+
+### Consumer verification (2026-10-25, Vedant) — regression restore + Slice 2 hardening
+
+| Check | Result | Scope |
+| --- | --- | --- |
+| Pull / base | PASS | `main` at `1a0ddcd` |
+| `pnpm build` / `pnpm typecheck` | PASS | Workspace |
+| LIVE mock ports | PASS | `tests/xrpl.test.ts` durable `transport` + `execution` + `signerLanes` |
+| Expired-absent stay RECONCILING | PASS | `tests/backend-execution.test.ts` — no replacement blob |
+| Execution / lifecycle / return CAS recover | PASS | `tests/backend-execution.test.ts`, `backend-lifecycle`, `backend-operator-recover` |
+| Lifecycle repay timeout + DEFAULT_TOO_SOON | PASS | `tests/backend-lifecycle.test.ts` |
+| Intent one-hour TTL | PASS | Implemented in `native-credit.ts`; `tests/backend-native-intent.test.ts` |
+| Full combined suite | PASS | **215 PASS / 6 todo** (`pnpm exec vitest run --no-cache`) |
+| Full backend acceptance | NOT CLAIMED | Return-worker runtime suite, restart/unknown-debt audit, UI, Devnet smoke still open |
+| Connected Devnet smoke | NOT RUN | AUTH-DEVNET-001 still granted |
+
+- Still open: fresh return-worker runtime suite, stored-vs-ledger restart audit, LIVE source-doc P2, UI Screens A/B, native smoke/return/default, six security TODOs.
+- Do not treat playground-term verification doubles as 90d/0 product acceptance.
 
 ### Exact testing and hardening handoff
 
