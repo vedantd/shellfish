@@ -1,5 +1,6 @@
 import { Client, Wallet } from "xrpl";
 import { createHash } from "node:crypto";
+import { createNativeTransport, type NativeTransport } from "./transport.js";
 import { aprBpsToXrplInterestRate } from "./index.js";
 import {
   buildDualSignedLoanSet,
@@ -20,6 +21,8 @@ export type LiveNativeReceipt = {
 
 /** Injectable LIVE ledger surface — tests mock this; production uses createXrplLiveLedger. */
 export type LiveLedger = {
+  /** Persisted workers use this transport. Legacy high-level methods are not the native execution gate. */
+  transport?: NativeTransport;
   redeemStake: (args: {
     amountU: string;
     requestHash: string;
@@ -45,8 +48,11 @@ export type LiveSessionConfig = {
   wsUrl: string;
   borrowerSeed: string;
   brokerSeed: string;
+  repIssuerSeed?: string;
   loanBrokerId: string;
   loanMptIssuanceId: string;
+  /** Decimal exponent for atomic MPT units. Must match verified issuance metadata. */
+  loanAssetScale?: number;
   repIssuanceId: string;
   repIssuerAddress: string;
   paymentTotal?: number;
@@ -80,8 +86,10 @@ export function readLiveSessionConfigFromEnv(
     wsUrl,
     borrowerSeed,
     brokerSeed,
+    repIssuerSeed: env.SHELLFISH_REP_ISSUER_SEED?.trim(),
     loanBrokerId,
     loanMptIssuanceId,
+    loanAssetScale: Number(env.SHELLFISH_LOAN_ASSET_SCALE?.trim() || "6"),
     repIssuanceId,
     repIssuerAddress,
     // Product C0 terms: 90-day bullet, zero fees (not playground 30-day / 100+10).
@@ -99,6 +107,7 @@ export function readLiveSessionConfigFromEnv(
 export function publicLiveSigningFields(config: LiveSessionConfig): {
   endpoint: string;
   native_loan_asset: { mpt_issuance_id: string };
+  loan_asset_scale: number;
   borrower_account: string;
   broker_account: string;
   broker_id: string;
@@ -120,6 +129,7 @@ export function publicLiveSigningFields(config: LiveSessionConfig): {
   return {
     endpoint: config.wsUrl,
     native_loan_asset: { mpt_issuance_id: config.loanMptIssuanceId },
+    loan_asset_scale: config.loanAssetScale ?? 6,
     borrower_account: borrower.classicAddress,
     broker_account: broker.classicAddress,
     broker_id: config.loanBrokerId,
@@ -152,6 +162,7 @@ export async function createXrplLiveLedger(
   const broker = Wallet.fromSeed(config.brokerSeed);
 
   const ledger: LiveLedger = {
+    transport: createNativeTransport(client, config),
     async redeemStake({ amountU }) {
       return redeemRepStake({
         client,

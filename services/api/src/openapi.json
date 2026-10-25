@@ -3,8 +3,8 @@
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "info": {
     "title": "Shellfish Agentic Credit API",
-    "version": "0.2.0",
-    "description": "Frontend source of truth for the current hackathon HTTP API. Schemas mirror the shared C0-REP-1 / REP-CURVE-v0.2 models. Amounts use exact strings and explicit scales. Examples are synthetic C0 fixtures, not native ledger receipts. LIVE_DEVNET and SIMULATED_LOAN remain explicit. An ALLOW is not settlement, an informational quote is not permission, and a configured ledger handle is not native proof. No HTTP authentication scheme is declared by this demo contract."
+    "version": "0.3.0",
+    "description": "Frontend source of truth for the rough hackathon HTTP API. Schemas mirror the shared C0-REP-1 / REP-CURVE-v0.2 models. Amounts use exact strings and explicit scales. Examples are synthetic C0 fixtures, not native ledger receipts. LIVE_DEVNET and SIMULATED_LOAN remain explicit. An ALLOW is not settlement, an informational quote is not permission, and a configured ledger handle is not native proof. Operator default/recovery routes require the configured header token. Full validation and hardening remain a separate handoff."
   },
   "servers": [
     {
@@ -27,6 +27,12 @@
     },
     {
       "name": "demo"
+    },
+    {
+      "name": "native"
+    },
+    {
+      "name": "operator"
     }
   ],
   "paths": {
@@ -1057,6 +1063,16 @@
               }
             }
           },
+          "202": {
+            "description": "Native execution is pending or busy. Preserve request/reservation identity and economic holds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Terms, reservation or stake mismatch.",
             "content": {
@@ -1462,6 +1478,725 @@
             }
           }
         }
+      }
+    },
+    "/v1/credit-intents": {
+      "post": {
+        "operationId": "createNativeCreditIntent",
+        "tags": [
+          "native"
+        ],
+        "summary": "Create or recover a native credit intent",
+        "description": "Native-only. Returns the coherent signed mandate, operator-seeded approved offer, reservation request and registry-backed evidence. It does not reserve credit or submit a loan. Map reservationRequest to reservation_request for the authorization route.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeIntentRequest"
+              },
+              "examples": {
+                "stableIntent": {
+                  "value": {
+                    "idempotency_key": "frontend-borrow-001"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation result. Inspect its state before showing success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NativeIntent"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Operation remains pending or a worker is busy. Reuse the same operation identity and reconcile the saved attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/NativeIntent"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation, state, request binding or recovery acknowledgement.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loan, operation or return credit not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native lifecycle backend is not available in this mode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/loans/{id}/repay": {
+      "post": {
+        "operationId": "repayNativeLoan",
+        "tags": [
+          "native"
+        ],
+        "summary": "Run a durable native repayment",
+        "description": "Derives request identity from the saved loan. maximum_amount_native is a spending cap, not an asserted debt reduction. The worker persists the signed attempt and derives accounting from verified metadata.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Native loan ID already stored by the registry.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeRepaymentRequest"
+              },
+              "examples": {
+                "full": {
+                  "value": {
+                    "operation_id": "repay-001",
+                    "maximum_amount_native": "2050000000",
+                    "payment_mode": "FULL"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation result. Inspect its state before showing success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleOperation"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Operation remains pending or a worker is busy. Reuse the same operation identity and reconcile the saved attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LifecycleOperation"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation, state, request binding or recovery acknowledgement.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loan, operation or return credit not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native lifecycle backend is not available in this mode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/loans/{id}/default": {
+      "post": {
+        "operationId": "defaultNativeLoan",
+        "tags": [
+          "native"
+        ],
+        "summary": "Run an operator-authorized native default",
+        "description": "Requires the configured operator token. Derives the request from the saved loan and delegates grace and default evidence checks to the lifecycle worker. REP forfeiture does not reimburse the lender.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Native loan ID already stored by the registry.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeDefaultRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation result. Inspect its state before showing success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleOperation"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Operation remains pending or a worker is busy. Reuse the same operation identity and reconcile the saved attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LifecycleOperation"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation, state, request binding or recovery acknowledgement.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operator token is missing or does not match.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loan, operation or return credit not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native lifecycle backend is not available in this mode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OperatorToken": []
+          }
+        ]
+      }
+    },
+    "/v1/operations/{id}": {
+      "get": {
+        "operationId": "getNativeOperation",
+        "tags": [
+          "native"
+        ],
+        "summary": "Read public lifecycle operation state",
+        "description": "Read the durable repayment/default operation without signed transaction bytes. This read returns the stored state even if it is still pending.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Operation ID supplied to repayment or default.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result. Inspect its state before showing success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleOperation"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Operation remains pending or a worker is busy. Reuse the same operation identity and reconcile the saved attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LifecycleOperation"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation, state, request binding or recovery acknowledgement.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loan, operation or return credit not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native lifecycle backend is not available in this mode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/operations/{id}/reconcile": {
+      "post": {
+        "operationId": "reconcileNativeOperation",
+        "tags": [
+          "native"
+        ],
+        "summary": "Reconcile the same saved native operation",
+        "description": "Reuses the persisted operation and exact signed attempt. A pending outcome retains economic holds. Supply no replacement transaction fields.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Existing repayment/default operation ID.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation result. Inspect its state before showing success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleOperation"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Operation remains pending or a worker is busy. Reuse the same operation identity and reconcile the saved attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LifecycleOperation"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation, state, request binding or recovery acknowledgement.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loan, operation or return credit not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native lifecycle backend is not available in this mode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rep-returns/{id}": {
+      "get": {
+        "operationId": "getRepReturn",
+        "tags": [
+          "native"
+        ],
+        "summary": "Read an owed REP return and safe attempt summary",
+        "description": "The instruction records the exact owed amount, issuer and destination. No raw signed blob or prepared transaction object is returned.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "REP return credit ID.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result. Inspect its state before showing success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnStatus"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Operation remains pending or a worker is busy. Reuse the same operation identity and reconcile the saved attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ReturnStatus"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation, state, request binding or recovery acknowledgement.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loan, operation or return credit not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native lifecycle backend is not available in this mode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rep-returns/{id}/process": {
+      "post": {
+        "operationId": "processRepReturn",
+        "tags": [
+          "native"
+        ],
+        "summary": "Process the persisted REP return",
+        "description": "Uses the issuer queue and exact saved Payment. Only a validated return settles the owed credit. OWED or RECONCILING remains pending.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "REP return credit ID.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation result. Inspect its state before showing success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnProcessResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Operation remains pending or a worker is busy. Reuse the same operation identity and reconcile the saved attempt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ReturnProcessResult"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation, state, request binding or recovery acknowledgement.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Loan, operation or return credit not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native lifecycle backend is not available in this mode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/operator/recover": {
+      "post": {
+        "operationId": "recoverStoppedWorker",
+        "tags": [
+          "operator"
+        ],
+        "summary": "Recover an explicitly stopped worker claim",
+        "description": "Requires an operator token and explicit stopped-worker acknowledgement. Compares the saved owner and fence. Recovery does not release principal or REP holds and does not replace an unresolved signed attempt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Claim recovered, with economic holds retained.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Worker or native operation remains busy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid acknowledgement or compare-and-set rejected.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Operator token is missing or does not match.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Native lifecycle backend is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OperatorToken": []
+          }
+        ]
       }
     }
   },
@@ -3217,6 +3952,10 @@
           "native_loan_asset": {
             "$ref": "#/components/schemas/AssetRef"
           },
+          "loan_asset_scale": {
+            "type": "number",
+            "description": "Native loan asset decimal scale from the selected configuration. It is separate from the REP scale."
+          },
           "borrower_account": {
             "type": "string"
           },
@@ -3259,6 +3998,7 @@
         "required": [
           "endpoint",
           "native_loan_asset",
+          "loan_asset_scale",
           "borrower_account",
           "broker_account",
           "broker_id",
@@ -4341,6 +5081,432 @@
             "attempts": []
           }
         ]
+      },
+      "OperationId": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9:_-]{1,180}$"
+      },
+      "NativeIntentRequest": {
+        "type": "object",
+        "properties": {
+          "idempotency_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9:_-]{1,160}$",
+            "description": "Reuses the stored intent and its exact signed mandate for this key. A different configuration under the same key is rejected."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "NativeIntent": {
+        "type": "object",
+        "properties": {
+          "mandate": {
+            "$ref": "#/components/schemas/BorrowingMandate"
+          },
+          "offer": {
+            "$ref": "#/components/schemas/LenderFacilityOffer"
+          },
+          "reservationRequest": {
+            "$ref": "#/components/schemas/ReservationRequest"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/EvidencePassport"
+          }
+        },
+        "required": [
+          "mandate",
+          "offer",
+          "reservationRequest",
+          "evidence"
+        ],
+        "additionalProperties": false
+      },
+      "NativeRepaymentRequest": {
+        "type": "object",
+        "properties": {
+          "operation_id": {
+            "$ref": "#/components/schemas/OperationId"
+          },
+          "maximum_amount_native": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$",
+            "description": "Positive integer spending cap in native loan-asset atoms. At loan_asset_scale 6, 2000.00 units is 2000000000 atoms. REP scale 6 is a separate asset scale. Ledger metadata determines actual principal reduction."
+          },
+          "payment_mode": {
+            "type": "string",
+            "enum": [
+              "FULL",
+              "REGULAR",
+              "OVERPAYMENT",
+              "LATE"
+            ],
+            "default": "FULL"
+          }
+        },
+        "required": [
+          "operation_id",
+          "maximum_amount_native"
+        ],
+        "additionalProperties": false
+      },
+      "NativeDefaultRequest": {
+        "type": "object",
+        "properties": {
+          "operation_id": {
+            "$ref": "#/components/schemas/OperationId"
+          }
+        },
+        "required": [
+          "operation_id"
+        ],
+        "additionalProperties": false
+      },
+      "LifecycleOperation": {
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string"
+          },
+          "loanId": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "REPAYMENT",
+              "DEFAULT"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "CLAIMED",
+              "PERSISTED",
+              "SUBMITTED",
+              "RECONCILING",
+              "VALIDATED",
+              "FAILED"
+            ]
+          },
+          "attemptHash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sequence": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "firstLedgerSequence": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastLedgerSequence": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "appliedEventId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "failureCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "claimed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "operationId",
+          "loanId",
+          "requestId",
+          "kind",
+          "state",
+          "attemptHash",
+          "sequence",
+          "firstLedgerSequence",
+          "lastLedgerSequence",
+          "appliedEventId",
+          "failureCode",
+          "owner",
+          "fence",
+          "claimed"
+        ],
+        "additionalProperties": false
+      },
+      "ReturnInstruction": {
+        "type": "object",
+        "properties": {
+          "creditId": {
+            "type": "string"
+          },
+          "network": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/NetworkMode"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "repAsset": {
+            "$ref": "#/components/schemas/RepAssetRef"
+          },
+          "amountU": {
+            "$ref": "#/components/schemas/AtomicAmount"
+          },
+          "instructionHash": {
+            "$ref": "#/components/schemas/Commitment"
+          }
+        },
+        "required": [
+          "creditId",
+          "network",
+          "mode",
+          "issuer",
+          "destination",
+          "repAsset",
+          "amountU",
+          "instructionHash"
+        ],
+        "additionalProperties": false
+      },
+      "SafeReturnAttempt": {
+        "type": "object",
+        "properties": {
+          "creditId": {
+            "type": "string"
+          },
+          "attemptHash": {
+            "type": "string"
+          },
+          "attemptNumber": {
+            "type": "integer"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PERSISTED",
+              "SUBMITTED",
+              "RECONCILING",
+              "NOT_APPLIED",
+              "VALIDATED"
+            ]
+          },
+          "sequence": {
+            "type": "integer"
+          },
+          "lastLedgerSequence": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "creditId",
+          "attemptHash",
+          "attemptNumber",
+          "state",
+          "sequence",
+          "lastLedgerSequence"
+        ],
+        "additionalProperties": false
+      },
+      "ReturnStatus": {
+        "type": "object",
+        "properties": {
+          "instruction": {
+            "$ref": "#/components/schemas/ReturnInstruction"
+          },
+          "attempt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SafeReturnAttempt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "instruction",
+          "attempt"
+        ],
+        "additionalProperties": false
+      },
+      "ReturnProcessResult": {
+        "type": "object",
+        "properties": {
+          "creditId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "OWED",
+              "PAID"
+            ]
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "PERSISTED",
+              "SUBMITTED",
+              "RECONCILING",
+              "NOT_APPLIED",
+              "VALIDATED"
+            ]
+          },
+          "attemptHash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attemptNumber": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "creditId",
+          "state",
+          "phase",
+          "attemptHash",
+          "attemptNumber"
+        ],
+        "additionalProperties": false
+      },
+      "RecoveryRequest": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "EXECUTION",
+              "LIFECYCLE",
+              "RETURN"
+            ]
+          },
+          "id": {
+            "$ref": "#/components/schemas/OperationId"
+          },
+          "expected_owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_fence": {
+            "type": "integer",
+            "description": "Exact currently claimed fence. The compare-and-set rejects a changed owner or fence."
+          },
+          "acknowledge_worker_stopped": {
+            "const": true
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "expected_owner",
+          "expected_fence",
+          "acknowledge_worker_stopped"
+        ],
+        "additionalProperties": false
+      },
+      "RecoveryResult": {
+        "type": "object",
+        "properties": {
+          "recovered": {
+            "const": true
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "EXECUTION",
+              "LIFECYCLE",
+              "RETURN"
+            ]
+          },
+          "economic_holds_released": {
+            "const": false
+          }
+        },
+        "required": [
+          "recovered",
+          "id",
+          "kind",
+          "economic_holds_released"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "OperatorToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Shellfish-Operator-Token",
+        "description": "Configured local operator token for default and explicit worker recovery. Never put the token value in checked-in examples."
       }
     }
   },

@@ -1,6 +1,30 @@
 # Vedant work record
 
-## Current incoming Gita handoff: SQLite and frontend contract
+## Current incoming rough backend handoff
+
+- Recorded: 2026-10-25 10:26 America/New_York, by Gita's agent under her direct handoff instruction.
+- State: **REVIEW** incoming. This does not assert a new Vedant ACK. Vedant remains coordinator for B-0002.
+- Integration base: `4237c87`. Your native selection additions below are preserved: 90 days, zero fees, interval 7776000, 550 bps, principal_minor 200000 and loan MPT scale six.
+- Gita pauses after the authorized commit/push. Pull the actual delivery commit reported by root. No delivery SHA is invented in this record.
+- Code now includes native SQLite credit sources/intents, detached principal mandate authentication, ledger-backed verifiers, signer lanes, durable origination/reconciliation and repayment/default/REP-return workers.
+- Frontend contract: `GET /openapi.json`, 24 operations / 56 schemas. Eight new native API operations include credit intent, repayment, default, operation reads/reconciliation, REP return reads/process and acknowledged operator recovery.
+- Existing joined request/loan/credit/transaction reads and SQLite receipt/approved-offer storage remain available.
+- Individual slice checks: mandate17 PASS, execution7 PASS, verification15 PASS, signer-lanes11 PASS, OpenAPI12 PASS. Final workspace build and typecheck PASS after the scale-six correction. The four focused runtime files PASS with 50 tests.
+- Lifecycle runtime tests and the full new suite are NOT RUN. Old native tests still need the durable transport mock ports. The old 154-test record is historical.
+- Native credit source SQLite smoke: PASS with generated wallets and an explicit portfolio verifier test double. Stable intent/signature/evaluation returns APPROVE. No RPC or ledger transaction. OpenAPI checks include public loan_asset_scale six.
+- Connected native smoke, fresh return worker execution and native default are NOT RUN. Earlier fixture proof does not substitute for these checks.
+
+### Exact testing and hardening handoff
+
+1. Pull the delivery and run `pnpm build`, `pnpm typecheck` and focused new tests on Node 24.21.0 / SQLite 12.10.1 / XRPL.js 5.3.0. Update old mock ledger adapters, then run `pnpm exec vitest run --no-cache`.
+2. Verify the selected scale-six loan asset against all principal/fee conversions and compare stored state with actual ledger state after restart. Audit pending attempts and unknown debt before treating startup as complete.
+3. Exercise crash, timeout, exact retry and completed native-outcome reconciliation. An expired absent attempt stays RECONCILING until final absence/failure is proved. Do not sign a replacement to make the test pass.
+4. Exercise stopped-worker operator CAS recovery with the exact owner/fence. There is no automatic expiry or takeover. Check the one-hour native-intent cache and use a new key after expiry.
+5. Provision the REP issuer seed locally for returns. Test repayment metadata/principal reduction, owed REP, serialized issuer return and replay. Keep keys and signed blobs out of shared output.
+6. Run the bounded Devnet smoke under AUTH-DEVNET-001, then fresh native return and eligible native default checks. A 90-day loan/seven-day grace cannot be forced into immediate default. Record any isolated test schedule separately.
+7. Record failures, harden the code and update the six security TODOs through actual consumer checks. Wire borrower/credit/receipt UI to OpenAPI and the joined read view. Do not label the rough backend fully accepted before these checks.
+
+## Historical incoming Gita handoff: SQLite and frontend contract
 
 - Recorded: 2026-10-25 09:38 America/New_York, at Gita's request to sync central and individual batons.
 - Application delivery: `fbc8de90e46e68213894221a4cfb61b3b6407303`, committed and pushed after `9fad690` binding repair.
@@ -11,7 +35,7 @@
 - HTTP test restarts the API twice, then fetches the same receipt, originates the existing reservation without reauthorization and retries without duplicate events.
 - Earlier isolated native fixtures used real Devnet transactions. No new ledger submission occurred in this UI backend delivery.
 
-### Remaining backend work in dependency order
+### Historical pre-rough backend dependency list
 
 1. ~~Select coherent native accounts, loan asset/scale, schedule and fees.~~ **PASS (draft)** — 2026-10-25.
    Locked product terms: 90-day / zero fees / interval 7776000 / 550 bps / principal_minor 200000.
@@ -27,7 +51,7 @@
 5. Connect the issuer-return worker to the existing durable return store. Verified repayment creates owed REP, then a validated issuer Payment makes it available once.
 6. Run the granted connected Devnet smoke and C4 checks. Record native default and the fresh migrated return-queue proof separately. Close the six security TODOs with the actual application path.
 
-### Exact Gita ask after Priority 1 selection
+### Historical Gita ask after Priority 1 selection
 
 Please produce LIVE_DEVNET source records bound to
 [`services/api/native-selection.draft.json`](../../../services/api/native-selection.draft.json)
@@ -188,7 +212,4 @@ authorization or registry checks. No synthetic native hash or inferred settlemen
   REP redemption before controlled LoanSet; no AMM/consensus.
 - Lane remains READY and unclaimed for coding.
 
-**Next action (B-0002 follow-up):** Priority 1 native selection draft is done
-(`services/api/NATIVE-SELECTION.md`). Wait for Gita Priority 2 LIVE source docs, then inject
-into `live-backend.ts`. Parallel OK: UI A/B/C against OpenAPI, or execution-store fencing.
-Devnet smoke only after P2 inject. AUTH-DEVNET-001 remains the bounded smoke grant.
+**Next action (B-0002 follow-up):** Pull the rough backend delivery, run the testing/hardening sequence in the current incoming handoff, then integrate the UI. Native implementation paths are now coded but not fully accepted. Gita pauses after delivery. AUTH-DEVNET-001 remains the existing bounded smoke grant.

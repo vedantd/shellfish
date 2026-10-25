@@ -24,7 +24,7 @@ import {
   requireCreditBackend,
   storeReceipt,
 } from "../credit-context.js";
-import { buildLiveAuthMaterials } from "../live-materials.js";
+
 
 const fixturesDir = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -99,12 +99,12 @@ export async function youRoutes(app: FastifyInstance) {
           reply.code(503);
           return { ok: false, code: "LIVE_NOT_CONFIGURED", mode: config.networkMode };
         }
-        mandateRaw = buildLiveAuthMaterials(backend.liveConfig, new Date()).mandate;
+        mandateRaw = backend.nativeIntent?.().mandate;
       }
       const mandate = BorrowingMandate.parse(
         mandateRaw ?? loadFixture("mandate.json"),
       );
-      const ok = verifyMandate(mandate);
+      const ok = verifyMandate(mandate, backend.verifyNativeMandate);
       if (!ok) {
         reply.code(400);
         return { ok: false, code: "DENY_SIGNATURE", mode: config.networkMode };
@@ -145,9 +145,12 @@ export async function youRoutes(app: FastifyInstance) {
           return { code: "LIVE_NOT_CONFIGURED", mode: config.networkMode };
         }
         now = new Date();
-        const materials = buildLiveAuthMaterials(backend.liveConfig, now);
+        const materials = backend.nativeIntent?.();
+        if (!materials) throw new Error("NATIVE_CREDIT_SOURCE_REQUIRED");
         mandate = BorrowingMandate.parse(req.body?.mandate ?? materials.mandate);
         offer = LenderFacilityOffer.parse(req.body?.offer ?? materials.offer);
+        const approved = backend.uiState.getApprovedOffer(offer.commercial_terms_hash);
+        if (!approved || approved.offer_hash !== offer.offer_hash) throw new Error("TRUSTED_NATIVE_OFFER_REQUIRED");
         reservationRequest =
           req.body?.reservation_request ?? materials.reservationRequest;
       } else {
@@ -183,6 +186,7 @@ export async function youRoutes(app: FastifyInstance) {
         proposalHash,
         evidenceFresh: req.body?.evidence_fresh ?? true,
         hashContent: contentHash,
+        verifyNativeMandate: backend.verifyNativeMandate,
         reservationRequest,
         envelopeHash: req.body?.envelope_hash ?? match.envelope_hash ?? null,
         reserveRequest: (raw) => backend.registry.reserveRequest(raw),
@@ -304,6 +308,8 @@ export async function youRoutes(app: FastifyInstance) {
           borrowerAccount,
           repAsset,
           live: backend.live,
+          execution: backend.execution,
+          signerLanes: backend.signerLanes,
         },
       );
 
@@ -340,9 +346,10 @@ export async function youRoutes(app: FastifyInstance) {
         loan: backend.registry.getLoan(result.loanId!),
       };
     } catch (err) {
-      reply.code(400);
+      const pending = err && typeof err === "object" && "code" in err && ["RECONCILING", "EXECUTION_BUSY"].includes(String(err.code));
+      reply.code(pending ? 202 : 400);
       return {
-        code: "DENY_STAKE_PROOF",
+        code: pending ? String((err as { code: string }).code) : "DENY_STAKE_PROOF",
         message: err instanceof Error ? err.message : "originate failed",
         mode: config.networkMode,
       };

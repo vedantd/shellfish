@@ -55,6 +55,22 @@ export async function demoRoutes(app: FastifyInstance) {
         };
       }
 
+      if (isLive) {
+        if (!backend.lifecycle) throw new Error("DURABLE_NATIVE_LIFECYCLE_REQUIRED");
+        const loan = backend.registry.getLoan(loanId);
+        if (loan.request_id !== requestId) throw new Error("LOAN_REQUEST_BINDING_MISMATCH");
+        const amount = req.body?.amount ?? "2000.00";
+        if (!/^(0|[1-9][0-9]*)(\.[0-9]{1,2})?$/.test(amount)) throw new Error("INVALID_DISPLAY_REPAYMENT_AMOUNT");
+        const scale = backend.liveConfig?.loanAssetScale ?? 6;
+        if (!Number.isSafeInteger(scale) || scale < 2 || scale > 18) throw new Error("INVALID_NATIVE_ASSET_SCALE");
+        const [whole, fraction = ""] = amount.split(".");
+        const nativeAmount = (BigInt(whole) * 100n + BigInt(fraction.padEnd(2, "0"))) * 10n ** BigInt(scale - 2);
+        const operation = await backend.lifecycle.repay({ operationId: `demo-repay:${requestId}`,
+          loanId, requestId, maximumAmountNative: nativeAmount.toString(), paymentMode: "FULL" });
+        if (!["VALIDATED", "FAILED"].includes(operation.state)) reply.code(202);
+        return { ...operation, mode: config.networkMode,
+          status: backend.registry.getCreditStatus((record.request as { facility_id: string }).facility_id) };
+      }
       const result = await repayLoan({
         loanId,
         amount: req.body?.amount ?? "2000.00",

@@ -1,6 +1,7 @@
 import type { NetworkMode, RepAssetRef, LenderFacilityOffer } from "@shellfish/schemas";
 import { ReservationFixture, LenderFacilityOffer as OfferSchema, canonicalJson, withoutFields } from "@shellfish/schemas";
 import type { LiveLedger } from "./live-session.js";
+import { originateDurableNative, type NativeExecutionStore } from "./native-execution.js";
 import {
   aprBpsToXrplInterestRate,
   xrplInterestRateToAprBps,
@@ -21,6 +22,9 @@ export {
 } from "./live-loan.js";
 export { redeemRepStake } from "./live-rep.js";
 export { createStructuralNativeVerifiers } from "./verifiers.js";
+export * from "./transport.js";
+export * from "./native-execution.js";
+export * from "./native-verification.js";
 
 export class NotImplementedError extends Error {
   constructor(feature: string) {
@@ -72,6 +76,8 @@ export type OriginationRegistry = {
   repAsset: RepAssetRef;
   /** Required for LIVE_DEVNET — mock in tests or createXrplLiveLedger in production. */
   live?: LiveLedger;
+  execution?: NativeExecutionStore;
+  signerLanes?: { claim(input: {operationId: string;mode: NetworkMode;network: string;accounts: string[]}): {acquired: true;operationId: string;lanes: Array<{key:string;fence:number}>}|{acquired:false;blockedAccount:string};assertClaim(claim: {acquired:true;operationId:string;lanes:Array<{key:string;fence:number}>}):void;release(claim: {acquired:true;operationId:string;lanes:Array<{key:string;fence:number}>}):boolean };
 };
 
 /** @deprecated Use OriginationRegistry */
@@ -88,7 +94,7 @@ function assertReservation(
   if (existing.reservationId !== req.reservationId) {
     throw new Error("[xrpl] reservation_id does not match registry request");
   }
-  if (!["AWAITING_STAKE", "STAKE_VALIDATED", "ACTIVE", "RETURN_PENDING", "REPAID", "DEFAULTED"].includes(existing.state)) {
+  if (!["AWAITING_STAKE", "STAKE_VALIDATED", "RECONCILING", "ACTIVE", "RETURN_PENDING", "REPAID", "DEFAULTED"].includes(existing.state)) {
     throw new Error(`[xrpl] cannot originate from state ${existing.state}`);
   }
   return existing;
@@ -215,120 +221,26 @@ export async function originateLoan(
   };
 }
 
-function principalUnits(display: string): string {
-  if (!/^(0|[1-9][0-9]*)(\.00)?$/.test(display)) {
+function principalUnits(display: string, assetScale: number): string {
+  if (!Number.isSafeInteger(assetScale) || assetScale < 0 || assetScale > 18 || !/^(0|[1-9][0-9]*)(\.[0-9]+)?$/.test(display)) {
     throw new Error("[xrpl] unsupported native principal precision; no truncation permitted");
   }
-  const whole = display.split(".")[0];
-  if (BigInt(whole) <= 0n) throw new Error("[xrpl] native principal must be positive");
-  return whole;
-}
-
-function nativeEvidence(
-  receipt: {
-    txHash: string;
-    ledgerIndex: number;
-    transactionIndex: number;
-  },
-  transactionType: string,
-) {
-  return {
-    txHash: receipt.txHash,
-    ledgerIndex: receipt.ledgerIndex,
-    transactionIndex: receipt.transactionIndex,
-    validated: true as const,
-    result: "tesSUCCESS" as const,
-    transactionType,
-  };
+  const [whole, fraction = ""] = display.split(".");
+  if (fraction.slice(assetScale).replace(/0/g, "") !== "") throw new Error("[xrpl] unsupported native principal precision; no truncation permitted");
+  const fractionalUnits = (fraction.slice(0, assetScale) + "0".repeat(assetScale)).slice(0, assetScale);
+  const units = BigInt(whole) * 10n ** BigInt(assetScale) + BigInt(fractionalUnits || "0");
+  if (units <= 0n) throw new Error("[xrpl] native principal must be positive");
+  return units.toString();
 }
 
 async function originateLive(
   req: LoanOriginateRequest,
   registry: OriginationRegistry,
 ): Promise<LoanOriginateResult> {
-  if (!registry.live) {
-    throw new Error(
-      "[xrpl] LIVE_DEVNET originate requires injected live ledger (env wallets / mock)",
-    );
-  }
-
   const existing = assertReservation(req, registry);
   const offer = assertBoundTerms(req, registry, existing);
-  if (existing.loanId) throw new Error("[xrpl] existing LIVE loan requires persisted outcome reconciliation");
-  // Precision rejection must precede the irreversible stake redemption.
-  const nativePrincipal = principalUnits(offer.principal);
-  const requestHash = registry.hashRequest(existing.request);
-  let stakeProofId: string | null = null;
-
-  if (existing.state === "AWAITING_STAKE") {
-    const stake = await registry.live.redeemStake({
-      amountU: existing.originalBondU,
-      requestHash,
-    });
-    stakeProofId = stake.txHash;
-    await registry.applyEvent({
-      eventId: `stake:${req.requestId}`,
-      kind: "STAKE_VALIDATED",
-      requestId: req.requestId,
-      occurredAt: registry.clockSeconds(),
-      native: nativeEvidence(stake, "Payment"),
-      stake: {
-        amountU: existing.originalBondU,
-        repAsset: registry.repAsset,
-        sender: registry.borrowerAccount,
-        destination: registry.repAsset.issuer,
-        requestHash,
-        partialPayment: false,
-      },
-    });
-  } else {
-    const afterStake = registry.getRequest(req.requestId);
-    stakeProofId = afterStake.stakeHash ?? null;
-    if (!stakeProofId) {
-      throw new Error("[xrpl] LIVE STAKE_VALIDATED missing stake hash");
-    }
-  }
-
-  const afterStakeState = registry.getRequest(req.requestId);
-  if (afterStakeState.state !== "STAKE_VALIDATED") {
-    throw new Error(
-      `[xrpl] LIVE refuse LoanSet: expected STAKE_VALIDATED, got ${afterStakeState.state}`,
-    );
-  }
-
-  const originated = await registry.live.originateLoanSet({
-    principal: nativePrincipal,
-    aprBps: offer.apr_bps,
-    termDays: offer.term_days,
-  });
-
-  const now = registry.clockSeconds();
-  const maturityAt = now + offer.schedule.payment_total * offer.schedule.payment_interval_seconds;
-  await registry.applyEvent({
-    eventId: `origin:${req.requestId}`,
-    kind: "ORIGINATION_VALIDATED",
-    requestId: req.requestId,
-    occurredAt: now,
-    native: nativeEvidence(originated, "LoanSet"),
-    loan: {
-      loanId: originated.loanId,
-      maturityAt,
-      nextPaymentDueAt: maturityAt,
-      graceSeconds: 604800,
-    },
-  });
-
-  return {
-    mode: "LIVE_DEVNET",
-    txHash: originated.txHash,
-    loanId: originated.loanId,
-    validated: true,
-    simulated: false,
-    requestId: req.requestId,
-    reservationId: req.reservationId,
-    stakeProofId,
-    preparedTxCommitment: originated.preparedCommitment,
-  };
+  const nativePrincipal = principalUnits(offer.principal, registry.live?.transport?.config.loanAssetScale ?? 6);
+  return originateDurableNative(req, registry, offer, nativePrincipal);
 }
 
 /** Submit or observe LoanPay. */
@@ -345,38 +257,7 @@ export async function repayLoan(input: {
   };
 }): Promise<{ txHash: string | null; simulated: boolean; loanId: string }> {
   if (input.networkMode === "LIVE_DEVNET") {
-    if (!input.sim?.live) {
-      throw new Error("[xrpl] LIVE_DEVNET repay requires injected live ledger");
-    }
-    const amountValue = principalUnits(input.amount);
-    const paid = await input.sim.live.repayLoanPay({
-      loanId: input.loanId,
-      amountValue,
-    });
-    if (input.requestId) {
-      const occurredAt = input.sim.clockSeconds();
-      const originEventId = `origin:${input.requestId}`;
-      await input.sim.applyEvent({
-        eventId: `repay:${input.loanId}:${occurredAt}`,
-        kind: "REPAYMENT",
-        loanId: input.loanId,
-        occurredAt,
-        native: nativeEvidence(paid, "LoanPay"),
-        repayment: {
-          principalReductionMinor:
-            input.principalReductionMinor ??
-            String(Math.trunc(Number(input.amount) * 100)),
-          fullContractualRepayment: input.fullContractualRepayment ?? true,
-          onTime: true,
-        },
-        history: {
-          complete: true,
-          originHash: input.sim.originHash ?? paid.txHash.toUpperCase(),
-          previousEventId: input.sim.previousEventId ?? originEventId,
-        },
-      });
-    }
-    return { txHash: paid.txHash, simulated: false, loanId: input.loanId };
+    throw new Error("DURABLE_NATIVE_LIFECYCLE_REQUIRED: use createLifecycleWorker");
   }
 
   if (!input.sim || !input.requestId) {
@@ -409,3 +290,7 @@ export async function repayLoan(input: {
 }
 
 export const packageOwner = "You" as const;
+
+export { Wallet } from "xrpl";
+export * from "./lifecycle.js";
+export * from "./return-worker.js";

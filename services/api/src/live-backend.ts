@@ -1,117 +1,56 @@
-import { createCompatibilityService } from "@shellfish/compatibility";
-import { createEvidenceService } from "@shellfish/evidence";
-import { contentHash } from "@shellfish/registry";
-import {
-  createStructuralNativeVerifiers,
-  createXrplLiveLedger,
-  type LiveLedger,
-} from "@shellfish/xrpl";
+import { createLedgerNativeVerifiers, createXrplLiveLedger, createLifecycleWorker, createRepReturnWorker, type LiveLedger, type NativeQueryClient } from "@shellfish/xrpl";
 import { openCreditRegistry } from "./db/registry.js";
-import {
-  livePortfolioSeed,
-  loadLiveRuntimeConfig,
-  type LiveRuntimeConfig,
-} from "./live-config.js";
-import type { FixtureCreditServices } from "./db/fixtures.js";
+import { livePortfolioSeed, loadLiveRuntimeConfig } from "./live-config.js";
+import { createNativeCreditSources } from "./native-credit.js";
 
-export type LiveCreditBackend = {
-  services: FixtureCreditServices;
-  registry: ReturnType<typeof openCreditRegistry>["registry"];
-  execution: ReturnType<typeof openCreditRegistry>["execution"];
-  returns: ReturnType<typeof openCreditRegistry>["returns"];
-  uiState: ReturnType<typeof openCreditRegistry>["uiState"];
-  requestViews: ReturnType<typeof openCreditRegistry>["requestViews"];
-  transaction: <T>(work: () => T) => T;
-  close: () => void;
-  live: LiveLedger;
-  liveConfig: LiveRuntimeConfig;
-  mode: "LIVE_DEVNET";
-};
-
-/**
- * Vedant-owned LIVE bootstrap. Does not edit Gita fixtures.ts.
- * Requires complete SHELLFISH_* / XRPL env (see live-config).
- * When connectLedger is false, caller must inject `live` (tests).
- */
-export async function openLiveCreditBackend(
-  databasePath: string,
-  options: {
-    env?: NodeJS.ProcessEnv;
-    connectLedger?: boolean;
-    live?: LiveLedger;
-    now?: () => Date;
-  } = {},
-): Promise<LiveCreditBackend> {
-  const env = options.env ?? process.env;
-  const liveConfig = loadLiveRuntimeConfig(env);
-  if (!liveConfig) {
-    throw new Error(
-      "[api] LIVE_DEVNET missing env: SHELLFISH_BORROWER_SEED, SHELLFISH_BROKER_SEED, SHELLFISH_LOAN_BROKER_ID, SHELLFISH_LOAN_MPT_ID, SHELLFISH_REP_MPT_ID, SHELLFISH_REP_ISSUER_ACCOUNT",
-    );
-  }
-
+export async function openLiveCreditBackend(databasePath: string, options: {
+  env?: NodeJS.ProcessEnv; connectLedger?: boolean; live?: LiveLedger; queryClient?: NativeQueryClient; now?: () => Date;
+} = {}) {
+  const liveConfig = loadLiveRuntimeConfig(options.env ?? process.env);
+  if (!liveConfig) throw new Error("LIVE_CONFIG_REQUIRED");
   const now = options.now ?? (() => new Date());
-  const verifiers = createStructuralNativeVerifiers();
-  const backend = openCreditRegistry(databasePath, {
-    now,
-    uiMode: "LIVE_DEVNET",
-    uiNetwork: "devnet",
-    verifyNativeEvent: verifiers.verifyNativeEvent,
-    verifyNativePortfolio: verifiers.verifyNativePortfolio,
+  const handle = !options.live && options.connectLedger !== false ? await createXrplLiveLedger(liveConfig) : null;
+  const live = options.live ?? handle?.ledger;
+  if (!live?.transport) { await handle?.close(); throw new Error("DURABLE_NATIVE_TRANSPORT_REQUIRED"); }
+  const transport = live.transport;
+  const client = options.queryClient ?? { request: (input: Record<string, unknown>) => transport.request(input) };
+  let backend: ReturnType<typeof openCreditRegistry> | undefined;
+  const verifiers = createLedgerNativeVerifiers({ client, expectedNetworkId: 2,
+    borrowerAccount: liveConfig.borrowerAddress, brokerAccount: liveConfig.brokerAddress,
+    brokerId: liveConfig.loanBrokerId, loanAsset: { mpt_issuance_id: liveConfig.loanMptIssuanceId },
+    repAsset: liveConfig.publicSigning.native_rep_asset, moneyScale: 100n, loanAssetScale: liveConfig.loanAssetScale ?? 6,
+    originationFee: liveConfig.loanOriginationFee ?? "0", serviceFee: liveConfig.loanServiceFee ?? "0",
+    getApprovedOffer: hash => backend?.uiState.getApprovedOffer(hash),
+    getPreparedFields: id => backend?.execution.getPreparedAction(id)?.preparedFields,
+    getAttemptHash: (id, phase) => backend?.execution.getAttempt(id, phase)?.attemptHash,
+    getLoanContext: id => {
+      if (!backend) return undefined;
+      const loan = backend.registry.getLoan(id);
+      const prior = backend.db.prepare("SELECT tx_hash FROM credit_events WHERE event_id=?").get(loan.event_cursor) as { tx_hash: string } | undefined;
+      if (!prior?.tx_hash) return undefined;
+      return { originHash: String(loan.origin_hash), eventCursor: String(loan.event_cursor), previousEventHash: prior.tx_hash,
+        maturityAt: Number(loan.maturity_time), nextDueAt: Number(loan.next_due_time), graceSeconds: Number(loan.grace_seconds) };
+    },
   });
-
-  let liveHandle: { ledger: LiveLedger; close: () => Promise<void> } | null =
-    null;
   try {
-    const seed = livePortfolioSeed(liveConfig, now().toISOString());
-    await backend.registry.initializeNativePortfolio(
-      seed,
-      liveConfig.borrowerAddress,
-      { source: "live-env", endpoint: liveConfig.wsUrl },
-    );
-
-    let live = options.live;
-    if (!live && options.connectLedger !== false) {
-      liveHandle = await createXrplLiveLedger(liveConfig);
-      live = liveHandle.ledger;
+    backend = openCreditRegistry(databasePath, { now, uiMode: "LIVE_DEVNET", uiNetwork: "devnet",
+      verifyNativeEvent: verifiers.verifyNativeEvent, verifyNativePortfolio: verifiers.verifyNativePortfolio, verifyReturnFailure: verifiers.verifyReturnFailure });
+    const binding = { principalId: liveConfig.principalId, network: "devnet", asset: { mpt_issuance_id: liveConfig.loanMptIssuanceId } };
+    let enrolled = false;
+    try { backend.registry.getPortfolio(binding); enrolled = true; } catch (error) {
+      if (!(error && typeof error === "object" && "code" in error && error.code === "NOT_FOUND")) throw error;
     }
-    if (!live) {
-      throw new Error("[api] LIVE_DEVNET requires a live ledger or connectLedger");
-    }
-
-    const services: FixtureCreditServices = {
-      evidence: createEvidenceService({
-        passports: [],
-        hash: contentHash,
-        now,
-      }),
-      credit: createCompatibilityService({
-        approvedOffers: [],
-        hash: contentHash,
-        now,
-      }),
-      registry: backend.registry,
-    };
-
-    return {
-      services,
-      registry: backend.registry,
-      execution: backend.execution,
-      returns: backend.returns,
-      uiState: backend.uiState,
-      requestViews: backend.requestViews,
-      transaction: <T>(work: () => T): T => backend.db.transaction(work).immediate(),
-      live,
-      liveConfig,
-      mode: "LIVE_DEVNET",
-      close: () => {
-        void liveHandle?.close();
-        backend.close();
-      },
-    };
-  } catch (err) {
-    void liveHandle?.close();
-    backend.close();
-    throw err;
-  }
+    if (!enrolled) await backend.registry.initializeNativePortfolio(livePortfolioSeed(liveConfig, now().toISOString()), liveConfig.borrowerAddress, { source: "queried-devnet" });
+    else await verifiers.verifyAssetConfiguration({ lenderId: liveConfig.brokerAddress });
+    const sources = createNativeCreditSources(backend.db, backend.registry, backend.uiState, liveConfig, now);
+    const lifecycle = createLifecycleWorker({ registry: backend.registry, store: backend.lifecycleStore,
+      transport, signerLanes: backend.signerLanes, moneyScale: 100n, nativeAssetScale: liveConfig.loanAssetScale ?? 6,
+      loanAsset: { mpt_issuance_id: liveConfig.loanMptIssuanceId } });
+    const repReturns = createRepReturnWorker({ registry: backend.registry, returns: backend.returns, transport, signerLanes: backend.signerLanes });
+    return { ...backend, services: sources.services, verifyNativeMandate: sources.verifyNativeMandate,
+      nativeIntent: sources.intent, lifecycle, repReturns, live, liveConfig, mode: "LIVE_DEVNET" as const,
+      transaction: <T>(work: () => T): T => backend!.db.transaction(work).immediate(),
+      close: () => { void handle?.close().catch(() => {}); backend?.close(); } };
+  } catch (error) { backend?.close(); await handle?.close(); throw error; }
 }
+export type LiveCreditBackend = Awaited<ReturnType<typeof openLiveCreditBackend>>;

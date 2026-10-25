@@ -1,15 +1,15 @@
 # Current Shellfish baton
 
 - Label / ID: **B-0002** (Vedant consumer integration). Parent C0: **B-0001** ACCEPTED.
-- State: **ACTIVE**. Binding repair and durable UI backend PASS. UI reads the joined SQLite view and OpenAPI contract now. Devnet remains the native integration target. Connected product Devnet smoke remains NOT RUN.
+- State: **REVIEW** for the rough backend handoff. Native implementation paths are coded. Combined regression, hardening and connected Devnet acceptance remain with Vedant.
 - Coordinator: **Vedant, acknowledged** 2026-10-25 00:41 UTC.
 - Objective owner: coordinator (Vedant). Sponsor: Gita.
-- Updated: 2026-10-25 09:38 America/New_York. Central and both individual records reflect the SQLite/API delivery.
+- Updated: 2026-10-25 10:26 America/New_York, by Gita's agent under her direct rough-delivery and three-baton handoff request.
 - Profile: setup-r1 adopted. Claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
-- Repository: Shellfish. Branch: `main`. Current application delivery: **`fbc8de90e46e68213894221a4cfb61b3b6407303`**. Binding repair: `9fad690`. PRs #4, #5 and #6 are merged.
+- Repository: Shellfish. Branch: `main`. Integration base: `4237c87`, including Vedant's 90-day, zero-fee selection and loan MPT scale six. Rough delivery identity is the commit containing this handoff, pending the actual closeout result.
 - Accepted C0 base: **`08397b5449a6f2853e8d5da921ae29034353e4d2`** (Gita producer handoff).
-- Delivery: Gita resumed by direct request, pushed the binding repair and SQLite/API/OpenAPI delivery, and is REVIEW for the handoff. Vedant remains coordinator and ACTIVE on remaining native execution/UI. Current handoff is in both individual work records.
+- Delivery: Gita finishes the authorized verification/commit/push closeout, then is **PAUSED** at her direct request. Vedant receives a **REVIEW** handoff for testing, hardening and UI integration. No new consumer ACK or coordinator transfer is recorded.
 
 ## Incoming approved model decision
 
@@ -55,30 +55,28 @@ Simulation: [rep-exposure-curve.html](../simulations/rep-exposure-curve.html).
 
 ## Next bounded outcome
 
-Backend UI state is implemented. The same SQLite database now stores checked offers,
-receipts and their audit history beside credit requests, loans and ledger event references.
-Authorization reservation, offer and receipt storage commit in one SQL transaction.
-Restart tests prove existing requests can originate and retry without reauthorization.
+Deliver the rough backend, then pause Gita's lane. Vedant tests and hardens this delivery
+before marking native acceptance or starting another implementation scope.
 
-The frontend contract is `services/api/src/openapi.json`, served by `GET /openapi.json`.
-It covers all 16 HTTP operations and 44 schemas. `GET /v1/requests/:id` joins the receipt,
-approved offer/lender decision, current loan/REP state, recorded transaction references
-and safe pending-attempt summaries. The API performs no ledger submission for this read.
+The rough code includes SQLite-backed native credit intents, evidence and approved offers;
+detached native mandate authentication; ledger-backed verifiers; account signer lanes;
+durable stake/loan signing, submission and reconciliation; repayment/default lifecycle
+operations; and the issuer-return worker. The API has eight new native operations.
+`GET /openapi.json` covers 24 operations and 56 schemas. The existing joined request view
+continues to expose saved loan, REP, receipt and public transaction state.
 
-Devnet is the native integration target. Earlier isolated fixtures ran real Devnet
-issuance, REP redemption, LoanSet, LoanPay and restoration. These are existing proof.
-The latest HTTP/restart checks use local simulation to test app recovery without
-repeating those transactions. They do not replace native evidence.
+Vedant's selected product terms remain 90 days, zero fees, 550 bps, principal_minor 200000
+and loan MPT asset scale six. Preserve the selection and its public identifiers in
+[Native selection](../../services/api/NATIVE-SELECTION.md). Root is finishing the scale-six
+integration recheck. Do not treat the previous scale-zero helper assumption as accepted.
 
-Next: UI owner wires A/B and completes C against this contract. Vedant supplies coherent
-native identifiers/terms, connects authenticated verification, durable execution and
-issuer returns, then runs the connected product smoke under AUTH-DEVNET-001.
-Native mode's credit services still need matching evidence/approved-offer input records.
-Do not infer a credit approval from a transaction hash or relabel a simulated passport.
-Gita prepares any selected native source/schema changes under her scope.
+Earlier isolated fixtures ran real Devnet transactions. This rough delivery has not run
+the connected native smoke, native default or fresh issuer-return lifecycle acceptance.
+The new lifecycle worker has not had its runtime tests completed. Existing native mocks
+need the durable transport ports before the full new suite can establish regression.
 
-The [work board](WORK-BOARD.md#ui-can-start-now) maps screens and endpoint contracts.
-Full repayment UI remains deferred. No new baton ID or coordinator takeover is recorded.
+The handoff is code-present, with testing and hardening still open. UI integration can
+use the served contract. The backend is not yet fully accepted.
 
 ## Acceptance
 
@@ -98,17 +96,21 @@ Full repayment UI remains deferred. No new baton ID or coordinator takeover is r
 - [x] SQLite receipt and approved-offer state survive API restart. Reservation/offer/receipt commit together.
 - [x] Joined request/credit/transaction endpoint and OpenAPI contract implemented.
 - [ ] Screens A/B consume the APIs and C consumes the joined state. UI ownership remains with Vedant.
-- [ ] Native evidence and approved-offer services are populated with matching source records.
-- [ ] LIVE_DEVNET identifiers and accepted native configuration recorded in the schema successor. Native proof controls readiness.
+- [x] Rough native intent/evidence/approved-offer storage and service wiring implemented. Integration acceptance remains open.
+- [x] Vedant selected the native public configuration, 90-day/zero-fee terms and MPT scale six in `4237c87`.
+- [ ] Selected configuration, stored state and ledger state pass the complete restart/unknown-debt audit.
+- [x] Rough mandate authentication, authenticated verification, durable origination, lifecycle and return workers implemented.
+- [ ] Existing mock ports updated and full new regression/lifecycle suite passes.
 - [ ] Stateful Devnet smoke PASS (execution grant + real hashes on Devnet).
 - [ ] Full connected demo polish (C4 denials/replay/race/timeout on product path).
 
 ## Scope
 
-Use the [profile's exact allocation](PROJECT-PROFILE.md#exclusive-file-scopes-after-acknowledged-claims).
-Lane records: [Gita](work/SETUP-GITA.md) REVIEW after the verified repair, with SQLite persistence delivered
-and selected native source preparation queued in her existing scope. [Vedant](work/SETUP-VEDANT.md) remains ACTIVE on execution/API/UI. Future work uses acknowledged disjoint claims.
-
+Vedant remains coordinator for B-0002. Gita's agent wrote this narrow current-record and
+individual-handoff update under Gita's direct instruction. No new baton ID is allocated.
+[Gita](work/SETUP-GITA.md) pauses after the authorized commit/push. [Vedant](work/SETUP-VEDANT.md)
+receives the rough backend in REVIEW for testing, hardening and UI. That incoming state is
+not a fabricated Vedant acceptance or a new acknowledged implementation claim.
 
 ## Fixed product boundaries
 
@@ -144,7 +146,7 @@ the first 12-hour slice.
 | Stateful Devnet smoke | NOT RUN | Grant present; env + submit still pending |
 | Native default / return-queue native | NOT RUN | As recorded by Gita |
 
-### Current verified repair and UI baseline
+### Historical verified repair and UI baseline
 
 Application code: `9fad690`. The following commands ran against that checkout on Node 24.21.0.
 
@@ -161,7 +163,7 @@ Application code: `9fad690`. The following commands ran against that checkout on
 The earlier 128/140-test tables are historical checkpoint evidence. They do not replace
 the current result or establish native execution. No dependency versions changed.
 
-### Durable UI backend evidence
+### Historical durable UI backend evidence
 
 - SQLite helper: 12 behavioral checks PASS. Request/transaction view: 10 checks PASS.
 - Actual HTTP process restart test: PASS across two restarts, including saved ALLOW,
@@ -171,17 +173,43 @@ the current result or establish native execution. No dependency versions changed
 - Full workspace and existing regression checks run again on the combined delivery.
   No native submission is part of this checkpoint.
 
+## Rough delivery checks and known gaps
+
+| Check | Observed scope/result |
+| --- | --- |
+| Combined workspace checks | Build PASS and typecheck PASS after the final scale-six correction |
+| Focused runtime checks | 4 files, 50 tests PASS after the final scale-six correction |
+| Native mandate tests | 17 PASS, individual slice |
+| Durable execution tests | 7 PASS, individual slice |
+| Ledger verifier tests | 15 PASS, individual slice |
+| Signer-lane tests | 11 PASS, individual slice |
+| OpenAPI contract checks | 12 PASS, 24 operations / 56 schemas, public loan_asset_scale six |
+| Native credit source SQLite smoke | PASS with generated wallets and an explicit portfolio verifier test double. Stable intent/signature/evaluation returns APPROVE. No RPC or ledger transaction |
+| Lifecycle runtime tests | NOT RUN |
+| Full new combined suite | NOT RUN. Existing native mocks need durable ports |
+| Connected Devnet smoke / return / default | NOT RUN |
+
+Known handoff boundaries:
+
+- Restart validates configuration. Complete stored-versus-ledger, pending-attempt and
+  unknown-debt audits still need testing and hardening.
+- Expired signed attempts without proven final absence remain RECONCILING.
+- Native intent cache lasts one hour. Use a new idempotency key after expiry.
+- Operator compare-and-set recovery requires a stopped worker and exact current owner/fence
+  acknowledgement. There is no automatic TTL takeover.
+- REP returns need the issuer seed in local-only runtime configuration. Never put it in
+  public source, OpenAPI examples, receipts, batons or logs.
+- A selected 90-day loan and seven-day grace do not permit an immediate native default.
+  Test an actually eligible overdue loan or an explicitly agreed isolated test schedule.
+- Earlier 154-test and fixture results above belong to the previous delivery. They do
+  not certify this rough backend. No native transaction was submitted by this docs sync.
+
 ## Exact next action
 
-UI owner opens `GET /openapi.json` or `docs/API.md`, then uses `GET /v1/requests/:id`
-for the credit/loan/receipt/transaction screen. Wire borrower and lender views to the
-existing evidence/evaluate/match/status/quote endpoints. Backend SQLite/lookup code is ready.
-
-Vedant completes authenticated native verification, persisted execution and returns,
-selects coherent native configuration and runs the granted product smoke. Gita supplies
-matching native source/schema records after those values are selected. Native default
-and a fresh migrated return-queue native run remain separate unrun acceptance checks.
-
-AUTH-DEVNET-001 remains Vedant's bounded execution grant. A hash or public runtime
-`live_ready` value is not a lender approval or a newly authenticated ledger outcome.
-Preserve request identity for retries and the one-use mandate boundary.
+Root completes the requested closeout and reports the actual commit/remote ref, then
+Gita pauses. Vedant pulls that delivery, runs `pnpm build`, `pnpm typecheck`, focused
+new tests and `pnpm exec vitest run --no-cache`, and updates the old native mock adapters.
+He then tests lifecycle/recovery and the granted connected Devnet path, records exact
+results, hardens failures and wires the UI through the 24-operation OpenAPI contract.
+Keep native smoke, native return and native default evidence separate. No new dependency
+installation, Mainnet execution, deployment or real WhatsApp sending is authorized here.

@@ -166,3 +166,12 @@ for this exact checkpoint. It does not create standing release or installation a
 - This extends the earlier direct application repair grant to the necessary persistence/API files. Vedant remains coordinator and owns remaining execution/UI integration.
 - Excludes dependency installation, secret ingestion, new stateful ledger submissions, deployment, invented underwriting or native verification claims.
 - Deliver the reviewed changes, validation and dependency handoff through the existing commit/push workflow.
+
+## Current rough backend delivery and pause scope
+
+- This extends the existing AUTH-GITA-UI-PERSIST-003 direct implementation/handoff scope. It allocates no new baton ID.
+- Source: Gita directly requested completion of the whole backend, then instructed a rough version, pause/handoff of testing and hardening to Vedant, updates to all three batons, commit/push and a WhatsApp draft.
+- Allowed closeout: finish the rough backend integration, preserve Vedant's `4237c87` native-selection changes, record true check outcomes and known gaps, update CURRENT-BATON, both SETUP work records and WORK-BOARD, then commit and push the reviewed delivery.
+- Narrow central/other-work-record exception: Gita's agent records the incoming handoff only. Vedant remains coordinator. No new Vedant acceptance, implementation claim or verified native milestone is invented.
+- Stop: after the requested commit/push and reported remote ref, Gita is PAUSED. Vedant receives testing, hardening and UI integration in REVIEW.
+- WhatsApp authorization covers a draft for Gita to send, not sending a message. No dependency installation, deployment, Mainnet action, force-push or new native submission is authorized by this documentation record.

@@ -29,6 +29,8 @@ export type AuthorizeExactActionInput = {
   evidenceFresh: boolean;
   /** Trusted application content hasher, never an HTTP body field. */
   hashContent: (value: unknown) => string;
+  /** Server-pinned native principal authentication. A request cannot supply this function. */
+  verifyNativeMandate?: (mandate: BorrowingMandate) => boolean;
   /** Full atomic reservation request body for registry.reserveRequest */
   reservationRequest: unknown;
   envelopeHash?: string | null;
@@ -68,7 +70,7 @@ function requestIdOf(reservationRequest: unknown): string | null {
 }
 
 /** Verify a principal-signed mandate (FR-02). */
-export function verifyMandate(mandate: BorrowingMandate): boolean {
+export function verifyMandate(mandate: BorrowingMandate, nativeVerifier?: (mandate: BorrowingMandate) => boolean): boolean {
   if (!mandate.mandate_id || !mandate.principal_id || !mandate.agent_id) {
     return false;
   }
@@ -78,7 +80,10 @@ export function verifyMandate(mandate: BorrowingMandate): boolean {
   if (!mandate.nonce || !mandate.mandate_hash) return false;
   if (!mandate.rep_consent?.authorized) return false;
   if (Number.isNaN(Date.parse(mandate.expires_at))) return false;
-  return true;
+  if (mandate.mode === "SIMULATED_LOAN") return /^sig-(simulated|demo)-/.test(mandate.principal_signature);
+  if (mandate.mode !== "LIVE_DEVNET" || !nativeVerifier) return false;
+  try { return nativeVerifier(mandate) === true; }
+  catch { return false; }
 }
 
 function baseChecks(): AuthorizationReceipt["checks"] {
@@ -133,7 +138,7 @@ export function authorizeExactAction(
     native_signing_permitted: false,
   });
 
-  if (!verifyMandate(input.mandate)) {
+  if (!verifyMandate(input.mandate, input.verifyNativeMandate)) {
     return deny(["DENY_SIGNATURE"], { ...pass, identity: "FAIL" });
   }
 

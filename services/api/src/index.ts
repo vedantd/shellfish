@@ -12,6 +12,7 @@ import { demoRoutes } from "./routes/demo.js";
 import { gitaRoutes } from "./routes/gita.js";
 import { healthRoutes } from "./routes/health.js";
 import { youRoutes } from "./routes/you.js";
+import { nativeRoutes } from "./routes/native.js";
 
 const app = Fastify({ logger: true });
 
@@ -55,6 +56,7 @@ await app.register(gitaRoutes, {
   mode: config.networkMode,
 });
 await app.register(demoRoutes);
+await app.register(nativeRoutes);
 
 app.addHook("onClose", async () => {
   backend?.close();

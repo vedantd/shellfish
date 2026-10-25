@@ -12,6 +12,11 @@ export type CreditBackend = (SimBackend | LiveCreditBackend) & {
   live?: LiveLedger;
   liveConfig?: LiveRuntimeConfig;
   mode?: "LIVE_DEVNET" | "SIMULATED_LOAN";
+  verifyNativeMandate?: LiveCreditBackend["verifyNativeMandate"];
+  nativeIntent?: LiveCreditBackend["nativeIntent"];
+  lifecycle?: LiveCreditBackend["lifecycle"];
+  repReturns?: LiveCreditBackend["repReturns"];
+  lifecycleStore?: LiveCreditBackend["lifecycleStore"];
 };
 
 let backend: CreditBackend | null = null;

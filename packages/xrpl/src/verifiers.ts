@@ -6,10 +6,11 @@ type Nativeish = {
   };
 };
 
+export { createLedgerNativeVerifiers } from "./native-verification.js";
+
 /**
- * Structural LIVE verifier for product wiring / unit tests.
- * Does not re-query Devnet — Gita's native-e2e remains the ledger proof harness.
- * Production can replace with a client-backed verifier when Devnet execution is granted.
+ * Explicit structural test helper. Runtime LIVE_DEVNET code must use
+ * createLedgerNativeVerifiers, which re-queries authenticated ledger facts.
  */
 export function createStructuralNativeVerifiers(): {
   verifyNativeEvent: (event: Nativeish, _binding: unknown) => Promise<void>;

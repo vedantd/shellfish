@@ -275,6 +275,17 @@ export function createReturnStore(db: Database.Database, options: ReturnStoreOpt
             return stored(latest(guard.creditId)!);
         }).immediate();
     }
-    return { claimReturn, releaseReturnWorker, getReturnInstruction, getReturnAttempt, getReturnHistory,
+    function getReturnClaim(creditId: string) {
+        const i = instruction(credit(creditId)), row = lane(issuerKey(i));
+        return row ? { creditId, issuerKey: row.issuer_key, owner: row.owner, fence: row.fence, active: row.claimed === 1, activeCreditId: row.active_credit_id } : null;
+    }
+    /** Operator confirms that the old worker stopped. The unresolved issuer lane stays held. */
+    function recoverReturnWorker(creditId: string, expectedOwner: string, expectedFence: number): boolean {
+        const i = instruction(credit(creditId));
+        if (!nonempty(expectedOwner) || !Number.isSafeInteger(expectedFence) || expectedFence < 1) throw new RegistryError("INVALID_RECOVERY_ACK");
+        return db.prepare("UPDATE rep_issuer_lanes SET claimed=0,owner=NULL,fence=fence+1 WHERE issuer_key=? AND active_credit_id=? AND owner=? AND fence=? AND claimed=1")
+            .run(issuerKey(i), creditId, expectedOwner, expectedFence).changes === 1;
+    }
+    return { claimReturn, releaseReturnWorker, getReturnInstruction, getReturnAttempt, getReturnHistory, getReturnClaim, recoverReturnWorker,
         prepareReturnPayment, persistReturnAttempt, markReturnUncertain, resolveNotApplied };
 }

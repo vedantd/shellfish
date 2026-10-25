@@ -1,6 +1,23 @@
 # Gita work record
 
-## Current checkpoint: durable UI state and API contract
+## Current rough backend handoff
+
+- Parent: B-0002. Recorded: 2026-10-25 10:26 America/New_York. No new ID allocated. Coordinator remains Vedant.
+- State: **PAUSED after authorized commit/push**, at Gita's direct request. Until publication, only closeout verification and delivery remain. No further feature work follows that boundary.
+- Source: Gita requested the whole backend, then explicitly requested a rough version, handoff of testing/hardening to Vedant, updates to all three batons, commit/push and a WhatsApp draft.
+- Integration base: `4237c87`. Preserve Vedant's selected 90-day, zero-fee terms, 550 bps, principal_minor 200000 and loan MPT scale six. Delivery SHA comes from root's actual closeout result.
+- Rough code: trusted SQLite native intent/evidence/approved-offer records, detached mandate authentication, ledger-backed verifiers, signer lanes, durable native origination/save/reconcile, repayment/default lifecycle operations and issuer-return worker.
+- API: eight added native routes, 24 total operations and 56 OpenAPI schemas. The joined credit/loan/receipt/transaction view remains the frontend read path.
+- Observed individual checks: mandate17 PASS, execution7 PASS, verification15 PASS, signer-lanes11 PASS, OpenAPI12 PASS. Final workspace build and typecheck PASS after the scale-six correction. The four focused runtime files PASS with 50 tests.
+- NOT RUN: lifecycle runtime tests, full new combined suite, connected native smoke, native return and native default. Existing native mocks need the durable ports. Old test totals belong to the earlier delivery.
+- Remaining testing/hardening: full ledger/storage restart audit, pending/unknown-debt reconciliation, explicit stopped-worker CAS recovery, expired-absence behavior, one-hour intent expiry and local REP issuer-key provisioning.
+- Grace/due times stay real. A 90-day loan with seven-day grace cannot be defaulted immediately for the demo.
+- Next consumer: Vedant pulls the actual delivery commit, builds/types/tests, updates mocks, validates native lifecycle/recovery and integrates the UI. No consumer ACK is invented.
+- Release: commit/push and remote identity are reported by root. WhatsApp is a draft for Gita to send. No direct message is sent by this handoff.
+
+- Native credit source SQLite smoke: PASS using generated wallets and an explicit portfolio verifier test double. Stable intent, valid detached signature and evaluation APPROVE. No RPC or ledger transaction. Final OpenAPI checks include public loan_asset_scale six.
+
+## Historical checkpoint: durable UI state and API contract
 
 - State: REVIEW for implemented SQLite/API delivery. Parent B-0002, direct user authority AUTH-GITA-UI-PERSIST-003 and central sync AUTH-GITA-CENTRAL-SYNC-002.
 - Same existing SQLite DB now stores immutable approved offer snapshots, current receipts and append-only receipt history. Authorization reservation and UI records commit atomically.
@@ -12,7 +29,7 @@
 - Remaining: native credit source/configuration records after selection, authenticated verification, execution fencing/persistence, issuer-return worker and connected product smoke. Existing stores and read APIs are ready for UI integration now.
 - Current application delivery: `fbc8de90e46e68213894221a4cfb61b3b6407303`, committed and pushed. No dependencies or lockfile changed. Central and Vedant incoming handoff records now reflect this delivery.
 
-## Current checkpoint: B-0002 consumer binding repair
+## Historical checkpoint: B-0002 consumer binding repair
 
 - State: REVIEW after implementation and verification. Parent: B-0002. No new coordinator ID allocated.
 - Gita resumed work at her direct request on 2026-10-25. She then instructed: "so just do that in the main codebase" for the demonstrated binding defects.

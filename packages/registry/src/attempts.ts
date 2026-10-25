@@ -242,5 +242,21 @@ export function createExecutionStore(db: Database.Database, options: ExecutionSt
             return stored(attemptRow(guard.requestId, attemptPhase)!);
         }).immediate();
     }
-    return { claimExecution, releaseExecution, getAttempt, persistAttempt, freezePreparedAction, markAttemptState };
+    function getPreparedAction(requestId: string): { preparedFields: Record<string, unknown>; commitment: string } | null {
+        const row = request(requestId);
+        return row.prepared_json && row.prepared_commitment ? { preparedFields: JSON.parse(row.prepared_json), commitment: row.prepared_commitment } : null;
+    }
+    function getExecutionClaim(requestId: string) {
+        request(requestId); const row = claimRow(requestId);
+        return row ? { requestId, owner: row.owner, fence: row.fence, active: row.active === 1 } : null;
+    }
+    /** Explicit operator acknowledgement only. Never a timer or automatic takeover. */
+    function acknowledgeExecutionRecovery(requestId: string, expectedOwner: string, expectedFence: number): boolean {
+        request(requestId);
+        if (!nonempty(expectedOwner) || !Number.isSafeInteger(expectedFence) || expectedFence < 1) throw new RegistryError("INVALID_RECOVERY_ACK");
+        return db.prepare("UPDATE credit_execution_claims SET active=0,fence=fence+1 WHERE request_id=? AND owner=? AND fence=? AND active=1")
+            .run(requestId, expectedOwner, expectedFence).changes === 1;
+    }
+    return { claimExecution, releaseExecution, getAttempt, persistAttempt, freezePreparedAction, markAttemptState,
+        getPreparedAction, getExecutionClaim, acknowledgeExecutionRecovery };
 }
