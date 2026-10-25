@@ -1,7 +1,7 @@
 # Shellfish work board
 
 - Revision: setup-r1 adopted. Coordinator: **Vedant** (B-0001 accepted; **B-0002** ACTIVE).
-- Current objective: [B-0002](CURRENT-BATON.md) — LIVE product wiring on [PR #5](https://github.com/vedantd/shellfish/pull/5); Devnet smoke pending grant.
+- Current objective: [B-0002](CURRENT-BATON.md) — PR #5 merged; AUTH-DEVNET-001 approved; next = LIVE smoke.
 - Accepted claim channel: **GitHub PR comments** on `vedantd/shellfish`.
 - Clone mode: **separate clones**.
 - Gita producer PAUSED. Vedant consumer ACK 2026-10-25 11:07 UTC; LIVE wiring recorded 11:47 UTC.
@@ -22,12 +22,13 @@
 | Lane | Owner | First bounded outcome | Depends on | Record | State |
 | --- | --- | --- | --- | --- | --- |
 | Credit and registry | Gita | Shared fixtures, lender/match outputs and reserve/retry proof | C0 examples | [Gita work](work/SETUP-GITA.md) | PAUSED — producer delivered; C0 consumer ACK done |
-| Authorization and execution | Vedant | SIM then LIVE product path on Gita exports | C0-REP-1 accepted | [Vedant work](work/SETUP-VEDANT.md) | **ACTIVE B-0002** — SIM PASS; LIVE wiring PASS (PR #5); smoke SKIP |
+| Authorization and execution | Vedant | SIM then LIVE product path on Gita exports | C0-REP-1 accepted | [Vedant work](work/SETUP-VEDANT.md) | **ACTIVE B-0002** — SIM PASS; LIVE wiring PASS; Devnet grant APPROVED; smoke NOT RUN |
 | Policy examples | Nick | Two exact rules and expected results | Final PRD | Non-coding input to Gita | READY |
 | Adversarial examples | Shell | Six bounded negative cases | Final PRD and agreed signing route | Non-coding input to both | READY |
 
 Coordinator ACK of setup-r1: 2026-10-25 00:41 UTC. C0 consumer ACK: 2026-10-25 11:07 UTC.
-LIVE product-wiring baton update: 2026-10-25 11:47 UTC. No timeout-based takeover exists.
+LIVE product-wiring baton update: 2026-10-25 11:47 UTC. AUTH-DEVNET-001: 2026-10-25 11:54 UTC.
+No timeout-based takeover exists.
 
 ## Dependency graph
 

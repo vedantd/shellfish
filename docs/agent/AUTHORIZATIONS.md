@@ -14,7 +14,7 @@ Maintainer: acknowledged coordinator **Vedant** (B-0001).
 | B-0002 LIVE product wiring (PR #5) | Vedant, Cursor session 2026-10-25 | APPROVED (bounded) | LIVE adapter/API/UI + baton/board update; mocked tests only |
 | Dependency installation | Gita-locked pins already on main | SUPERSEDED for verify | Consumer used Node 24.21 / pnpm 9.15 against existing lockfile |
 | Commit/push of this ACK | Vedant request to record baton | APPROVED when Vedant pushes | Baton/board/ledger/SETUP-VEDANT only unless separately asked |
-| Stateful Devnet execution | No new grant | NOT GRANTED | LIVE smoke / real Devnet submit still blocked until explicit grant |
+| AUTH-DEVNET-001 | Vedant, Cursor 2026-10-25 11:54 UTC | APPROVED (bounded) | Stateful XRPL Devnet submit for B-0002 LIVE smoke |
 
 The setup-pass absence of a grant below is historical. AUTH-GITA-HANDOFF-001
 records Gita's later direct implementation and delivery authority for this checkpoint.
@@ -128,3 +128,21 @@ for this exact checkpoint. It does not create standing release or installation a
 - Does not mark LIVE_DEVNET ready until `fixtures/network-signing-contract.json` is filled
   and separately accepted.
 - Stop: acceptance on baton; Vedant proceeds with B-0002 implementation in his scopes.
+
+## AUTH-DEVNET-001
+
+- Status: **APPROVED** for bounded stateful XRPL Devnet execution (B-0002 LIVE smoke).
+- Approver: Vedant (tech lead / coordinator), 2026-10-25 11:54 UTC.
+- Source: Vedant instructed Cursor to grant stateful Devnet execution after PR #5 merge.
+- Allowed: connect to XRPL Devnet; use local env seeds (never commit); submit REP redeem /
+  LoanSet / LoanPay for product LIVE smoke; record PASS/FAIL/SKIP + real public hashes on
+  baton/SETUP-VEDANT; update board evidence rows.
+- Allowed paths for this grant record: `docs/agent/AUTHORIZATIONS.md`,
+  `docs/agent/CURRENT-BATON.md`, `docs/agent/WORK-BOARD.md`,
+  `docs/agent/work/SETUP-VEDANT.md`.
+- Runtime: `NETWORK_MODE=LIVE_DEVNET` with env from `services/api/.env.live.example`
+  (seeds local-only). Prefer reuse of playground / Gita native E2E public identifiers.
+- Excludes: Mainnet; committing seeds or private keys; force-push; deployment; flipping
+  `fixtures/network-signing-contract.json` `native_ready` without Gita schema allocation;
+  editing Gita package sources; inventing synthetic live hashes.
+- Stop: smoke recorded; next is env fill + LIVE run, then optional Gita schema request.
