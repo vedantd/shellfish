@@ -39,3 +39,5 @@ Receipts + exposure registry
 - `SIMULATED_LOAN` — labeled simulation; never present as on-chain lending
 
 See the PRD in this folder for the full build contract.
+
+For per-module implementation steps, see [`HOW_TO_BUILD.md`](HOW_TO_BUILD.md).

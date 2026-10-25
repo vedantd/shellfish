@@ -131,10 +131,19 @@ Handlers currently return TODO placeholders. Implement against `@shellfish/schem
 
 Before parallel work: You prove Devnet loan path + signing boundary; Gita freezes evidence / offer / compatibility response schemas; agree on API shapes. Until then, each engineer may use local fixtures — integration must consume canonical schemas, not ad-hoc fields.
 
+## How to build each module
+
+Step-by-step checklists (what to handle in auth, evidence, XRPL, etc.):
+
+→ **[`docs/HOW_TO_BUILD.md`](docs/HOW_TO_BUILD.md)**
+
+Each package also has its own README with the same steps in place.
+
 ## References
 
 - Full PRD: [`docs/Shellfish_Agentic_Credit_Gateway_PRD_v1_1_Team_Allocation.pdf`](docs/Shellfish_Agentic_Credit_Gateway_PRD_v1_1_Team_Allocation.pdf)
 - Architecture sketch: [`docs/architecture.md`](docs/architecture.md)
+- Module build steps: [`docs/HOW_TO_BUILD.md`](docs/HOW_TO_BUILD.md)
 - XRPL Lending Protocol: https://xrpl.org/docs/concepts/tokens/lending-protocol
 - Create a Loan tutorial: https://xrpl.org/docs/tutorials/defi/lending/use-the-lending-protocol/create-a-loan
 
