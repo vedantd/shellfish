@@ -271,21 +271,51 @@ export function createLedgerNativeVerifiers(options: LedgerVerifierOptions) {
     const configuration = await verifyAssetConfiguration({ lenderId: seed.facility.lender_id });
     need(configuration.borrowerRepBalanceU === reputation.available_u, "NATIVE_REP_BALANCE_MISMATCH");
     const pinned = { index: configuration.ledgerIndex, hash: configuration.ledgerHash };
-    let marker: unknown;
-    const seen = new Set<string>(), maximum = options.maxInventoryPages ?? 1000;
-    for (let page = 0; ; page++) {
-      need(page < maximum, "NATIVE_INVENTORY_LIMIT");
-      const result = responseResult(await client.request({ command: "ledger_data", ledger_index: pinned.index, ledger_hash: pinned.hash, type: "Loan", binary: false, limit: 256, ...(marker === undefined ? {} : { marker }) }));
-      need(result.validated === true && integer(result.ledger_index, true) === pinned.index && hash(result.ledger_hash) === pinned.hash && Array.isArray(result.state), "NATIVE_INVENTORY_INCOMPLETE");
-      for (const raw of result.state) {
-        const loan = object(raw); need(loan.LedgerEntryType === "Loan", "NATIVE_INVENTORY_WRONG_TYPE");
-        if (loan.Borrower !== borrowerAccount) continue;
-        const flags = integer(loan.Flags ?? 0);
-        need((flags & (DEFAULT | IMPAIRED)) === 0 && BigInt(nativeAmountToMinor(String(loan.PrincipalOutstanding ?? "0"), 10n ** 18n)) === 0n && BigInt(nativeAmountToMinor(String(loan.TotalValueOutstanding ?? "0"), 10n ** 18n)) === 0n && integer(loan.PaymentRemaining ?? 0) === 0, "NATIVE_OPENING_HISTORY_REQUIRED");
+    // Full-ledger Loan inventory is too large on public Devnet and dual ledger_hash/
+    // ledger_index params are rejected. Scope to borrower (+ broker) account objects.
+    const owners = [borrowerAccount, options.brokerAccount].filter(
+      (account, index, all): account is string => Boolean(account) && all.indexOf(account) === index,
+    );
+    for (const account of owners) {
+      let marker: unknown;
+      const seen = new Set<string>();
+      const maximum = options.maxInventoryPages ?? 1000;
+      for (let page = 0; ; page++) {
+        need(page < maximum, "NATIVE_INVENTORY_LIMIT");
+        const result = responseResult(await client.request({
+          command: "account_objects",
+          account,
+          ledger_hash: pinned.hash,
+          type: "loan",
+          deletion_blockers_only: false,
+          limit: 200,
+          ...(marker === undefined ? {} : { marker }),
+        }));
+        need(
+          result.validated === true &&
+            integer(result.ledger_index, true) === pinned.index &&
+            Array.isArray(result.account_objects),
+          "NATIVE_INVENTORY_INCOMPLETE",
+        );
+        for (const raw of result.account_objects) {
+          const loan = object(raw);
+          need(loan.LedgerEntryType === "Loan", "NATIVE_INVENTORY_WRONG_TYPE");
+          if (loan.Borrower !== borrowerAccount) continue;
+          const flags = integer(loan.Flags ?? 0);
+          need(
+            (flags & (DEFAULT | IMPAIRED)) === 0 &&
+              BigInt(nativeAmountToMinor(String(loan.PrincipalOutstanding ?? "0"), 10n ** 18n)) === 0n &&
+              BigInt(nativeAmountToMinor(String(loan.TotalValueOutstanding ?? "0"), 10n ** 18n)) === 0n &&
+              integer(loan.PaymentRemaining ?? 0) === 0,
+            "NATIVE_OPENING_HISTORY_REQUIRED",
+          );
+        }
+        marker = result.marker;
+        if (marker === undefined) break;
+        const encoded = canonicalJson(marker);
+        need(!seen.has(encoded), "NATIVE_INVENTORY_MARKER_CYCLE");
+        seen.add(encoded);
       }
-      marker = result.marker;
-      if (marker === undefined) break;
-      const encoded = canonicalJson(marker); need(!seen.has(encoded), "NATIVE_INVENTORY_MARKER_CYCLE"); seen.add(encoded);
     }
   }
 

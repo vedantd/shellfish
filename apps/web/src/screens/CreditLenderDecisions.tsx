@@ -1,28 +1,237 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  api,
+  ApiError,
+  formatAsset,
+  type EvidencePassport,
+  type LenderEvaluateResult,
+  type LenderOffer,
+} from "../lib/api";
+import { EVIDENCE_ID, FACILITY_ID, SUBJECT_ID } from "../demo/c0Materials";
+import { useDemoSession } from "../state/demoSession";
+
 export function CreditLenderDecisions() {
+  const session = useDemoSession();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function runCreditPath() {
+    if (!session.mandate) {
+      setError("Validate the mandate on Screen A first.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const isLive = session.mandate.mode === "LIVE_DEVNET";
+      const subjectId = isLive ? session.mandate.principal_id : SUBJECT_ID;
+      const evidenceId = isLive ? session.mandate.principal_id : EVIDENCE_ID;
+
+      const evidence = await api<EvidencePassport>(`/v1/evidence/${encodeURIComponent(evidenceId)}`);
+      session.setEvidence(evidence);
+
+      const lenderA = await api<LenderEvaluateResult>(
+        `/v1/lenders/lender-A/evaluate`,
+        { method: "POST", body: JSON.stringify({ subject_id: subjectId }) },
+      );
+      session.setLenderA(lenderA);
+
+      const lenderB = await api<LenderEvaluateResult>(
+        `/v1/lenders/lender-B/evaluate`,
+        { method: "POST", body: JSON.stringify({ subject_id: subjectId }) },
+      );
+      session.setLenderB(lenderB);
+
+      const offers: LenderOffer[] = [];
+      if (lenderA.decision === "APPROVE") offers.push(lenderA.offer);
+
+      const match = await api<{
+        decision?: string;
+        offer?: LenderOffer;
+        envelope_hash?: string;
+        reason_codes?: string[];
+      }>("/v1/offers/match", {
+        method: "POST",
+        body: JSON.stringify({
+          mandate: session.mandate,
+          offers,
+          evidence,
+        }),
+      });
+      const matched = match.offer ?? offers[0] ?? null;
+      session.setMatch(matched, match);
+
+      const facilityId =
+        (matched?.facility_id as string | undefined) ??
+        (isLive ? undefined : FACILITY_ID);
+      if (!facilityId) {
+        throw new Error("No facility_id on matched LIVE offer");
+      }
+
+      const status = await api(`/v1/facilities/${encodeURIComponent(facilityId)}/credit-status`);
+      session.setCreditStatus(status);
+
+      const quote = await api(`/v1/facilities/${encodeURIComponent(facilityId)}/quote`, {
+        method: "POST",
+        body: JSON.stringify({ principal_minor: "200000" }),
+      });
+      session.setQuote(quote);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Credit path failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const evidence = session.evidence;
+  const exposure = evidence?.known_exposure?.amount ?? "—";
+  const coverage = evidence?.known_exposure?.coverage ?? "—";
+  const historyMonths = evidence?.history?.accepted_history_months;
+
   return (
     <section className="screen">
-      <h2>B — Credit &amp; lender decisions</h2>
-      <p className="muted">
-        Gita evidence coverage, Lender A approve / Lender B decline, Nick
-        compatible envelope.
+      <h2>Credit &amp; lenders</h2>
+      <p className="lede">
+        One evidence passport → Lender A approve / Lender B decline → firm match. Quote
+        is informational only and grants no permission.
       </p>
-      <div className="cards">
-        <article className="card">
-          <h3>Gita passport</h3>
-          <p>Known exposure 3,000 · participating_sources_only</p>
-          <p className="todo">GET /v1/evidence/:id — TODO</p>
-        </article>
-        <article className="card">
-          <h3>Lender A</h3>
-          <p>Expected: APPROVE 2,000 @ 550 bps / 90 days</p>
-          <p className="todo">POST /v1/lenders/lender-A/evaluate — TODO</p>
-        </article>
-        <article className="card">
-          <h3>Lender B</h3>
-          <p>Expected: DECLINE (requires ≥12 months history)</p>
-          <p className="todo">POST /v1/lenders/lender-B/evaluate — TODO</p>
-        </article>
+
+      <div className="actions" style={{ marginTop: 0, marginBottom: "1rem" }}>
+        <button type="button" disabled={busy} onClick={() => void runCreditPath()}>
+          {busy ? "Running…" : "Load evidence · evaluate · match"}
+        </button>
+        {session.matchedOffer ? (
+          <Link className="btn secondary" to="/receipt">
+            Continue to authorization
+          </Link>
+        ) : null}
       </div>
+
+      {error ? <p className="error">{error}</p> : null}
+
+      {evidence ? (
+        <div className="band">
+          <h3>Evidence passport</h3>
+          <p>
+            Known exposure <strong>{exposure}</strong> · {coverage}
+          </p>
+          <p>
+            Observation{" "}
+            {evidence.history?.observation_start?.slice(0, 10) ?? "—"} →{" "}
+            {evidence.history?.observation_end?.slice(0, 10) ?? "—"}
+            {typeof historyMonths === "number"
+              ? ` · ${historyMonths} accepted months`
+              : ""}
+          </p>
+          {evidence.known_exposure?.asset ? (
+            <p className="note">
+              Asset {formatAsset(evidence.known_exposure.asset as never)}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {session.lenderA ? (
+        <div
+          className={`outcome ${
+            session.lenderA.decision === "APPROVE"
+              ? "settled-approve"
+              : "settled-decline"
+          }`}
+        >
+          <h3>
+            Lender A{" "}
+            <span
+              className={`pill-status ${
+                session.lenderA.decision === "APPROVE" ? "approve" : "decline"
+              }`}
+            >
+              {session.lenderA.decision}
+            </span>
+          </h3>
+          {session.lenderA.decision === "APPROVE" ? (
+            <p>
+              Firm offer {session.lenderA.offer.principal} @{" "}
+              {session.lenderA.offer.apr_bps} bps / {session.lenderA.offer.term_days}{" "}
+              days · {session.lenderA.offer.offer_id}
+            </p>
+          ) : (
+            <p>{session.lenderA.human_explanation ?? session.lenderA.reason_codes?.join(", ")}</p>
+          )}
+        </div>
+      ) : null}
+
+      {session.lenderB ? (
+        <div
+          className={`outcome ${
+            session.lenderB.decision === "APPROVE"
+              ? "settled-approve"
+              : "settled-decline"
+          }`}
+        >
+          <h3>
+            Lender B{" "}
+            <span
+              className={`pill-status ${
+                session.lenderB.decision === "APPROVE" ? "approve" : "decline"
+              }`}
+            >
+              {session.lenderB.decision}
+            </span>
+          </h3>
+          {session.lenderB.decision === "DECLINE" ? (
+            <p>
+              {session.lenderB.human_explanation ??
+                session.lenderB.reason_codes.join(", ")}
+            </p>
+          ) : (
+            <p>Unexpected approve from Lender B in this demo.</p>
+          )}
+        </div>
+      ) : null}
+
+      {session.matchedOffer ? (
+        <div className="doc-strip">
+          <h3>Compatible firm offer (unedited)</h3>
+          <dl className="grid">
+            <div>
+              <dt>Offer</dt>
+              <dd>{session.matchedOffer.offer_id}</dd>
+            </div>
+            <div>
+              <dt>Principal</dt>
+              <dd>{session.matchedOffer.principal}</dd>
+            </div>
+            <div>
+              <dt>Rate / term</dt>
+              <dd>
+                {session.matchedOffer.apr_bps} bps · {session.matchedOffer.term_days}{" "}
+                days
+              </dd>
+            </div>
+            <div>
+              <dt>Asset</dt>
+              <dd>{formatAsset(session.matchedOffer.asset as never)}</dd>
+            </div>
+          </dl>
+        </div>
+      ) : null}
+
+      {session.creditStatus ? (
+        <div className="note">
+          Facility{" "}
+          <span className="mono">
+            {(session.matchedOffer?.facility_id as string | undefined) ?? FACILITY_ID}
+          </span>{" "}
+          credit-status loaded from API (REP buckets / headroom).
+        </div>
+      ) : null}
+      {session.quote ? (
+        <div className="note">
+          Curve quote returned — <strong>preview only; grants no permission</strong>.
+        </div>
+      ) : null}
     </section>
   );
 }

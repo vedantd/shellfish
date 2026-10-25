@@ -21,11 +21,26 @@
 | Lifecycle repay timeout + DEFAULT_TOO_SOON | PASS | `tests/backend-lifecycle.test.ts` |
 | Intent one-hour TTL | PASS | Implemented in `native-credit.ts`; `tests/backend-native-intent.test.ts` |
 | Full combined suite | PASS | **215 PASS / 6 todo** (`pnpm exec vitest run --no-cache`) |
-| Full backend acceptance | NOT CLAIMED | Return-worker runtime suite, restart/unknown-debt audit, UI, Devnet smoke still open |
-| Connected Devnet smoke | NOT RUN | AUTH-DEVNET-001 still granted |
+| Full backend acceptance | NOT CLAIMED | Return-worker runtime suite, restart/unknown-debt audit, native return/default still open |
+| Connected Devnet smoke | **PASS** (AUTH-DEVNET-001) | UI A→B→C LIVE ALLOW → stake → LoanSet; real `tesSUCCESS` hash below |
 
-- Still open: fresh return-worker runtime suite, stored-vs-ledger restart audit, LIVE source-doc P2, UI Screens A/B, native smoke/return/default, six security TODOs.
+- Still open: fresh return-worker runtime suite, stored-vs-ledger restart audit, LIVE source-doc P2, native return/default, six security TODOs; `native_ready` stays false pending Gita schema allocation.
 - Do not treat playground-term verification doubles as 90d/0 product acceptance.
+
+### UI Slice 3 checkpoint (2026-10-25, Vedant)
+
+- State: **PASS** for demo UI (SIM + LIVE_DEVNET screens). Not full backend acceptance.
+- Shell: Familjen Grotesk + cool-paper/teal; `NetworkBadge` from `GET /v1/network`.
+- Screen A: LIVE uses `POST /v1/credit-intents` + mandate validate; SIM uses fixed C0 mandate.
+- Screen B: evidence → A/B evaluate → match → credit-status → informational quote (live IDs when LIVE).
+- Screen C: ALLOW → originate → `GET /v1/requests/:id`; denial demos for amount / rate / replay.
+- Checks: `pnpm --filter @shellfish/web typecheck` PASS; `pnpm --filter @shellfish/web build` PASS.
+- LIVE UI smoke (AUTH-DEVNET-001): **PASS** — Screen C `simulated: false`, `validated: true`.
+  - Borrower (public): `rJGpfvwqQodLQFCC9WShekyhsgWL41U67s`
+  - `txHash`: `75B10AF4607BC3DEF7F7D69B8C0A713457679D56754F5111ED51AAAAC05E58A0`
+  - `loanId`: `0B8DED853316BEF0F6883D458FD89AB4D38787E90F6E1C8883866B3846E40E00`
+  - Explorer: https://devnet.xrpl.org/transactions/75B10AF4607BC3DEF7F7D69B8C0A713457679D56754F5111ED51AAAAC05E58A0
+  - Seeds stay local (`.env.live.local`); never committed.
 
 ### Exact testing and hardening handoff
 

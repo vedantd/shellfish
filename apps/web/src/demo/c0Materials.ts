@@ -1,0 +1,43 @@
+/** Fixed C0 demo materials — validated by the API, not invented commercial terms. */
+export const demoMandate = {
+  mandate_id: "m-001",
+  principal_id: "business:harbor-supply-demo",
+  agent_id: "agent:procurement-01",
+  xrpl_borrower: "sim:borrower-harbor-supply",
+  asset: {
+    currency: "USD",
+    issuer: "sim:usd-issuer",
+  },
+  max_principal: "2500.00",
+  max_apr_bps: 600,
+  max_total_fees: "30.00",
+  max_term_days: 90,
+  allowed_purposes: ["working_capital"],
+  allowed_lenders: ["lender-A"],
+  expires_at: "2026-10-24T23:00:00Z",
+  nonce: "unique-mandate-01",
+  policy_version: "borrower-v1",
+  principal_signature: "sig-simulated-principal",
+  contract_version: "C0-REP-1",
+  model_version: "REP-CURVE-v0.2",
+  network: "devnet",
+  mode: "SIMULATED_LOAN",
+  rep_consent: {
+    authorized: true,
+    model_version: "REP-CURVE-v0.2",
+    policy_hash:
+      "sha256:7145bfb7a2359fd64bcca981a56cfa776c4e95056641577b38c653ccf9b65773",
+    rep_asset: {
+      mpt_issuance_id: "sim:rep-issuance",
+      issuer: "sim:rep-issuer",
+      asset_scale: 6,
+    },
+    max_stake_u: "760000000",
+  },
+  mandate_hash:
+    "sha256:b4544175829342a73b9bf669989aa374845b5857f128ee938af55fe6fa96e47f",
+} as const;
+
+export const SUBJECT_ID = "business:harbor-supply-demo";
+export const FACILITY_ID = "facility-A-001";
+export const EVIDENCE_ID = "business:harbor-supply-demo";
